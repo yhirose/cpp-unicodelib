@@ -10,110 +10,116 @@
 
 namespace unicodelib {
 
-/*
-   -- UTF-8 Specification --
+/* -- UTF-8 Specification --
    U+000000-U+00007F = 0xxxxxxx
    U+000080-U+0007FF = 110xxxxx 10yyyyyy
    U+000800-U+00FFFF = 1110xxxx 10yyyyyy 10zzzzzz
    U+010000-U+10FFFF = 11110www 10xxxxxx 10yyyyyy 10zzzzzz
-
-   -- UTF-16 Specification --
-   Modified UniScalar = 0000yyyy yyyyyyxx xxxxxxxx (Sub 0x10000 from UniScalar)
-   Hi-Surrogate       = 110110yy yyyyyyyy
-   Lo-Surrogate       = 110111xx xxxxxxxx
 */
 
-template <typename T>
-inline void enumerate_u8(const char* s, size_t len, T callback) {
-    size_t i = 0;
-    while (i < len) {
-        auto beg = i++;
-        while (i < len && (s[i] & 0xc0) == 0x80) {
-            i++;
-        }
-        callback(s, beg, i);
-    }
+const char32_t ErrorCode = U'\U0000FFFD';
+const char32_t MaxCode = U'\U0010FFFF';
+const size_t UTF8MaxByteLen = 4;
+
+inline size_t encode_bytes(char32_t uc) {
+    if (uc < 0x0080) { return 1; }
+    else if (uc < 0x0800) { return 2; }
+    else if (uc < 0xD800) { return 3; }
+    else if (uc < 0xe000) { return 0; } // D800 - DFFF is invalid...
+    else if (uc < 0x10000) { return 3; }
+    else if (uc < 0x110000) { return 4; }
+    return 0;
 }
 
-template <typename T>
-inline void enumerate_u8(const std::string& s, T callback) {
-    enumerate_u8(s.data(), s.length(), callback);
-}
-
-inline size_t to_u8(char32_t us, char* buff, size_t buff_len) {
-    if (us < 0x0080) {
-        buff[0] = (uint8_t)(us & 0x7f);
+inline size_t encode(char32_t uc, char* buff, size_t buff_len) {
+    if (uc < 0x0080) {
+        buff[0] = (uint8_t)(uc & 0x7F);
         return 1;
-    } else if (us < 0x0800) {
-        buff[0] = (uint8_t)(0xc0 | ((us >> 6) & 0x1f));
-        buff[1] = (uint8_t)(0x80 | (us & 0x3f));
+    } else if (uc < 0x0800) {
+        buff[0] = (uint8_t)(0xC0 | ((uc >> 6) & 0x1F));
+        buff[1] = (uint8_t)(0x80 | (uc & 0x3F));
         return 2;
-    } else if (us < 0xd800) {
-        buff[0] = (uint8_t)(0xe0 | ((us >> 12) & 0xf));
-        buff[1] = (uint8_t)(0x80 | ((us >> 6) & 0x3f));
-        buff[2] = (uint8_t)(0x80 | (us & 0x3f));
+    } else if (uc < 0xD800) {
+        buff[0] = (uint8_t)(0xE0 | ((uc >> 12) & 0xF));
+        buff[1] = (uint8_t)(0x80 | ((uc >> 6) & 0x3F));
+        buff[2] = (uint8_t)(0x80 | (uc & 0x3F));
         return 3;
-    } else if (us < 0xe000) { // D800 - DFFF is invalid...
+    } else if (uc < 0xE000) { // D800 - DFFF is invalid...
         return 0;
-    } else if (us < 0x10000) {
-        buff[0] = (uint8_t)(0xe0 | ((us >> 12) & 0xf));
-        buff[1] = (uint8_t)(0x80 | ((us >> 6) & 0x3f));
-        buff[2] = (uint8_t)(0x80 | (us & 0x3f));
+    } else if (uc < 0x10000) {
+        buff[0] = (uint8_t)(0xE0 | ((uc >> 12) & 0xF));
+        buff[1] = (uint8_t)(0x80 | ((uc >> 6) & 0x3F));
+        buff[2] = (uint8_t)(0x80 | (uc & 0x3F));
         return 3;
-    } else if (us < 0x110000) {
-        buff[0] = (uint8_t)(0xf0 | ((us >> 18) & 0x7));
-        buff[1] = (uint8_t)(0x80 | ((us >> 12) & 0x3f));
-        buff[2] = (uint8_t)(0x80 | ((us >> 6) & 0x3f));
-        buff[3] = (uint8_t)(0x80 | (us & 0x3f));
+    } else if (uc < 0x110000) {
+        buff[0] = (uint8_t)(0xF0 | ((uc >> 18) & 0x7));
+        buff[1] = (uint8_t)(0x80 | ((uc >> 12) & 0x3F));
+        buff[2] = (uint8_t)(0x80 | ((uc >> 6) & 0x3F));
+        buff[3] = (uint8_t)(0x80 | (uc & 0x3F));
         return 4;
     }
     return 0;
 }
 
-inline std::string to_u8(char32_t us) {
-    const size_t buff_len = 4;
-    char buff[buff_len];
-    auto len = to_u8(us, buff, buff_len);
-    return std::string{buff, len};
+inline size_t encode(char32_t uc, std::string& out) {
+    char b[UTF8MaxByteLen];
+    auto l = encode(uc, b, UTF8MaxByteLen);
+    out.append(b, l);
+    return l;
 }
 
-inline std::string to_u8string(const std::u32string& s32) {
-    std::string s;
-    for (char32_t us: s32) {
-        s += to_u8(us);
+inline void encode(const char32_t* s32, size_t l, std::string& out) {
+    for (size_t i = 0; i < l; i++) {
+        encode(s32[i], out);
     }
-    return s;
 }
 
-inline bool to_u32(const char* buff, size_t buff_len, size_t& read_buff_len, char32_t& us) {
-    if (buff_len) {
-        uint8_t code1 = buff[0];
-        if ((code1 & 0x80) == 0) {
-            read_buff_len = 1;
-            us = code1;
+inline std::string encode(const char32_t* s32, size_t l) {
+    std::string out;
+    encode(s32, l, out);
+    return out;
+}
+
+inline size_t decode_bytes(const char* s8, size_t l) {
+    if (l) {
+        uint8_t b = s8[0];
+        if ((b & 0x80) == 0) { return 1; }
+        else if ((b & 0xE0) == 0xC0) { return 2; }
+        else if ((b & 0xF0) == 0xE0) { return 3; }
+        else if ((b & 0xF8) == 0xF0) { return 4; }
+    }
+    return 0;
+}
+
+inline bool decode(const char* s8, size_t l, size_t& bytes, char32_t& uc) {
+    if (l) {
+        uint8_t b = s8[0];
+        if ((b & 0x80) == 0) {
+            bytes = 1;
+            uc = b;
             return true;
-        } else if ((code1 & 0xe0) == 0xc0) {
-            if (buff_len >= 2) {
-                read_buff_len = 2;
-                us = (((char32_t)(buff[0] & 0x1f)) << 6) |
-                    ((char32_t)(buff[1] & 0x3f));
+        } else if ((b & 0xE0) == 0xC0) {
+            if (l >= 2) {
+                bytes = 2;
+                uc = (((char32_t)(s8[0] & 0x1F)) << 6) |
+                    ((char32_t)(s8[1] & 0x3F));
                 return true;
             }
-        } else if ((code1 & 0xf0) == 0xe0) {
-            if (buff_len >= 3) {
-                read_buff_len = 3;
-                us = (((char32_t)(buff[0] & 0x0f)) << 12) |
-                    (((char32_t)(buff[1] & 0x3f)) << 6) |
-                    ((char32_t)(buff[2] & 0x3f));
+        } else if ((b & 0xF0) == 0xE0) {
+            if (l >= 3) {
+                bytes = 3;
+                uc = (((char32_t)(s8[0] & 0x0F)) << 12) |
+                    (((char32_t)(s8[1] & 0x3F)) << 6) |
+                    ((char32_t)(s8[2] & 0x3F));
                 return true;
             }
-        } else if ((code1 & 0xf8) == 0xf0) {
-            if (buff_len >= 4) {
-                read_buff_len = 4;
-                us = (((char32_t)(buff[0] & 0x07)) << 18) |
-                    (((char32_t)(buff[1] & 0x3f)) << 12) |
-                    (((char32_t)(buff[2] & 0x3f)) << 6) |
-                    ((char32_t)(buff[3] & 0x3f));
+        } else if ((b & 0xF8) == 0xF0) {
+            if (l >= 4) {
+                bytes = 4;
+                uc = (((char32_t)(s8[0] & 0x07)) << 18) |
+                    (((char32_t)(s8[1] & 0x3F)) << 12) |
+                    (((char32_t)(s8[2] & 0x3F)) << 6) |
+                    ((char32_t)(s8[3] & 0x3F));
                 return true;
             }
         }
@@ -121,21 +127,48 @@ inline bool to_u32(const char* buff, size_t buff_len, size_t& read_buff_len, cha
     return false;
 }
 
-inline char32_t to_u32(const std::string& u8, size_t& len) {
-    char32_t us;
-    to_u32(u8.data(), u8.size(), len, us);
-    return us;
+inline size_t decode(const char* s8, size_t l, char32_t& out) {
+    size_t bytes;
+    if (decode(s8, l, bytes, out)) {
+        return bytes;
+    }
+    return 0;
 }
 
-inline std::u32string to_u32string(const std::string& s) {
-    std::u32string s32;
-    enumerate_u8(s, [&](const auto& s, auto beg, auto end) {
-        size_t len;
-        char32_t us;
-        to_u32(&s[beg], (end - beg), len, us);
-        s32 += us;
+template <typename T>
+inline void for_each(const char* s, size_t l, T callback) {
+    size_t id = 0;
+    size_t i = 0;
+    while (i < l) {
+        auto beg = i++;
+        while (i < l && (s[i] & 0xc0) == 0x80) {
+            i++;
+        }
+        callback(s, l, beg, i, id++);
+    }
+}
+
+inline void decode(const char* s8, size_t l, std::u32string& out) {
+    for_each(s8, l, [&](const char* s, size_t l, size_t beg, size_t end, size_t i) {
+        size_t bytes;
+        char32_t uc;
+        decode(&s[beg], (end - beg), bytes, uc);
+        out += uc;
     });
-    return s32;
+}
+
+inline std::u32string decode(const char* s8, size_t l) {
+    std::u32string out;
+    decode(s8, l, out);
+    return out;
+}
+
+inline size_t count(const char* s8, size_t l) {
+    size_t c = 0;
+    for (size_t i = 0; i < l; i += decode_bytes(s8 + i, l - i)) {
+        c++;
+    }
+    return c;
 }
 
 } // namespace unicodelib
