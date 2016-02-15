@@ -8,7 +8,7 @@
 #ifndef _CPPFSTLIB_UNICODELIB_H_
 #define _CPPFSTLIB_UNICODELIB_H_
 
-namespace unicodelib {
+namespace unicode {
 
 /* -- UTF-8 Specification --
    U+000000-U+00007F = 0xxxxxxx
@@ -68,15 +68,33 @@ inline size_t encode(char32_t uc, std::string& out) {
     return l;
 }
 
+inline std::string encode(char32_t uc) {
+    std::string out;
+    encode(uc, out);
+    return out;
+}
+
 inline void encode(const char32_t* s32, size_t l, std::string& out) {
     for (size_t i = 0; i < l; i++) {
         encode(s32[i], out);
     }
 }
 
+template<typename T>
+inline void encode(const T& s32, std::string& out) {
+    encode(s32.data(), s32.length(), out);
+}
+
 inline std::string encode(const char32_t* s32, size_t l) {
     std::string out;
     encode(s32, l, out);
+    return out;
+}
+
+template<typename T>
+inline std::string encode(const T& s32) {
+    std::string out;
+    encode(s32, out);
     return out;
 }
 
@@ -157,9 +175,21 @@ inline void decode(const char* s8, size_t l, std::u32string& out) {
     });
 }
 
+template<typename T>
+inline void decode(const T& s8, std::u32string& out) {
+    decode(s8.data(), s8.length(), out);
+}
+
 inline std::u32string decode(const char* s8, size_t l) {
     std::u32string out;
     decode(s8, l, out);
+    return out;
+}
+
+template<typename T>
+inline std::u32string decode(const T& s8) {
+    std::u32string out;
+    decode(s8.data(), s8.length(), out);
     return out;
 }
 
@@ -171,7 +201,7 @@ inline size_t count(const char* s8, size_t l) {
     return c;
 }
 
-} // namespace unicodelib
+} // namespace unicode
 
 #endif
 // vim: et ts=4 sw=4 cin cino={1s ff=unix
