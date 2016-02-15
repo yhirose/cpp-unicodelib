@@ -4,7 +4,7 @@
 #include <unicodelib.h>
 
 using namespace std;
-namespace ucl = unicodelib;
+namespace ucl = unicode;
 
 std::string u8text = u8"日本語もOKです。";
 std::u32string u32text = U"日本語もOKです。";
@@ -44,6 +44,7 @@ TEST_CASE("encode 3", "[general]") {
 }
 
 TEST_CASE("decode_bytes", "[general]") {
+    REQUIRE(ucl::decode_bytes(str1) == 1);
     REQUIRE(ucl::decode_bytes(str1.data(), str1.length()) == 1);
     REQUIRE(ucl::decode_bytes(str2.data(), str2.length()) == 2);
     REQUIRE(ucl::decode_bytes(str3.data(), str3.length()) == 3);
@@ -55,7 +56,8 @@ TEST_CASE("count", "[general]") {
 }
 
 TEST_CASE("decode 1", "[general]") {
-    char32_t out1, out2, out3, out4;
+    char32_t out, out1, out2, out3, out4;
+    REQUIRE(ucl::decode(str1, out) == 1);
     REQUIRE(ucl::decode(str1.data(), str1.length(), out1) == 1);
     REQUIRE(ucl::decode(str2.data(), str2.length(), out2) == 2);
     REQUIRE(ucl::decode(str3.data(), str3.length(), out3) == 3);
@@ -63,11 +65,16 @@ TEST_CASE("decode 1", "[general]") {
 }
 
 TEST_CASE("decode 2", "[general]") {
-    std::u32string out;
-    ucl::decode(u8text.data(), u8text.length(), out);
-    REQUIRE(out == u32text);
+    std::u32string out1;
+    ucl::decode(u8text, out1);
+    REQUIRE(out1 == u32text);
+
+    std::u32string out2;
+    ucl::decode(u8text.data(), u8text.length(), out2);
+    REQUIRE(out2 == u32text);
 }
 
 TEST_CASE("decode 3", "[general]") {
+    REQUIRE(ucl::decode(u8text) == u32text);
     REQUIRE(ucl::decode(u8text.data(), u8text.length()) == u32text);
 }

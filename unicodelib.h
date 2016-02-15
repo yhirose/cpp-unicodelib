@@ -109,6 +109,11 @@ inline size_t decode_bytes(const char* s8, size_t l) {
     return 0;
 }
 
+template<typename T>
+inline size_t decode_bytes(const T& s8) {
+    return decode_bytes(s8.data(), s8.length());
+}
+
 inline bool decode(const char* s8, size_t l, size_t& bytes, char32_t& uc) {
     if (l) {
         uint8_t b = s8[0];
@@ -151,6 +156,11 @@ inline size_t decode(const char* s8, size_t l, char32_t& out) {
         return bytes;
     }
     return 0;
+}
+
+template<typename T>
+inline size_t decode(const T& s8, char32_t& out) {
+    return decode(s8.data(), s8.length(), out);
 }
 
 template <typename T>
