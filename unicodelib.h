@@ -10,6 +10,49 @@
 
 namespace unicode {
 
+//-----------------------------------------------------------------------------
+// Constants
+//-----------------------------------------------------------------------------
+
+const char32_t ErrorCode = U'\U0000FFFD';
+const char32_t MaxCode = U'\U0010FFFF';
+
+//-----------------------------------------------------------------------------
+// Unicode properties
+//-----------------------------------------------------------------------------
+
+enum GeneralCategory {
+    Invalid = -1,
+    L, Lu, Ll, Lt,
+    LC, Lm, Lo,
+    M, Mn, Mc, Me,
+    N, Nd, Nl, No,
+    P, Pc, Pd, Ps, Pe, Pi, Pf, Po,
+    S, Sm, Sc, Sk, So,
+    Z, Zs, Zl, Zp,
+    C, Cc, Cf, Cs, Co, Cn,
+};
+
+struct UCDEntry {
+    GeneralCategory gc;
+};
+
+static UCDEntry ucd_entries_[] = {
+#include "_unicode_data_entries.h"
+};
+
+inline size_t ucd_entry_size() {
+    return sizeof(ucd_entries_) / sizeof(ucd_entries_[0]);
+}
+
+inline GeneralCategory general_category(char32_t cp) {
+    return ucd_entries_[cp].gc;
+}
+
+//-----------------------------------------------------------------------------
+// UTF8 encode/decode
+//-----------------------------------------------------------------------------
+
 /* -- UTF-8 Specification --
    U+000000-U+00007F = 0xxxxxxx
    U+000080-U+0007FF = 110xxxxx 10yyyyyy
@@ -17,60 +60,58 @@ namespace unicode {
    U+010000-U+10FFFF = 11110www 10xxxxxx 10yyyyyy 10zzzzzz
 */
 
-const char32_t ErrorCode = U'\U0000FFFD';
-const char32_t MaxCode = U'\U0010FFFF';
 const size_t UTF8MaxByteLen = 4;
 
-inline size_t encode_bytes(char32_t uc) {
-    if (uc < 0x0080) { return 1; }
-    else if (uc < 0x0800) { return 2; }
-    else if (uc < 0xD800) { return 3; }
-    else if (uc < 0xe000) { return 0; } // D800 - DFFF is invalid...
-    else if (uc < 0x10000) { return 3; }
-    else if (uc < 0x110000) { return 4; }
+inline size_t encode_byte_length(char32_t cp) {
+    if (cp < 0x0080) { return 1; }
+    else if (cp < 0x0800) { return 2; }
+    else if (cp < 0xD800) { return 3; }
+    else if (cp < 0xe000) { return 0; } // D800 - DFFF is invalid...
+    else if (cp < 0x10000) { return 3; }
+    else if (cp < 0x110000) { return 4; }
     return 0;
 }
 
-inline size_t encode(char32_t uc, char* buff, size_t buff_len) {
-    if (uc < 0x0080) {
-        buff[0] = (uint8_t)(uc & 0x7F);
+inline size_t encode(char32_t cp, char* buff, size_t buff_len) {
+    if (cp < 0x0080) {
+        buff[0] = (uint8_t)(cp & 0x7F);
         return 1;
-    } else if (uc < 0x0800) {
-        buff[0] = (uint8_t)(0xC0 | ((uc >> 6) & 0x1F));
-        buff[1] = (uint8_t)(0x80 | (uc & 0x3F));
+    } else if (cp < 0x0800) {
+        buff[0] = (uint8_t)(0xC0 | ((cp >> 6) & 0x1F));
+        buff[1] = (uint8_t)(0x80 | (cp & 0x3F));
         return 2;
-    } else if (uc < 0xD800) {
-        buff[0] = (uint8_t)(0xE0 | ((uc >> 12) & 0xF));
-        buff[1] = (uint8_t)(0x80 | ((uc >> 6) & 0x3F));
-        buff[2] = (uint8_t)(0x80 | (uc & 0x3F));
+    } else if (cp < 0xD800) {
+        buff[0] = (uint8_t)(0xE0 | ((cp >> 12) & 0xF));
+        buff[1] = (uint8_t)(0x80 | ((cp >> 6) & 0x3F));
+        buff[2] = (uint8_t)(0x80 | (cp & 0x3F));
         return 3;
-    } else if (uc < 0xE000) { // D800 - DFFF is invalid...
+    } else if (cp < 0xE000) { // D800 - DFFF is invalid...
         return 0;
-    } else if (uc < 0x10000) {
-        buff[0] = (uint8_t)(0xE0 | ((uc >> 12) & 0xF));
-        buff[1] = (uint8_t)(0x80 | ((uc >> 6) & 0x3F));
-        buff[2] = (uint8_t)(0x80 | (uc & 0x3F));
+    } else if (cp < 0x10000) {
+        buff[0] = (uint8_t)(0xE0 | ((cp >> 12) & 0xF));
+        buff[1] = (uint8_t)(0x80 | ((cp >> 6) & 0x3F));
+        buff[2] = (uint8_t)(0x80 | (cp & 0x3F));
         return 3;
-    } else if (uc < 0x110000) {
-        buff[0] = (uint8_t)(0xF0 | ((uc >> 18) & 0x7));
-        buff[1] = (uint8_t)(0x80 | ((uc >> 12) & 0x3F));
-        buff[2] = (uint8_t)(0x80 | ((uc >> 6) & 0x3F));
-        buff[3] = (uint8_t)(0x80 | (uc & 0x3F));
+    } else if (cp < 0x110000) {
+        buff[0] = (uint8_t)(0xF0 | ((cp >> 18) & 0x7));
+        buff[1] = (uint8_t)(0x80 | ((cp >> 12) & 0x3F));
+        buff[2] = (uint8_t)(0x80 | ((cp >> 6) & 0x3F));
+        buff[3] = (uint8_t)(0x80 | (cp & 0x3F));
         return 4;
     }
     return 0;
 }
 
-inline size_t encode(char32_t uc, std::string& out) {
+inline size_t encode(char32_t cp, std::string& out) {
     char b[UTF8MaxByteLen];
-    auto l = encode(uc, b, UTF8MaxByteLen);
+    auto l = encode(cp, b, UTF8MaxByteLen);
     out.append(b, l);
     return l;
 }
 
-inline std::string encode(char32_t uc) {
+inline std::string encode(char32_t cp) {
     std::string out;
-    encode(uc, out);
+    encode(cp, out);
     return out;
 }
 
@@ -98,7 +139,7 @@ inline std::string encode(const T& s32) {
     return out;
 }
 
-inline size_t decode_bytes(const char* s8, size_t l) {
+inline size_t decode_byte_length(const char* s8, size_t l) {
     if (l) {
         uint8_t b = s8[0];
         if ((b & 0x80) == 0) { return 1; }
@@ -110,28 +151,28 @@ inline size_t decode_bytes(const char* s8, size_t l) {
 }
 
 template<typename T>
-inline size_t decode_bytes(const T& s8) {
-    return decode_bytes(s8.data(), s8.length());
+inline size_t decode_byte_length(const T& s8) {
+    return decode_byte_length(s8.data(), s8.length());
 }
 
-inline bool decode(const char* s8, size_t l, size_t& bytes, char32_t& uc) {
+inline bool decode(const char* s8, size_t l, size_t& bytes, char32_t& cp) {
     if (l) {
         uint8_t b = s8[0];
         if ((b & 0x80) == 0) {
             bytes = 1;
-            uc = b;
+            cp = b;
             return true;
         } else if ((b & 0xE0) == 0xC0) {
             if (l >= 2) {
                 bytes = 2;
-                uc = (((char32_t)(s8[0] & 0x1F)) << 6) |
+                cp = (((char32_t)(s8[0] & 0x1F)) << 6) |
                     ((char32_t)(s8[1] & 0x3F));
                 return true;
             }
         } else if ((b & 0xF0) == 0xE0) {
             if (l >= 3) {
                 bytes = 3;
-                uc = (((char32_t)(s8[0] & 0x0F)) << 12) |
+                cp = (((char32_t)(s8[0] & 0x0F)) << 12) |
                     (((char32_t)(s8[1] & 0x3F)) << 6) |
                     ((char32_t)(s8[2] & 0x3F));
                 return true;
@@ -139,7 +180,7 @@ inline bool decode(const char* s8, size_t l, size_t& bytes, char32_t& uc) {
         } else if ((b & 0xF8) == 0xF0) {
             if (l >= 4) {
                 bytes = 4;
-                uc = (((char32_t)(s8[0] & 0x07)) << 18) |
+                cp = (((char32_t)(s8[0] & 0x07)) << 18) |
                     (((char32_t)(s8[1] & 0x3F)) << 12) |
                     (((char32_t)(s8[2] & 0x3F)) << 6) |
                     ((char32_t)(s8[3] & 0x3F));
@@ -179,9 +220,9 @@ inline void for_each(const char* s, size_t l, T callback) {
 inline void decode(const char* s8, size_t l, std::u32string& out) {
     for_each(s8, l, [&](const char* s, size_t l, size_t beg, size_t end, size_t i) {
         size_t bytes;
-        char32_t uc;
-        decode(&s[beg], (end - beg), bytes, uc);
-        out += uc;
+        char32_t cp;
+        decode(&s[beg], (end - beg), bytes, cp);
+        out += cp;
     });
 }
 
@@ -203,9 +244,9 @@ inline std::u32string decode(const T& s8) {
     return out;
 }
 
-inline size_t count(const char* s8, size_t l) {
+inline size_t codepoint_count(const char* s8, size_t l) {
     size_t c = 0;
-    for (size_t i = 0; i < l; i += decode_bytes(s8 + i, l - i)) {
+    for (size_t i = 0; i < l; i += decode_byte_length(s8 + i, l - i)) {
         c++;
     }
     return c;
