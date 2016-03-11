@@ -22,15 +22,13 @@ const char32_t MaxCode = U'\U0010FFFF';
 //-----------------------------------------------------------------------------
 
 enum GeneralCategory {
-    Invalid = -1,
-    L, Lu, Ll, Lt,
-    LC, Lm, Lo,
-    M, Mn, Mc, Me,
-    N, Nd, Nl, No,
-    P, Pc, Pd, Ps, Pe, Pi, Pf, Po,
-    S, Sm, Sc, Sk, So,
-    Z, Zs, Zl, Zp,
-    C, Cc, Cf, Cs, Co, Cn,
+    Lu, Ll, Lt, Lm, Lo,
+    Mn, Mc, Me,
+    Nd, Nl, No,
+    Pc, Pd, Ps, Pe, Pi, Pf, Po,
+    Sm, Sc, Sk, So,
+    Zs, Zl, Zp,
+    Cc, Cf, Cs, Co, Cn,
 };
 
 struct UCDEntry {
@@ -47,6 +45,95 @@ inline size_t ucd_entry_size() {
 
 inline GeneralCategory general_category(char32_t cp) {
     return ucd_entries_[cp].gc;
+}
+
+inline bool is_cased_letter(char32_t cp) {
+    switch (ucd_entries_[cp].gc) {
+        case Lu:
+        case Ll:
+        case Lt:
+            return true;
+    }
+    return false;
+}
+
+inline bool is_letter(char32_t cp) {
+    switch (ucd_entries_[cp].gc) {
+        case Lu:
+        case Ll:
+        case Lt:
+        case Lm:
+        case Lo:
+            return true;
+    }
+    return false;
+}
+
+inline bool is_mark(char32_t cp) {
+    switch (ucd_entries_[cp].gc) {
+        case Mn:
+        case Mc:
+        case Me:
+            return true;
+    }
+    return false;
+}
+
+inline bool is_number(char32_t cp) {
+    switch (ucd_entries_[cp].gc) {
+        case Nd:
+        case Nl:
+        case No:
+            return true;
+    }
+    return false;
+}
+
+inline bool is_punctuation(char32_t cp) {
+    switch (ucd_entries_[cp].gc) {
+        case Pc:
+        case Pd:
+        case Ps:
+        case Pe:
+        case Pi:
+        case Pf:
+        case Po:
+            return true;
+    }
+    return false;
+}
+
+inline bool is_symbol(char32_t cp) {
+    switch (ucd_entries_[cp].gc) {
+        case Sm:
+        case Sc:
+        case Sk:
+        case So:
+            return true;
+    }
+    return false;
+}
+
+inline bool is_separator(char32_t cp) {
+    switch (ucd_entries_[cp].gc) {
+        case Zs:
+        case Zl:
+        case Zp:
+            return true;
+    }
+    return false;
+}
+
+inline bool is_other(char32_t cp) {
+    switch (ucd_entries_[cp].gc) {
+        case Cc:
+        case Cf:
+        case Cs:
+        case Co:
+        case Cn:
+            return true;
+    }
+    return false;
 }
 
 //-----------------------------------------------------------------------------

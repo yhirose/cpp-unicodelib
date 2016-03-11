@@ -19,8 +19,14 @@ const size_t UTF8MaxByteLen = 4;
 ### Unicode properties
 
 ```cpp
-enum UnicodeCategory;
-GeneralCategory general_category(char32_t cp);
+GeneralCategory general_category(char32_t cp)
+bool is_letter(char32_t cp)
+bool is_mark(char32_t cp)
+bool is_number(char32_t cp)
+bool is_punctuation(char32_t cp)
+bool is_symbol(char32_t cp)
+bool is_separator(char32_t cp)
+bool is_other(char32_t cp)
 ```
 
 ### UTF8 encode/decode

@@ -15,7 +15,7 @@ def iterateUCDItems():
         category = flds[2]
 
         for cp in range(codePointPrev + 1, codePoint):
-            yield cp, 'Invalid'
+            yield cp, 'Cn'
 
         if flds[1].endswith('First>'):
             fldsLast = data[i + 1]
@@ -31,7 +31,7 @@ def iterateUCDItems():
             i += 1
 
     for cp in range(codePointPrev + 1, MaxCode + 1):
-        yield cp, 'Invalid'
+        yield cp, 'Cn'
 
 for cp, cat in iterateUCDItems():
     print("    { %s }," % (cat))

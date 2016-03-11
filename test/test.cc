@@ -88,3 +88,19 @@ TEST_CASE("General category", "[property]") {
     REQUIRE(ucl::general_category(0x0371) == ucl::Ll);
     REQUIRE(ucl::general_category(0x0483) == ucl::Mn);
 }
+
+TEST_CASE("General category predicate functions", "[property]") {
+    REQUIRE(ucl::is_letter(U'a') == true);
+    REQUIRE(ucl::is_letter(U'あ') == true);
+    REQUIRE(ucl::is_mark(0x0303) == true);
+    REQUIRE(ucl::is_number(U'1') == true);
+    REQUIRE(ucl::is_number(U'¼') == true);
+    REQUIRE(ucl::is_punctuation(U'-') == true);
+    REQUIRE(ucl::is_separator(0x2028) == true);
+    REQUIRE(ucl::is_symbol(U'€') == true);
+    REQUIRE(ucl::is_other(0x0000) == true);
+    REQUIRE(ucl::is_other(0x00AD) == true); // Soft hyphen
+    REQUIRE(ucl::is_other(0xD800) == true); // Surrogate
+    REQUIRE(ucl::is_other(0xE000) == true); // Private Use
+    REQUIRE(ucl::is_other(0x0378) == true); // Unassigned
+}
