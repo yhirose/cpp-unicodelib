@@ -17,14 +17,14 @@ namespace unicode {
 // Constants
 //-----------------------------------------------------------------------------
 
-const char32_t ErrorCode = U'\U0000FFFD';
-const char32_t MaxCode = U'\U0010FFFF';
+const char32_t ErrorCode = 0x0000FFFD;
+const char32_t MaxCode = 0x0010FFFF;
 
 //-----------------------------------------------------------------------------
 // Unicode properties
 //-----------------------------------------------------------------------------
 
-enum GeneralCategory {
+enum class GeneralCategory {
     Lu, Uppercase_Letter = Lu,
     Ll, Lowercase_Letter = Ll,
     Lt, Titlecase_Letter = Lt,
@@ -65,13 +65,13 @@ enum GeneralCategory {
     C, Other = C,
 };
 
-GeneralCategory general_category(char32_t cp);
+extern GeneralCategory general_category(char32_t cp);
 
 inline bool is_cased_letter(char32_t cp) {
     switch (general_category(cp)) {
-        case Lu:
-        case Ll:
-        case Lt:
+        case GeneralCategory::Lu:
+        case GeneralCategory::Ll:
+        case GeneralCategory::Lt:
             return true;
         default:
             return false;
@@ -80,11 +80,11 @@ inline bool is_cased_letter(char32_t cp) {
 
 inline bool is_letter(char32_t cp) {
     switch (general_category(cp)) {
-        case Lu:
-        case Ll:
-        case Lt:
-        case Lm:
-        case Lo:
+        case GeneralCategory::Lu:
+        case GeneralCategory::Ll:
+        case GeneralCategory::Lt:
+        case GeneralCategory::Lm:
+        case GeneralCategory::Lo:
             return true;
         default:
             return false;
@@ -93,9 +93,9 @@ inline bool is_letter(char32_t cp) {
 
 inline bool is_mark(char32_t cp) {
     switch (general_category(cp)) {
-        case Mn:
-        case Mc:
-        case Me:
+        case GeneralCategory::Mn:
+        case GeneralCategory::Mc:
+        case GeneralCategory::Me:
             return true;
         default:
             return false;
@@ -104,9 +104,9 @@ inline bool is_mark(char32_t cp) {
 
 inline bool is_number(char32_t cp) {
     switch (general_category(cp)) {
-        case Nd:
-        case Nl:
-        case No:
+        case GeneralCategory::Nd:
+        case GeneralCategory::Nl:
+        case GeneralCategory::No:
             return true;
         default:
             return false;
@@ -115,13 +115,13 @@ inline bool is_number(char32_t cp) {
 
 inline bool is_punctuation(char32_t cp) {
     switch (general_category(cp)) {
-        case Pc:
-        case Pd:
-        case Ps:
-        case Pe:
-        case Pi:
-        case Pf:
-        case Po:
+        case GeneralCategory::Pc:
+        case GeneralCategory::Pd:
+        case GeneralCategory::Ps:
+        case GeneralCategory::Pe:
+        case GeneralCategory::Pi:
+        case GeneralCategory::Pf:
+        case GeneralCategory::Po:
             return true;
         default:
             return false;
@@ -130,10 +130,10 @@ inline bool is_punctuation(char32_t cp) {
 
 inline bool is_symbol(char32_t cp) {
     switch (general_category(cp)) {
-        case Sm:
-        case Sc:
-        case Sk:
-        case So:
+        case GeneralCategory::Sm:
+        case GeneralCategory::Sc:
+        case GeneralCategory::Sk:
+        case GeneralCategory::So:
             return true;
         default:
             return false;
@@ -142,9 +142,9 @@ inline bool is_symbol(char32_t cp) {
 
 inline bool is_separator(char32_t cp) {
     switch (general_category(cp)) {
-        case Zs:
-        case Zl:
-        case Zp:
+        case GeneralCategory::Zs:
+        case GeneralCategory::Zl:
+        case GeneralCategory::Zp:
             return true;
         default:
             return false;
@@ -153,11 +153,11 @@ inline bool is_separator(char32_t cp) {
 
 inline bool is_other(char32_t cp) {
     switch (general_category(cp)) {
-        case Cc:
-        case Cf:
-        case Cs:
-        case Co:
-        case Cn:
+        case GeneralCategory::Cc:
+        case GeneralCategory::Cf:
+        case GeneralCategory::Cs:
+        case GeneralCategory::Co:
+        case GeneralCategory::Cn:
             return true;
         default:
             return false;
@@ -315,8 +315,8 @@ inline size_t decode(const char* s8, size_t l, char32_t& out) {
 }
 
 template<typename T>
-inline size_t decode(const T& s8, char32_t& out) {
-    return decode(s8.data(), s8.length(), out);
+inline size_t decode(const T& s8, char32_t& cp) {
+    return decode(s8.data(), s8.length(), cp);
 }
 
 template <typename T>
@@ -366,6 +366,16 @@ inline size_t codepoint_count(const char* s8, size_t l) {
     }
     return c;
 }
+
+//-----------------------------------------------------------------------------
+// Unicode text segmentation
+//-----------------------------------------------------------------------------
+
+extern bool is_grapheme_boundary(const char32_t* s32, size_t l, size_t i);
+
+extern size_t grapheme_length(const char32_t* s32, size_t l);
+
+extern size_t grapheme_count(const char32_t* s32, size_t l);
 
 } // namespace unicode
 
