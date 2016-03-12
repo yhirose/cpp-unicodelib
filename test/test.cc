@@ -79,14 +79,12 @@ TEST_CASE("decode 3", "[utf8]") {
     REQUIRE(ucl::decode(u8text.data(), u8text.length()) == u32text);
 }
 
-TEST_CASE("UCD entry size", "[property]") {
-    REQUIRE(ucl::ucd_entry_size() == ucl::MaxCode + 1);
-}
-
 TEST_CASE("General category", "[property]") {
+    REQUIRE(ucl::general_category(0x0000) == ucl::Cc);
     REQUIRE(ucl::general_category(0x0370) == ucl::Lu);
     REQUIRE(ucl::general_category(0x0371) == ucl::Ll);
     REQUIRE(ucl::general_category(0x0483) == ucl::Mn);
+    REQUIRE(ucl::general_category(ucl::MaxCode) == ucl::Unassigned);
 }
 
 TEST_CASE("General category predicate functions", "[property]") {

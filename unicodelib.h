@@ -8,6 +8,9 @@
 #ifndef _CPPFSTLIB_UNICODELIB_H_
 #define _CPPFSTLIB_UNICODELIB_H_
 
+#include <cstdlib>
+#include <string>
+
 namespace unicode {
 
 //-----------------------------------------------------------------------------
@@ -22,75 +25,96 @@ const char32_t MaxCode = U'\U0010FFFF';
 //-----------------------------------------------------------------------------
 
 enum GeneralCategory {
-    Lu, Ll, Lt, Lm, Lo,
-    Mn, Mc, Me,
-    Nd, Nl, No,
-    Pc, Pd, Ps, Pe, Pi, Pf, Po,
-    Sm, Sc, Sk, So,
-    Zs, Zl, Zp,
-    Cc, Cf, Cs, Co, Cn,
+    Lu, Uppercase_Letter = Lu,
+    Ll, Lowercase_Letter = Ll,
+    Lt, Titlecase_Letter = Lt,
+    LC, Cased_Letter = LC,
+    Lm, Modifier_Letter = Lm,
+    Lo, Other_Letter = Lo,
+    L, Letter = L,
+    Mn, Nonspacing_Mark = Mn,
+    Mc, Spacing_Mark = Mc,
+    Me, Enclosing_Mark = Me,
+    M, Mark = M,
+    Nd, Decimal_Number = Nd,
+    Nl, Letter_Number = Nl,
+    No, Other_Number = No,
+    N, Number = N,
+    Pc, Connector_Punctuation = Pc,
+    Pd, Dash_Punctuation = Pd,
+    Ps, Open_Punctuation = Ps,
+    Pe, Close_Punctuation = Pe,
+    Pi, Initial_Punctuation = Pi,
+    Pf, Final_Punctuation = Pf,
+    Po, Other_Punctuation = Po,
+    P, Punctuation = P,
+    Sm, Math_Symbol = Sm,
+    Sc, Currency_Symbol = Sc,
+    Sk, Modifier_Symbol = Sk,
+    So, Other_Symbol = So,
+    S, Symbol = S,
+    Zs, Space_Separator = Zs,
+    Zl, Line_Separator = Zl,
+    Zp, Paragraph_Separator = Zp,
+    Z, Separator = Z,
+    Cc, Control = Cc,
+    Cf, Format = Cf,
+    Cs, Surrogate = Cs,
+    Co, Private_Use = Co,
+    Cn, Unassigned = Cn,
+    C, Other = C,
 };
 
-struct UCDEntry {
-    GeneralCategory gc;
-};
-
-static UCDEntry ucd_entries_[] = {
-#include "_unicode_data_entries.h"
-};
-
-inline size_t ucd_entry_size() {
-    return sizeof(ucd_entries_) / sizeof(ucd_entries_[0]);
-}
-
-inline GeneralCategory general_category(char32_t cp) {
-    return ucd_entries_[cp].gc;
-}
+GeneralCategory general_category(char32_t cp);
 
 inline bool is_cased_letter(char32_t cp) {
-    switch (ucd_entries_[cp].gc) {
+    switch (general_category(cp)) {
         case Lu:
         case Ll:
         case Lt:
             return true;
+        default:
+            return false;
     }
-    return false;
 }
 
 inline bool is_letter(char32_t cp) {
-    switch (ucd_entries_[cp].gc) {
+    switch (general_category(cp)) {
         case Lu:
         case Ll:
         case Lt:
         case Lm:
         case Lo:
             return true;
+        default:
+            return false;
     }
-    return false;
 }
 
 inline bool is_mark(char32_t cp) {
-    switch (ucd_entries_[cp].gc) {
+    switch (general_category(cp)) {
         case Mn:
         case Mc:
         case Me:
             return true;
+        default:
+            return false;
     }
-    return false;
 }
 
 inline bool is_number(char32_t cp) {
-    switch (ucd_entries_[cp].gc) {
+    switch (general_category(cp)) {
         case Nd:
         case Nl:
         case No:
             return true;
+        default:
+            return false;
     }
-    return false;
 }
 
 inline bool is_punctuation(char32_t cp) {
-    switch (ucd_entries_[cp].gc) {
+    switch (general_category(cp)) {
         case Pc:
         case Pd:
         case Ps:
@@ -99,41 +123,45 @@ inline bool is_punctuation(char32_t cp) {
         case Pf:
         case Po:
             return true;
+        default:
+            return false;
     }
-    return false;
 }
 
 inline bool is_symbol(char32_t cp) {
-    switch (ucd_entries_[cp].gc) {
+    switch (general_category(cp)) {
         case Sm:
         case Sc:
         case Sk:
         case So:
             return true;
+        default:
+            return false;
     }
-    return false;
 }
 
 inline bool is_separator(char32_t cp) {
-    switch (ucd_entries_[cp].gc) {
+    switch (general_category(cp)) {
         case Zs:
         case Zl:
         case Zp:
             return true;
+        default:
+            return false;
     }
-    return false;
 }
 
 inline bool is_other(char32_t cp) {
-    switch (ucd_entries_[cp].gc) {
+    switch (general_category(cp)) {
         case Cc:
         case Cf:
         case Cs:
         case Co:
         case Cn:
             return true;
+        default:
+            return false;
     }
-    return false;
 }
 
 //-----------------------------------------------------------------------------
