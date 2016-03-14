@@ -8,7 +8,7 @@ namespace unicode {
 //-----------------------------------------------------------------------------
 
 static GeneralCategory _general_category_properties[] = {
-#include "_general_category_properties.cc"
+#include "_general_category_properties.cpp"
 };
 
 GeneralCategory general_category(char32_t cp) {
@@ -24,7 +24,7 @@ enum class GraphemeBreak {
 };
 
 static GraphemeBreak _grapheme_break_properties[] = {
-#include "_grapheme_break_properties.cc"
+#include "_grapheme_break_properties.cpp"
 };
 
 bool is_grapheme_boundary(const char32_t* s32, size_t l, size_t i) {
