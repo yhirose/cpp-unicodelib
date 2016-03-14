@@ -67,105 +67,19 @@ enum class GeneralCategory {
 
 extern GeneralCategory general_category(char32_t cp);
 
-inline bool is_cased_letter(char32_t cp) {
-    switch (general_category(cp)) {
-        case GeneralCategory::Lu:
-        case GeneralCategory::Ll:
-        case GeneralCategory::Lt:
-            return true;
-        default:
-            return false;
-    }
-}
+extern bool is_general_category(GeneralCategory gc, char32_t cp);
 
-inline bool is_letter(char32_t cp) {
-    switch (general_category(cp)) {
-        case GeneralCategory::Lu:
-        case GeneralCategory::Ll:
-        case GeneralCategory::Lt:
-        case GeneralCategory::Lm:
-        case GeneralCategory::Lo:
-            return true;
-        default:
-            return false;
-    }
-}
-
-inline bool is_mark(char32_t cp) {
-    switch (general_category(cp)) {
-        case GeneralCategory::Mn:
-        case GeneralCategory::Mc:
-        case GeneralCategory::Me:
-            return true;
-        default:
-            return false;
-    }
-}
-
-inline bool is_number(char32_t cp) {
-    switch (general_category(cp)) {
-        case GeneralCategory::Nd:
-        case GeneralCategory::Nl:
-        case GeneralCategory::No:
-            return true;
-        default:
-            return false;
-    }
-}
-
-inline bool is_punctuation(char32_t cp) {
-    switch (general_category(cp)) {
-        case GeneralCategory::Pc:
-        case GeneralCategory::Pd:
-        case GeneralCategory::Ps:
-        case GeneralCategory::Pe:
-        case GeneralCategory::Pi:
-        case GeneralCategory::Pf:
-        case GeneralCategory::Po:
-            return true;
-        default:
-            return false;
-    }
-}
-
-inline bool is_symbol(char32_t cp) {
-    switch (general_category(cp)) {
-        case GeneralCategory::Sm:
-        case GeneralCategory::Sc:
-        case GeneralCategory::Sk:
-        case GeneralCategory::So:
-            return true;
-        default:
-            return false;
-    }
-}
-
-inline bool is_separator(char32_t cp) {
-    switch (general_category(cp)) {
-        case GeneralCategory::Zs:
-        case GeneralCategory::Zl:
-        case GeneralCategory::Zp:
-            return true;
-        default:
-            return false;
-    }
-}
-
-inline bool is_other(char32_t cp) {
-    switch (general_category(cp)) {
-        case GeneralCategory::Cc:
-        case GeneralCategory::Cf:
-        case GeneralCategory::Cs:
-        case GeneralCategory::Co:
-        case GeneralCategory::Cn:
-            return true;
-        default:
-            return false;
-    }
-}
+extern bool is_cased_letter(char32_t cp);
+extern bool is_letter(char32_t cp);
+extern bool is_mark(char32_t cp);
+extern bool is_number(char32_t cp);
+extern bool is_punctuation(char32_t cp);
+extern bool is_symbol(char32_t cp);
+extern bool is_separator(char32_t cp);
+extern bool is_other(char32_t cp);
 
 //-----------------------------------------------------------------------------
-// Unicode bloks
+// Blocks
 //-----------------------------------------------------------------------------
 
 enum class Block {
@@ -437,6 +351,161 @@ enum class Block {
 extern Block block(char32_t cp);
 
 //-----------------------------------------------------------------------------
+// Scripts
+//-----------------------------------------------------------------------------
+
+enum class Script {
+    Caucasian_Albanian,
+    Ahom,
+    Arabic,
+    Imperial_Aramaic,
+    Armenian,
+    Avestan,
+    Balinese,
+    Bamum,
+    Bassa_Vah,
+    Batak,
+    Bengali,
+    Bopomofo,
+    Brahmi,
+    Braille,
+    Buginese,
+    Buhid,
+    Chakma,
+    Canadian_Aboriginal,
+    Carian,
+    Cham,
+    Cherokee,
+    Coptic,
+    Cypriot,
+    Cyrillic,
+    Devanagari,
+    Deseret,
+    Duployan,
+    Egyptian_Hieroglyphs,
+    Elbasan,
+    Ethiopic,
+    Georgian,
+    Glagolitic,
+    Gothic,
+    Grantha,
+    Greek,
+    Gujarati,
+    Gurmukhi,
+    Hangul,
+    Han,
+    Hanunoo,
+    Hatran,
+    Hebrew,
+    Hiragana,
+    Anatolian_Hieroglyphs,
+    Pahawh_Hmong,
+    Katakana_Or_Hiragana,
+    Old_Hungarian,
+    Old_Italic,
+    Javanese,
+    Kayah_Li,
+    Katakana,
+    Kharoshthi,
+    Khmer,
+    Khojki,
+    Kannada,
+    Kaithi,
+    Tai_Tham,
+    Lao,
+    Latin,
+    Lepcha,
+    Limbu,
+    Linear_A,
+    Linear_B,
+    Lisu,
+    Lycian,
+    Lydian,
+    Mahajani,
+    Mandaic,
+    Manichaean,
+    Mende_Kikakui,
+    Meroitic_Cursive,
+    Meroitic_Hieroglyphs,
+    Malayalam,
+    Modi,
+    Mongolian,
+    Mro,
+    Meetei_Mayek,
+    Multani,
+    Myanmar,
+    Old_North_Arabian,
+    Nabataean,
+    Nko,
+    Ogham,
+    Ol_Chiki,
+    Old_Turkic,
+    Oriya,
+    Osmanya,
+    Palmyrene,
+    Pau_Cin_Hau,
+    Old_Permic,
+    Phags_Pa,
+    Inscriptional_Pahlavi,
+    Psalter_Pahlavi,
+    Phoenician,
+    Miao,
+    Inscriptional_Parthian,
+    Rejang,
+    Runic,
+    Samaritan,
+    Old_South_Arabian,
+    Saurashtra,
+    SignWriting,
+    Shavian,
+    Sharada,
+    Siddham,
+    Khudawadi,
+    Sinhala,
+    Sora_Sompeng,
+    Sundanese,
+    Syloti_Nagri,
+    Syriac,
+    Tagbanwa,
+    Takri,
+    Tai_Le,
+    New_Tai_Lue,
+    Tamil,
+    Tai_Viet,
+    Telugu,
+    Tifinagh,
+    Tagalog,
+    Thaana,
+    Thai,
+    Tibetan,
+    Tirhuta,
+    Ugaritic,
+    Vai,
+    Warang_Citi,
+    Old_Persian,
+    Cuneiform,
+    Yi,
+    Inherited,
+    Common,
+    Unknown,
+    Unassigned
+};
+
+extern Script script(char32_t cp);
+
+extern bool is_script(Script sc, char32_t cp);
+
+//-----------------------------------------------------------------------------
+// Unicode text segmentation
+//-----------------------------------------------------------------------------
+
+extern bool is_grapheme_boundary(const char32_t* s32, size_t l, size_t i);
+
+extern size_t grapheme_length(const char32_t* s32, size_t l);
+
+extern size_t grapheme_count(const char32_t* s32, size_t l);
+
+//-----------------------------------------------------------------------------
 // UTF8 encode/decode
 //-----------------------------------------------------------------------------
 
@@ -638,16 +707,6 @@ inline size_t codepoint_count(const char* s8, size_t l) {
     }
     return c;
 }
-
-//-----------------------------------------------------------------------------
-// Unicode text segmentation
-//-----------------------------------------------------------------------------
-
-extern bool is_grapheme_boundary(const char32_t* s32, size_t l, size_t i);
-
-extern size_t grapheme_length(const char32_t* s32, size_t l);
-
-extern size_t grapheme_count(const char32_t* s32, size_t l);
 
 } // namespace unicode
 

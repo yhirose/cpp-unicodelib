@@ -88,24 +88,36 @@ TEST_CASE("General category", "[property]") {
 }
 
 TEST_CASE("General category predicate functions", "[property]") {
-    REQUIRE(unicode::is_letter(U'a') == true);
-    REQUIRE(unicode::is_letter(U'あ') == true);
-    REQUIRE(unicode::is_mark(0x0303) == true);
-    REQUIRE(unicode::is_number(U'1') == true);
-    REQUIRE(unicode::is_number(U'¼') == true);
-    REQUIRE(unicode::is_punctuation(U'-') == true);
-    REQUIRE(unicode::is_separator(0x2028) == true);
-    REQUIRE(unicode::is_symbol(U'€') == true);
-    REQUIRE(unicode::is_other(0x0000) == true);
-    REQUIRE(unicode::is_other(0x00AD) == true); // Soft hyphen
-    REQUIRE(unicode::is_other(0xD800) == true); // Surrogate
-    REQUIRE(unicode::is_other(0xE000) == true); // Private Use
-    REQUIRE(unicode::is_other(0x0378) == true); // Unassigned
+    REQUIRE(unicode::is_general_category(unicode::GeneralCategory::L, U'a') == true);
+    REQUIRE(unicode::is_general_category(unicode::GeneralCategory::LC, U'A') == true);
+    REQUIRE(unicode::is_general_category(unicode::GeneralCategory::L, U'あ') == true);
+    REQUIRE(unicode::is_general_category(unicode::GeneralCategory::M, 0x0303) == true);
+    REQUIRE(unicode::is_general_category(unicode::GeneralCategory::N, U'1') == true);
+    REQUIRE(unicode::is_general_category(unicode::GeneralCategory::N, U'¼') == true);
+    REQUIRE(unicode::is_general_category(unicode::GeneralCategory::P, U'-') == true);
+    REQUIRE(unicode::is_general_category(unicode::GeneralCategory::Z, 0x2028) == true);
+    REQUIRE(unicode::is_general_category(unicode::GeneralCategory::S, U'€') == true);
+    REQUIRE(unicode::is_general_category(unicode::GeneralCategory::C, 0x0000) == true);
+    REQUIRE(unicode::is_general_category(unicode::GeneralCategory::C, 0x00AD) == true); // Soft hyphen
+    REQUIRE(unicode::is_general_category(unicode::GeneralCategory::C, 0xD800) == true); // Surrogate
+    REQUIRE(unicode::is_general_category(unicode::GeneralCategory::C, 0xE000) == true); // Private Use
+    REQUIRE(unicode::is_general_category(unicode::GeneralCategory::C, 0x0378) == true); // Unassigned
 }
 
 TEST_CASE("Block", "[block]") {
     REQUIRE(unicode::block(U'a') == unicode::Block::BasicLatin);
     REQUIRE(unicode::block(U'あ') == unicode::Block::Hiragana);
+}
+
+TEST_CASE("Script", "[script]") {
+    REQUIRE(unicode::script(U'a') == unicode::Script::Latin);
+    REQUIRE(unicode::script(U'あ') == unicode::Script::Hiragana);
+    REQUIRE(unicode::script(U'ー') == unicode::Script::Common);
+}
+
+TEST_CASE("Script extension", "[script]") {
+    REQUIRE(unicode::is_script(unicode::Script::Hiragana, U'ー'));
+    REQUIRE(unicode::is_script(unicode::Script::Katakana, U'ー'));
 }
 
 TEST_CASE("Grapheme cluster segmentations", "[text segmentation]") {

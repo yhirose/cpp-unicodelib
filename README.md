@@ -19,20 +19,29 @@ const size_t UTF8MaxByteLen = 4;
 ### Unicode properties
 
 ```cpp
-GeneralCategory general_category(char32_t cp)
-bool is_letter(char32_t cp)
-bool is_mark(char32_t cp)
-bool is_number(char32_t cp)
-bool is_punctuation(char32_t cp)
-bool is_symbol(char32_t cp)
-bool is_separator(char32_t cp)
-bool is_other(char32_t cp)
+GeneralCategory general_category(char32_t cp);
+bool is_general_category(GeneralCategory gc, char32_t cp);
+bool is_cased_letter(char32_t cp);
+bool is_letter(char32_t cp);
+bool is_mark(char32_t cp);
+bool is_number(char32_t cp);
+bool is_punctuation(char32_t cp);
+bool is_symbol(char32_t cp);
+bool is_separator(char32_t cp);
+bool is_other(char32_t cp);
 ```
 
 ### Unicode code block
 
 ```cpp
 Block block(char32_t cp)
+```
+
+### Script
+
+```cpp
+extern Script script(char32_t cp);
+extern bool is_script(Script sc, char32_t cp); // Script Extension support
 ```
 
 ### Text segmentation
@@ -56,7 +65,6 @@ size_t decode(const char* s8, size_t l, char32_t& out)
 void decode(const char* s8, size_t l, std::u32string& out)
 std::u32string decode(const char* s8, size_t l)
 size_t codepoint_count(const char* s8, size_t l)
-void for_each(const char* s, size_t l, fn(const char* s, size_t l, size_t beg, size_t end, size_t i))
 ```
 
 Tested compilers
