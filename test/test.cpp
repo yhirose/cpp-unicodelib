@@ -103,6 +103,11 @@ TEST_CASE("General category predicate functions", "[property]") {
     REQUIRE(unicode::is_other(0x0378) == true); // Unassigned
 }
 
+TEST_CASE("Block", "[block]") {
+    REQUIRE(unicode::block(U'a') == unicode::Block::BasicLatin);
+    REQUIRE(unicode::block(U'あ') == unicode::Block::Hiragana);
+}
+
 TEST_CASE("Grapheme cluster segmentations", "[text segmentation]") {
     ifstream fs("../../UCD/auxiliary/GraphemeBreakTest.txt");
     REQUIRE(fs);

@@ -4,9 +4,9 @@ import re
 MaxCode = 0x0010FFFF
 
 values = ['Unassigned'] * (MaxCode + 1)
+r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s+;\s+(\w+)\s+#.*")
 
 for line in sys.stdin.readlines():
-    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s+;\s+(\w+)\s+#.*")
     m = r.match(line)
     if m:
         codePoint = int(m.group(1), 16)
