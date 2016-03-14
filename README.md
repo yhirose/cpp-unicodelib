@@ -29,6 +29,12 @@ bool is_separator(char32_t cp)
 bool is_other(char32_t cp)
 ```
 
+### Unicode code block
+
+```cpp
+Block block(char32_t cp)
+```
+
 ### Text segmentation
 
 ```cpp

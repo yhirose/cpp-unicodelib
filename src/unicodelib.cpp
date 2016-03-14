@@ -19,12 +19,12 @@ GeneralCategory general_category(char32_t cp) {
 // Unicode bloks
 //-----------------------------------------------------------------------------
 
-static Block _block_values[] = {
-#include "_block_values.cpp"
+static Block _block_properties[] = {
+#include "_block_properties.cpp"
 };
 
 Block block(char32_t cp) {
-    return _block_values[cp];
+    return _block_properties[cp];
 }
 
 //-----------------------------------------------------------------------------
