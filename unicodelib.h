@@ -21,7 +21,7 @@ const char32_t ErrorCode = 0x0000FFFD;
 const char32_t MaxCode = 0x0010FFFF;
 
 //-----------------------------------------------------------------------------
-// Unicode properties
+// General Category
 //-----------------------------------------------------------------------------
 
 enum class GeneralCategory {
@@ -117,7 +117,7 @@ extern bool is_separator(char32_t cp);
 extern bool is_other(char32_t cp);
 
 //-----------------------------------------------------------------------------
-// Blocks
+// Block
 //-----------------------------------------------------------------------------
 
 enum class Block {
@@ -389,7 +389,7 @@ enum class Block {
 extern Block block(char32_t cp);
 
 //-----------------------------------------------------------------------------
-// Scripts
+// Script
 //-----------------------------------------------------------------------------
 
 enum class Script {
@@ -534,7 +534,7 @@ extern Script script(char32_t cp);
 extern bool is_script(Script sc, char32_t cp);
 
 //-----------------------------------------------------------------------------
-// Unicode text segmentation
+// Text segmentation
 //-----------------------------------------------------------------------------
 
 extern bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i);
@@ -542,6 +542,25 @@ extern bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i);
 extern size_t grapheme_length(const char32_t *s32, size_t l);
 
 extern size_t grapheme_count(const char32_t *s32, size_t l);
+
+//-----------------------------------------------------------------------------
+// Normalization
+//-----------------------------------------------------------------------------
+
+enum class Normalization {
+  NFC,
+  NFD,
+  NFKC,
+  NFKD,
+};
+
+extern std::u32string normalize(const char32_t *s32, size_t l,
+                                Normalization norm);
+
+extern std::u32string to_nfc(const char32_t *s32, size_t l);
+extern std::u32string to_nfd(const char32_t *s32, size_t l);
+extern std::u32string to_nfkc(const char32_t *s32, size_t l);
+extern std::u32string to_nfkd(const char32_t *s32, size_t l);
 
 //-----------------------------------------------------------------------------
 // UTF8 encode/decode

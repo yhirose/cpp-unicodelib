@@ -25,4 +25,4 @@ for line in sys.stdin.readlines():
                 values[codePoint] = id
 
 for id in values:
-    print("    %d," % id)
+    print("%d," % id)

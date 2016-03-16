@@ -34,5 +34,5 @@ def items():
         yield cp, 'Cn'
 
 for cp, val in items():
-    print("    GeneralCategory::%s," % val)
+    print("GeneralCategory::%s," % val)
 

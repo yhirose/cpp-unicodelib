@@ -20,4 +20,4 @@ for line in sys.stdin.readlines():
             values[codePoint] = value
 
 for val in values:
-    print("    GraphemeBreak::%s," % val)
+    print("GraphemeBreak::%s," % val)

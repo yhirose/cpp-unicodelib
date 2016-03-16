@@ -20,5 +20,5 @@ for line in sys.stdin.readlines():
             values[codePoint] = value
 
 for val in values:
-    print("    Script::%s," % val)
+    print("Script::%s," % val)
 

@@ -40,8 +40,15 @@ Block block(char32_t cp)
 ### Script
 
 ```cpp
-extern Script script(char32_t cp);
-extern bool is_script(Script sc, char32_t cp); // Script Extension support
+Script script(char32_t cp);
+bool is_script(Script sc, char32_t cp); // Script Extension support
+```
+
+### Normalization
+
+```cpp
+std::u32string to_nfd(const char32_t *s32, size_t l);
+std::u32string to_nfkd(const char32_t *s32, size_t l);
 ```
 
 ### Text segmentation

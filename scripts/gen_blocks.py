@@ -11,4 +11,4 @@ for line in sys.stdin.readlines():
         codePointFirst = int(m.group(1), 16)
         codePointLast = int(m.group(2), 16)
         block = ''.join([x.title() if x.islower() else x for x in re.split(r"[ -]", m.group(3))])
-        print('    %s,' % block)
+        print('%s,' % block)

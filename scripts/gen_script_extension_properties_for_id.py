@@ -146,8 +146,8 @@ id = 0
 for line in sys.stdin.readlines():
     m = rHeader.match(line)
     if m:
-        print('    {')
+        print('{')
         for sc in [dic[x] for x in m.group(1).split(' ')]:
-            print('        Script::%s, ' % sc)
-        print('    },')
+            print('    Script::%s, ' % sc)
+        print('},')
         id += 1

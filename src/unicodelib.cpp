@@ -5,7 +5,7 @@
 namespace unicode {
 
 //-----------------------------------------------------------------------------
-// Unicode properties
+// General Category
 //-----------------------------------------------------------------------------
 
 static const GeneralCategory _general_category_properties[] = {
@@ -137,7 +137,7 @@ bool is_general_category(GeneralCategory gc, char32_t cp) {
 }
 
 //-----------------------------------------------------------------------------
-// Blocks
+// Block
 //-----------------------------------------------------------------------------
 
 static const Block _block_properties[] = {
@@ -147,7 +147,7 @@ static const Block _block_properties[] = {
 Block block(char32_t cp) { return _block_properties[cp]; }
 
 //-----------------------------------------------------------------------------
-// Scripts
+// Script
 //-----------------------------------------------------------------------------
 
 static const Script _script_properties[] = {
@@ -180,7 +180,110 @@ bool is_script(Script sc, char32_t cp) {
 }
 
 //-----------------------------------------------------------------------------
-// Unicode text segmentation
+// Normalization
+//-----------------------------------------------------------------------------
+
+struct NormalizationProperties {
+  const char32_t cp;
+  int combining_class;
+  const char *compat_format;
+  const char32_t *codes;
+};
+
+static const NormalizationProperties _normalization_properties[] = {
+#include "_normalization_properties.cpp"
+};
+
+// Hangul: // http://unicode.org/reports/tr15/tr15-18.html#Hangul
+// Common Constants
+const char32_t SBase = 0xAC00, LBase = 0x1100, VBase = 0x1161, TBase = 0x11A7,
+               LCount = 19, VCount = 21, TCount = 28,
+               NCount = VCount * TCount, // 588
+    SCount = LCount * NCount;            // 11172
+
+inline bool is_hangul(char32_t cp) {
+  return SBase <= cp && cp < SBase + SCount;
+}
+
+// Hangul Decomposition
+inline void decompose_hangul(char32_t cp, std::u32string &out) {
+  auto SIndex = cp - SBase;
+  auto L = LBase + SIndex / NCount;
+  auto V = VBase + (SIndex % NCount) / TCount;
+  auto T = TBase + SIndex % TCount;
+  out += L;
+  out += V;
+  if (T != TBase) {
+    out += T;
+  }
+}
+
+inline void decompose(const char32_t cp, std::u32string &out,
+                           Normalization norm) {
+  if (is_hangul(cp)) {
+    decompose_hangul(cp, out);
+  } else {
+    const auto &prop = _normalization_properties[cp];
+    if (prop.codes && (!prop.compat_format || norm == Normalization::NFKC ||
+                       norm == Normalization::NFKD)) {
+      size_t i = 0;
+      while (prop.codes[i]) {
+        decompose(prop.codes[i], out, norm);
+        i++;
+      }
+    } else {
+      out += cp;
+    }
+  }
+}
+
+inline std::u32string normalize(const char32_t *s32, size_t l,
+                                Normalization norm) {
+  std::u32string out;
+
+  // Decompose
+  for (size_t i = 0; i < l; i++) {
+    decompose(s32[i], out, norm);
+  }
+
+  // Reorder combining marks with 'Canonical Ordering Algorithm'.
+  for (size_t i = 0; i < out.length(); i++) {
+    const auto &prop = _normalization_properties[out[i]];
+    if (prop.combining_class > 0) {
+      for (size_t j = i; j > 0; j--) {
+        auto prev = out[j - 1];
+        auto curr = out[j];
+        const auto &prop_prev = _normalization_properties[prev];
+        const auto &prop_curr = _normalization_properties[curr];
+        if (prop_prev.combining_class <= prop_curr.combining_class) {
+          break;
+        }
+        std::swap(out[j - 1], out[j]);
+      }
+    }
+  }
+
+  return out;
+}
+
+std::u32string to_nfc(const char32_t *s32, size_t l) {
+  return normalize(s32, l, Normalization::NFC);
+}
+
+std::u32string to_nfd(const char32_t *s32, size_t l) {
+  return normalize(s32, l, Normalization::NFD);
+}
+
+std::u32string to_nfkc(const char32_t *s32, size_t l) {
+  return normalize(s32, l, Normalization::NFKC);
+}
+
+std::u32string to_nfkd(const char32_t *s32, size_t l) {
+  return normalize(s32, l, Normalization::NFKD);
+}
+
+//-----------------------------------------------------------------------------
+// Text segmentation
 //-----------------------------------------------------------------------------
 
 enum class GraphemeBreak {
