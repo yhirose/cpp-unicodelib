@@ -12,7 +12,7 @@ GeneralCategory general_category(char32_t cp) {
   return _general_category_properties[cp];
 }
 
-inline bool is_cased_letter(char32_t cp) {
+bool is_cased_letter(char32_t cp) {
   switch (general_category(cp)) {
   case GeneralCategory::Lu:
   case GeneralCategory::Ll:
@@ -23,7 +23,7 @@ inline bool is_cased_letter(char32_t cp) {
   }
 }
 
-inline bool is_letter(char32_t cp) {
+bool is_letter(char32_t cp) {
   switch (general_category(cp)) {
   case GeneralCategory::Lu:
   case GeneralCategory::Ll:
@@ -36,7 +36,7 @@ inline bool is_letter(char32_t cp) {
   }
 }
 
-inline bool is_mark(char32_t cp) {
+bool is_mark(char32_t cp) {
   switch (general_category(cp)) {
   case GeneralCategory::Mn:
   case GeneralCategory::Mc:
@@ -47,7 +47,7 @@ inline bool is_mark(char32_t cp) {
   }
 }
 
-inline bool is_number(char32_t cp) {
+bool is_number(char32_t cp) {
   switch (general_category(cp)) {
   case GeneralCategory::Nd:
   case GeneralCategory::Nl:
@@ -58,7 +58,7 @@ inline bool is_number(char32_t cp) {
   }
 }
 
-inline bool is_punctuation(char32_t cp) {
+bool is_punctuation(char32_t cp) {
   switch (general_category(cp)) {
   case GeneralCategory::Pc:
   case GeneralCategory::Pd:
@@ -73,7 +73,7 @@ inline bool is_punctuation(char32_t cp) {
   }
 }
 
-inline bool is_symbol(char32_t cp) {
+bool is_symbol(char32_t cp) {
   switch (general_category(cp)) {
   case GeneralCategory::Sm:
   case GeneralCategory::Sc:
@@ -85,7 +85,7 @@ inline bool is_symbol(char32_t cp) {
   }
 }
 
-inline bool is_separator(char32_t cp) {
+bool is_separator(char32_t cp) {
   switch (general_category(cp)) {
   case GeneralCategory::Zs:
   case GeneralCategory::Zl:
@@ -96,7 +96,7 @@ inline bool is_separator(char32_t cp) {
   }
 }
 
-inline bool is_other(char32_t cp) {
+bool is_other(char32_t cp) {
   switch (general_category(cp)) {
   case GeneralCategory::Cc:
   case GeneralCategory::Cf:
@@ -172,11 +172,11 @@ const char32_t SBase = 0xAC00, LBase = 0x1100, VBase = 0x1161, TBase = 0x11A7,
                NCount = VCount * TCount, // 588
     SCount = LCount * NCount;            // 11172
 
-inline bool is_hangul(char32_t cp) {
+static bool is_hangul(char32_t cp) {
   return SBase <= cp && cp < SBase + SCount;
 }
 
-inline bool is_hangul_jamo(const char32_t *source, size_t len) {
+static bool is_hangul_jamo(const char32_t *source, size_t len) {
   if (len < 2) {
     return false;
   }
@@ -201,7 +201,7 @@ inline bool is_hangul_jamo(const char32_t *source, size_t len) {
 }
 
 // Hangul Decomposition
-inline void decompose_hangul(char32_t cp, std::u32string &out) {
+static void decompose_hangul(char32_t cp, std::u32string &out) {
   auto SIndex = cp - SBase;
   auto L = LBase + SIndex / NCount;
   auto V = VBase + (SIndex % NCount) / TCount;
@@ -258,7 +258,7 @@ static size_t compose_hangul(const char32_t *source, size_t len,
 
 } // namespace hangul
 
-inline void decompose_code(const char32_t cp, std::u32string &out,
+static void decompose_code(const char32_t cp, std::u32string &out,
                            Normalization norm) {
   if (hangul::is_hangul(cp)) {
     hangul::decompose_hangul(cp, out);
@@ -277,7 +277,7 @@ inline void decompose_code(const char32_t cp, std::u32string &out,
   }
 }
 
-inline std::u32string decompose(const char32_t *s32, size_t l,
+static std::u32string decompose(const char32_t *s32, size_t l,
                                 Normalization norm) {
   std::u32string out;
 
@@ -484,6 +484,186 @@ size_t grapheme_count(const char32_t *s32, size_t l) {
   while (i < l) {
     count++;
     i += grapheme_length(s32 + i, l - i);
+  }
+  return count;
+}
+
+//-----------------------------------------------------------------------------
+// UTF8 encode/decode
+//-----------------------------------------------------------------------------
+
+/* -- UTF-8 Specification --
+   U+000000-U+00007F = 0xxxxxxx
+   U+000080-U+0007FF = 110xxxxx 10yyyyyy
+   U+000800-U+00FFFF = 1110xxxx 10yyyyyy 10zzzzzz
+   U+010000-U+10FFFF = 11110www 10xxxxxx 10yyyyyy 10zzzzzz
+*/
+
+const size_t UTF8MaxByteLen = 4;
+
+size_t encode_byte_length(char32_t cp) {
+  if (cp < 0x0080) {
+    return 1;
+  } else if (cp < 0x0800) {
+    return 2;
+  } else if (cp < 0xD800) {
+    return 3;
+  } else if (cp < 0xe000) {
+    return 0;
+  } // D800 - DFFF is invalid...
+  else if (cp < 0x10000) {
+    return 3;
+  } else if (cp < 0x110000) {
+    return 4;
+  }
+  return 0;
+}
+
+size_t encode(char32_t cp, char *buff, size_t buff_len) {
+  if (cp < 0x0080) {
+    buff[0] = (uint8_t)(cp & 0x7F);
+    return 1;
+  } else if (cp < 0x0800) {
+    buff[0] = (uint8_t)(0xC0 | ((cp >> 6) & 0x1F));
+    buff[1] = (uint8_t)(0x80 | (cp & 0x3F));
+    return 2;
+  } else if (cp < 0xD800) {
+    buff[0] = (uint8_t)(0xE0 | ((cp >> 12) & 0xF));
+    buff[1] = (uint8_t)(0x80 | ((cp >> 6) & 0x3F));
+    buff[2] = (uint8_t)(0x80 | (cp & 0x3F));
+    return 3;
+  } else if (cp < 0xE000) { // D800 - DFFF is invalid...
+    return 0;
+  } else if (cp < 0x10000) {
+    buff[0] = (uint8_t)(0xE0 | ((cp >> 12) & 0xF));
+    buff[1] = (uint8_t)(0x80 | ((cp >> 6) & 0x3F));
+    buff[2] = (uint8_t)(0x80 | (cp & 0x3F));
+    return 3;
+  } else if (cp < 0x110000) {
+    buff[0] = (uint8_t)(0xF0 | ((cp >> 18) & 0x7));
+    buff[1] = (uint8_t)(0x80 | ((cp >> 12) & 0x3F));
+    buff[2] = (uint8_t)(0x80 | ((cp >> 6) & 0x3F));
+    buff[3] = (uint8_t)(0x80 | (cp & 0x3F));
+    return 4;
+  }
+  return 0;
+}
+
+size_t encode(char32_t cp, std::string &out) {
+  char b[UTF8MaxByteLen];
+  auto l = encode(cp, b, UTF8MaxByteLen);
+  out.append(b, l);
+  return l;
+}
+
+std::string encode(char32_t cp) {
+  std::string out;
+  encode(cp, out);
+  return out;
+}
+
+void encode(const char32_t *s32, size_t l, std::string &out) {
+  for (size_t i = 0; i < l; i++) {
+    encode(s32[i], out);
+  }
+}
+
+std::string encode(const char32_t *s32, size_t l) {
+  std::string out;
+  encode(s32, l, out);
+  return out;
+}
+
+size_t decode_byte_length(const char *s8, size_t l) {
+  if (l) {
+    uint8_t b = s8[0];
+    if ((b & 0x80) == 0) {
+      return 1;
+    } else if ((b & 0xE0) == 0xC0) {
+      return 2;
+    } else if ((b & 0xF0) == 0xE0) {
+      return 3;
+    } else if ((b & 0xF8) == 0xF0) {
+      return 4;
+    }
+  }
+  return 0;
+}
+
+bool decode(const char *s8, size_t l, size_t &bytes, char32_t &cp) {
+  if (l) {
+    uint8_t b = s8[0];
+    if ((b & 0x80) == 0) {
+      bytes = 1;
+      cp = b;
+      return true;
+    } else if ((b & 0xE0) == 0xC0) {
+      if (l >= 2) {
+        bytes = 2;
+        cp = (((char32_t)(s8[0] & 0x1F)) << 6) | ((char32_t)(s8[1] & 0x3F));
+        return true;
+      }
+    } else if ((b & 0xF0) == 0xE0) {
+      if (l >= 3) {
+        bytes = 3;
+        cp = (((char32_t)(s8[0] & 0x0F)) << 12) |
+             (((char32_t)(s8[1] & 0x3F)) << 6) | ((char32_t)(s8[2] & 0x3F));
+        return true;
+      }
+    } else if ((b & 0xF8) == 0xF0) {
+      if (l >= 4) {
+        bytes = 4;
+        cp = (((char32_t)(s8[0] & 0x07)) << 18) |
+             (((char32_t)(s8[1] & 0x3F)) << 12) |
+             (((char32_t)(s8[2] & 0x3F)) << 6) | ((char32_t)(s8[3] & 0x3F));
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+size_t decode(const char *s8, size_t l, char32_t &out) {
+  size_t bytes;
+  if (decode(s8, l, bytes, out)) {
+    return bytes;
+  }
+  return 0;
+}
+
+template <typename T>
+inline void for_each(const char *s, size_t l, T callback) {
+  size_t id = 0;
+  size_t i = 0;
+  while (i < l) {
+    auto beg = i++;
+    while (i < l && (s[i] & 0xc0) == 0x80) {
+      i++;
+    }
+    callback(s, l, beg, i, id++);
+  }
+}
+
+void decode(const char *s8, size_t l, std::u32string &out) {
+  for_each(s8, l,
+           [&](const char *s, size_t l, size_t beg, size_t end, size_t i) {
+             size_t bytes;
+             char32_t cp;
+             decode(&s[beg], (end - beg), bytes, cp);
+             out += cp;
+           });
+}
+
+std::u32string decode(const char *s8, size_t l) {
+  std::u32string out;
+  decode(s8, l, out);
+  return out;
+}
+
+size_t codepoint_count(const char *s8, size_t l) {
+  size_t count = 0;
+  for (size_t i = 0; i < l; i += decode_byte_length(s8 + i, l - i)) {
+    count++;
   }
   return count;
 }
