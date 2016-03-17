@@ -196,10 +196,8 @@ TEST_CASE("Normalization", "[normalization]") {
   ifstream fs("../../UCD/NormalizationTest.txt");
   REQUIRE(fs);
 
-  size_t ln = 0;
   std::string line;
   while (std::getline(fs, line)) {
-    ln++;
     if (line.empty() || line[0] == '#' || line[0] == '@') {
       continue;
     }
@@ -222,13 +220,17 @@ TEST_CASE("Normalization", "[normalization]") {
     const auto& c5 = fields[4];
 
     // NFC
-    //   c2 ==  toNFC(c1) ==  toNFC(c2) ==  toNFC(c3)
-    //   c4 ==  toNFC(c4) ==  toNFC(c5)
-    // TODO:
+    //   c2 == toNFC(c1) == toNFC(c2) == toNFC(c3)
+    //   c4 == toNFC(c4) == toNFC(c5)
+    REQUIRE(c2 == unicode::to_nfc(c1.data(), c1.length()));
+    REQUIRE(c2 == unicode::to_nfc(c2.data(), c2.length()));
+    REQUIRE(c2 == unicode::to_nfc(c3.data(), c3.length()));
+    REQUIRE(c4 == unicode::to_nfc(c4.data(), c4.length()));
+    REQUIRE(c4 == unicode::to_nfc(c5.data(), c5.length()));
 
     // NFD
-    //   c3 ==  toNFD(c1) ==  toNFD(c2) ==  toNFD(c3)
-    //   c5 ==  toNFD(c4) ==  toNFD(c5)
+    //   c3 == toNFD(c1) == toNFD(c2) == toNFD(c3)
+    //   c5 == toNFD(c4) == toNFD(c5)
     REQUIRE(c3 == unicode::to_nfd(c1.data(), c1.length()));
     REQUIRE(c3 == unicode::to_nfd(c2.data(), c2.length()));
     REQUIRE(c3 == unicode::to_nfd(c3.data(), c3.length()));
@@ -237,7 +239,11 @@ TEST_CASE("Normalization", "[normalization]") {
 
     // NFKC
     //   c4 == toNFKC(c1) == toNFKC(c2) == toNFKC(c3) == toNFKC(c4) == toNFKC(c5)
-    // TODO:
+    REQUIRE(c4 == unicode::to_nfkc(c1.data(), c1.length()));
+    REQUIRE(c4 == unicode::to_nfkc(c2.data(), c2.length()));
+    REQUIRE(c4 == unicode::to_nfkc(c3.data(), c3.length()));
+    REQUIRE(c4 == unicode::to_nfkc(c4.data(), c4.length()));
+    REQUIRE(c4 == unicode::to_nfkc(c5.data(), c5.length()));
 
     // NFKD
     //   c5 == toNFKD(c1) == toNFKD(c2) == toNFKD(c3) == toNFKD(c4) == toNFKD(c5)

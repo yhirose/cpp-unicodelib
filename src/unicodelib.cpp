@@ -1,16 +1,12 @@
 #include "unicodelib.h"
+#include "unicodelib_data.h"
 #include <algorithm>
-#include <vector>
 
 namespace unicode {
 
 //-----------------------------------------------------------------------------
 // General Category
 //-----------------------------------------------------------------------------
-
-static const GeneralCategory _general_category_properties[] = {
-#include "_general_category_properties.cpp"
-};
 
 GeneralCategory general_category(char32_t cp) {
   return _general_category_properties[cp];
@@ -140,28 +136,11 @@ bool is_general_category(GeneralCategory gc, char32_t cp) {
 // Block
 //-----------------------------------------------------------------------------
 
-static const Block _block_properties[] = {
-#include "_block_properties.cpp"
-};
-
 Block block(char32_t cp) { return _block_properties[cp]; }
 
 //-----------------------------------------------------------------------------
 // Script
 //-----------------------------------------------------------------------------
-
-static const Script _script_properties[] = {
-#include "_script_properties.cpp"
-};
-
-static const int _script_extension_ids[] = {
-#include "_script_extension_ids.cpp"
-};
-
-static const std::vector<std::vector<Script>>
-    _script_extension_properties_for_id = {
-#include "_script_extension_properties_for_id.cpp"
-};
 
 Script script(char32_t cp) { return _script_properties[cp]; }
 
@@ -183,18 +162,10 @@ bool is_script(Script sc, char32_t cp) {
 // Normalization
 //-----------------------------------------------------------------------------
 
-struct NormalizationProperties {
-  const char32_t cp;
-  int combining_class;
-  const char *compat_format;
-  const char32_t *codes;
-};
+// Implementation is based on
+// http://unicode.org/reports/tr15/tr15-18.html#Hangul
+namespace hangul {
 
-static const NormalizationProperties _normalization_properties[] = {
-#include "_normalization_properties.cpp"
-};
-
-// Hangul: // http://unicode.org/reports/tr15/tr15-18.html#Hangul
 // Common Constants
 const char32_t SBase = 0xAC00, LBase = 0x1100, VBase = 0x1161, TBase = 0x11A7,
                LCount = 19, VCount = 21, TCount = 28,
@@ -203,6 +174,30 @@ const char32_t SBase = 0xAC00, LBase = 0x1100, VBase = 0x1161, TBase = 0x11A7,
 
 inline bool is_hangul(char32_t cp) {
   return SBase <= cp && cp < SBase + SCount;
+}
+
+inline bool is_hangul_jamo(const char32_t *source, size_t len) {
+  if (len < 2) {
+    return false;
+  }
+
+  auto first = source[0];
+  auto second = source[1];
+
+  if (LBase <= first && first < LBase + LCount) {
+    if (VBase <= second && second < VBase + VCount) {
+      return true;
+    }
+  }
+
+  if (SBase <= first && first < SBase + SCount &&
+      ((first - SBase) % TCount) == 0) {
+    if (TBase <= second && second < TBase + TCount) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 // Hangul Decomposition
@@ -218,17 +213,62 @@ inline void decompose_hangul(char32_t cp, std::u32string &out) {
   }
 }
 
-inline void decompose(const char32_t cp, std::u32string &out,
+// Hangul Composition
+static size_t compose_hangul(const char32_t *source, size_t len,
+                             std::u32string &out) {
+  auto last = source[0]; // copy first char
+  out += last;
+
+  size_t i = 1;
+  for (; i < len; i++) {
+    auto ch = source[i];
+
+    // 1. check to see if two current characters are L and V
+    int LIndex = last - LBase;
+    if (0 <= LIndex && LIndex < LCount) {
+      int VIndex = ch - VBase;
+      if (0 <= VIndex && VIndex < VCount) {
+
+        // make syllable of form LV
+        last = (char32_t)(SBase + (LIndex * VCount + VIndex) * TCount);
+        out.back() = last; // reset last
+        continue;          // discard ch
+      }
+    }
+
+    // 2. check to see if two current characters are LV and T
+    int SIndex = last - SBase;
+    if (0 <= SIndex && SIndex < SCount && (SIndex % TCount) == 0) {
+      int TIndex = ch - TBase;
+      if (0 <= TIndex && TIndex <= TCount) {
+
+        // make syllable of form LVT
+        last += TIndex;
+        out.back() = last; // reset last
+        continue;          // discard ch
+      }
+    }
+
+    // if neither case was true, break
+    break;
+  }
+
+  return i;
+}
+
+} // namespace hangul
+
+inline void decompose_code(const char32_t cp, std::u32string &out,
                            Normalization norm) {
-  if (is_hangul(cp)) {
-    decompose_hangul(cp, out);
+  if (hangul::is_hangul(cp)) {
+    hangul::decompose_hangul(cp, out);
   } else {
     const auto &prop = _normalization_properties[cp];
     if (prop.codes && (!prop.compat_format || norm == Normalization::NFKC ||
                        norm == Normalization::NFKD)) {
       size_t i = 0;
       while (prop.codes[i]) {
-        decompose(prop.codes[i], out, norm);
+        decompose_code(prop.codes[i], out, norm);
         i++;
       }
     } else {
@@ -237,13 +277,13 @@ inline void decompose(const char32_t cp, std::u32string &out,
   }
 }
 
-inline std::u32string normalize(const char32_t *s32, size_t l,
+inline std::u32string decompose(const char32_t *s32, size_t l,
                                 Normalization norm) {
   std::u32string out;
 
   // Decompose
   for (size_t i = 0; i < l; i++) {
-    decompose(s32[i], out, norm);
+    decompose_code(s32[i], out, norm);
   }
 
   // Reorder combining marks with 'Canonical Ordering Algorithm'.
@@ -266,45 +306,92 @@ inline std::u32string normalize(const char32_t *s32, size_t l,
   return out;
 }
 
+static bool compose_pair(char32_t cp0, char32_t cp1, char32_t &cp) {
+  std::u32string key = {cp0, cp1};
+  auto it = _normalization_composition.find(key);
+  if (it != _normalization_composition.end()) {
+    cp = it->second;
+    return true;
+  }
+  return false;
+}
+
+static size_t compose_codes(const char32_t *s32, size_t l,
+                            std::u32string &out) {
+  auto starter = s32[0];
+  std::vector<bool> cheched(l, false);
+
+  // Compose successively
+  bool handled = true;
+  while (handled) {
+    handled = false;
+    int max_class = -1;
+    size_t i = 1;
+    for (; i < l; i++) {
+      if (!cheched[i]) {
+        auto klass = _normalization_properties[s32[i]].combining_class;
+        if (max_class < klass) {
+          if (compose_pair(starter, s32[i], starter)) {
+            handled = true;
+            cheched[i] = true;
+            break;
+          }
+        }
+        if (klass == 0) {
+          break;
+        }
+        max_class = std::max(max_class, klass);
+      }
+    }
+  }
+
+  // Output
+  out += starter;
+  size_t i = 1;
+  for (; i < l; i++) {
+    if (!cheched[i]) {
+      if (_normalization_properties[s32[i]].combining_class == 0) {
+        break;
+      }
+      out += s32[i];
+    }
+  }
+
+  return i;
+}
+
+static std::u32string compose(const std::u32string &s32) {
+  std::u32string out;
+  size_t i = 0;
+  while (i < s32.length()) {
+    if (hangul::is_hangul_jamo(s32.data() + i, s32.length() - i)) {
+      i += hangul::compose_hangul(s32.data() + i, s32.length() - i, out);
+    } else {
+      i += compose_codes(s32.data() + i, s32.length() - i, out);
+    }
+  }
+  return out;
+}
+
 std::u32string to_nfc(const char32_t *s32, size_t l) {
-  return normalize(s32, l, Normalization::NFC);
+  return compose(decompose(s32, l, Normalization::NFC));
 }
 
 std::u32string to_nfd(const char32_t *s32, size_t l) {
-  return normalize(s32, l, Normalization::NFD);
+  return decompose(s32, l, Normalization::NFD);
 }
 
 std::u32string to_nfkc(const char32_t *s32, size_t l) {
-  return normalize(s32, l, Normalization::NFKC);
+  return compose(decompose(s32, l, Normalization::NFKC));
 }
 
 std::u32string to_nfkd(const char32_t *s32, size_t l) {
-  return normalize(s32, l, Normalization::NFKD);
+  return decompose(s32, l, Normalization::NFKD);
 }
 
 //-----------------------------------------------------------------------------
 // Text segmentation
 //-----------------------------------------------------------------------------
-
-enum class GraphemeBreak {
-  CR,
-  LF,
-  Control,
-  Extend,
-  Regional_Indicator,
-  SpacingMark,
-  Prepend,
-  L,
-  V,
-  T,
-  LV,
-  LVT,
-  Unassigned
-};
-
-static const GraphemeBreak _grapheme_break_properties[] = {
-#include "_grapheme_break_properties.cpp"
-};
 
 bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
   // GB1: sot ÷

@@ -2,4 +2,4 @@ cmake_minimum_required(VERSION 3.0)
 include_directories(..)
 add_definitions("-std=c++1y")
 
-add_executable(test-main test.cpp ../src/unicodelib.cpp)
+add_executable(test-main test.cpp ../src/unicodelib.cpp ../src/unicodelib_data.cpp)

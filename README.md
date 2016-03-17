@@ -47,7 +47,9 @@ bool is_script(Script sc, char32_t cp); // Script Extension support
 ### Normalization
 
 ```cpp
+std::u32string to_nfc(const char32_t *s32, size_t l);
 std::u32string to_nfd(const char32_t *s32, size_t l);
+std::u32string to_nfkc(const char32_t *s32, size_t l);
 std::u32string to_nfkd(const char32_t *s32, size_t l);
 ```
 

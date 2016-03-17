@@ -554,9 +554,6 @@ enum class Normalization {
   NFKD,
 };
 
-extern std::u32string normalize(const char32_t *s32, size_t l,
-                                Normalization norm);
-
 extern std::u32string to_nfc(const char32_t *s32, size_t l);
 extern std::u32string to_nfd(const char32_t *s32, size_t l);
 extern std::u32string to_nfkc(const char32_t *s32, size_t l);
