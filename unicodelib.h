@@ -120,6 +120,8 @@ extern bool is_other(char32_t cp);
 // Block
 //-----------------------------------------------------------------------------
 
+// This is generated from 'Blocks.txt' in Unicode database.
+// `python scripts/gen_blocks.py < UCD/Blocks.txt`
 enum class Block {
   BasicLatin,
   Latin1Supplement,

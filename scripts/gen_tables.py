@@ -1,0 +1,445 @@
+import sys
+import re
+
+#------------------------------------------------------------------------------
+# Constants
+#------------------------------------------------------------------------------
+
+MaxCode = 0x0010FFFF
+
+#------------------------------------------------------------------------------
+# genGeneralCategoryPropertyTable
+#------------------------------------------------------------------------------
+
+def genGeneralCategoryPropertyTable(ucd, out):
+    fin = open(ucd + '/UnicodeData.txt')
+    fout = open(out + '/_general_category_properties.cpp', 'w')
+
+    data = [x.rstrip().split(';') for x in fin]
+
+    def items():
+        codePointPrev = -1
+        i = 0
+        while i < len(data):
+            flds = data[i]
+            codePoint = int(flds[0], 16)
+            name = flds[1]
+            value = flds[2]
+
+            for cp in range(codePointPrev + 1, codePoint):
+                yield cp, 'Cn'
+
+            if flds[1].endswith('First>'):
+                fldsLast = data[i + 1]
+                codePointLast = int(fldsLast[0], 16)
+                categoryLast = fldsLast[2]
+                for cp in range(codePoint, codePointLast + 1):
+                    yield cp, categoryLast
+                codePointPrev = codePointLast
+                i += 2
+            else:
+                yield codePoint, value
+                codePointPrev = codePoint
+                i += 1
+
+        for cp in range(codePointPrev + 1, MaxCode + 1):
+            yield cp, 'Cn'
+
+    for cp, val in items():
+        fout.write("GeneralCategory::%s,\n" % val)
+
+#------------------------------------------------------------------------------
+# genBlockPropertyTable
+#------------------------------------------------------------------------------
+
+def genBlockPropertyTable(ucd, out):
+    fin = open(ucd + '/Blocks.txt')
+    fout = open(out + '/_block_properties.cpp', 'w')
+
+    values = ['Unassigned'] * (MaxCode + 1)
+    r = re.compile(r"([0-9A-F]+)\.\.([0-9A-F]+)\s*;\s+(.+)")
+
+    for line in fin:
+        m = r.match(line)
+        if m:
+            codePointFirst = int(m.group(1), 16)
+            codePointLast = int(m.group(2), 16)
+            block = ''.join([x.title() if x.islower() else x for x in re.split(r"[ -]", m.group(3))])
+
+            for cp in range(codePointFirst, codePointLast + 1):
+                values[cp] = block
+
+    for val in values:
+        fout.write("    Block::%s,\n" % val)
+
+#------------------------------------------------------------------------------
+# genScriptPropertyTable
+#------------------------------------------------------------------------------
+
+def genScriptPropertyTable(ucd, out):
+    fin = open(ucd + '/Scripts.txt')
+    fout = open(out + '/_script_properties.cpp', 'w')
+
+    values = ['Unassigned'] * (MaxCode + 1)
+    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s+;\s+(\w+)\s+#.*")
+
+    for line in fin:
+        m = r.match(line)
+        if m:
+            codePoint = int(m.group(1), 16)
+            value = m.group(3)
+
+            if m.group(2):
+                codePointLast = int(m.group(2), 16)
+                for cp in range(codePoint, codePointLast + 1):
+                    values[cp] = value
+            else:
+                values[codePoint] = value
+
+    for val in values:
+        fout.write("Script::%s,\n" % val)
+
+#------------------------------------------------------------------------------
+# genScriptExtensionIdTable
+#------------------------------------------------------------------------------
+
+def genScriptExtensionIdTable(ucd, out):
+    fin = open(ucd + '/ScriptExtensions.txt')
+    fout = open(out + '/_script_extension_ids.cpp', 'w')
+
+    values = [-1] * (MaxCode + 1)
+    rHeader = re.compile(r"# Script_Extensions=(.*)")
+    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?.*")
+
+    id = -1
+    for line in fin:
+        m = rHeader.match(line)
+        if m:
+            id += 1
+        else:
+            m = r.match(line)
+            if m:
+                codePoint = int(m.group(1), 16)
+
+                if m.group(2):
+                    codePointLast = int(m.group(2), 16)
+                    for cp in range(codePoint, codePointLast + 1):
+                        values[cp] = id
+                else:
+                    values[codePoint] = id
+
+    for id in values:
+        fout.write("%d,\n" % id)
+
+#------------------------------------------------------------------------------
+# genScriptExtensionPropertyForIdTable
+#------------------------------------------------------------------------------
+
+def genScriptExtensionPropertyForIdTable(ucd, out):
+    fin = open(ucd + '/ScriptExtensions.txt')
+    fout = open(out + '/_script_extension_properties_for_id.cpp', 'w')
+
+    dic = {
+        'Aghb': 'Caucasian_Albanian',
+        'Ahom': 'Ahom',
+        'Arab': 'Arabic',
+        'Armi': 'Imperial_Aramaic',
+        'Armn': 'Armenian',
+        'Avst': 'Avestan',
+        'Bali': 'Balinese',
+        'Bamu': 'Bamum',
+        'Bass': 'Bassa_Vah',
+        'Batk': 'Batak',
+        'Beng': 'Bengali',
+        'Bopo': 'Bopomofo',
+        'Brah': 'Brahmi',
+        'Brai': 'Braille',
+        'Bugi': 'Buginese',
+        'Buhd': 'Buhid',
+        'Cakm': 'Chakma',
+        'Cans': 'Canadian_Aboriginal',
+        'Cari': 'Carian',
+        'Cham': 'Cham',
+        'Cher': 'Cherokee',
+        'Copt': 'Coptic',
+        'Cprt': 'Cypriot',
+        'Cyrl': 'Cyrillic',
+        'Deva': 'Devanagari',
+        'Dsrt': 'Deseret',
+        'Dupl': 'Duployan',
+        'Egyp': 'Egyptian_Hieroglyphs',
+        'Elba': 'Elbasan',
+        'Ethi': 'Ethiopic',
+        'Geor': 'Georgian',
+        'Glag': 'Glagolitic',
+        'Goth': 'Gothic',
+        'Gran': 'Grantha',
+        'Grek': 'Greek',
+        'Gujr': 'Gujarati',
+        'Guru': 'Gurmukhi',
+        'Hang': 'Hangul',
+        'Hani': 'Han',
+        'Hano': 'Hanunoo',
+        'Hatr': 'Hatran',
+        'Hebr': 'Hebrew',
+        'Hira': 'Hiragana',
+        'Hluw': 'Anatolian_Hieroglyphs',
+        'Hmng': 'Pahawh_Hmong',
+        'Hrkt': 'Katakana_Or_Hiragana',
+        'Hung': 'Old_Hungarian',
+        'Ital': 'Old_Italic',
+        'Java': 'Javanese',
+        'Kali': 'Kayah_Li',
+        'Kana': 'Katakana',
+        'Khar': 'Kharoshthi',
+        'Khmr': 'Khmer',
+        'Khoj': 'Khojki',
+        'Knda': 'Kannada',
+        'Kthi': 'Kaithi',
+        'Lana': 'Tai_Tham',
+        'Laoo': 'Lao',
+        'Latn': 'Latin',
+        'Lepc': 'Lepcha',
+        'Limb': 'Limbu',
+        'Lina': 'Linear_A',
+        'Linb': 'Linear_B',
+        'Lisu': 'Lisu',
+        'Lyci': 'Lycian',
+        'Lydi': 'Lydian',
+        'Mahj': 'Mahajani',
+        'Mand': 'Mandaic',
+        'Mani': 'Manichaean',
+        'Mend': 'Mende_Kikakui',
+        'Merc': 'Meroitic_Cursive',
+        'Mero': 'Meroitic_Hieroglyphs',
+        'Mlym': 'Malayalam',
+        'Modi': 'Modi',
+        'Mong': 'Mongolian',
+        'Mroo': 'Mro',
+        'Mtei': 'Meetei_Mayek',
+        'Mult': 'Multani',
+        'Mymr': 'Myanmar',
+        'Narb': 'Old_North_Arabian',
+        'Nbat': 'Nabataean',
+        'Nkoo': 'Nko',
+        'Ogam': 'Ogham',
+        'Olck': 'Ol_Chiki',
+        'Orkh': 'Old_Turkic',
+        'Orya': 'Oriya',
+        'Osma': 'Osmanya',
+        'Palm': 'Palmyrene',
+        'Pauc': 'Pau_Cin_Hau',
+        'Perm': 'Old_Permic',
+        'Phag': 'Phags_Pa',
+        'Phli': 'Inscriptional_Pahlavi',
+        'Phlp': 'Psalter_Pahlavi',
+        'Phnx': 'Phoenician',
+        'Plrd': 'Miao',
+        'Prti': 'Inscriptional_Parthian',
+        'Rjng': 'Rejang',
+        'Runr': 'Runic',
+        'Samr': 'Samaritan',
+        'Sarb': 'Old_South_Arabian',
+        'Saur': 'Saurashtra',
+        'Sgnw': 'SignWriting',
+        'Shaw': 'Shavian',
+        'Shrd': 'Sharada',
+        'Sidd': 'Siddham',
+        'Sind': 'Khudawadi',
+        'Sinh': 'Sinhala',
+        'Sora': 'Sora_Sompeng',
+        'Sund': 'Sundanese',
+        'Sylo': 'Syloti_Nagri',
+        'Syrc': 'Syriac',
+        'Tagb': 'Tagbanwa',
+        'Takr': 'Takri',
+        'Tale': 'Tai_Le',
+        'Talu': 'New_Tai_Lue',
+        'Taml': 'Tamil',
+        'Tavt': 'Tai_Viet',
+        'Telu': 'Telugu',
+        'Tfng': 'Tifinagh',
+        'Tglg': 'Tagalog',
+        'Thaa': 'Thaana',
+        'Thai': 'Thai',
+        'Tibt': 'Tibetan',
+        'Tirh': 'Tirhuta',
+        'Ugar': 'Ugaritic',
+        'Vaii': 'Vai',
+        'Wara': 'Warang_Citi',
+        'Xpeo': 'Old_Persian',
+        'Xsux': 'Cuneiform',
+        'Yiii': 'Yi',
+        'Zinh': 'Inherited',
+        'Zyyy': 'Common',
+        'Zzzz': 'Unknown',
+    }
+
+    values = [-1] * (MaxCode + 1)
+    rHeader = re.compile(r"# Script_Extensions=(.*)")
+
+    id = 0
+    for line in fin:
+        m = rHeader.match(line)
+        if m:
+            fout.write('{\n')
+            for sc in [dic[x] for x in m.group(1).split(' ')]:
+                fout.write('    Script::%s, \n' % sc)
+            fout.write('},\n')
+            id += 1
+
+#------------------------------------------------------------------------------
+# genNomalizationPropertyTable
+#------------------------------------------------------------------------------
+
+def genNomalizationPropertyTable(ucd, out):
+    fin = open(ucd + '/UnicodeData.txt')
+    fout = open(out + '/_normalization_properties.cpp', 'w')
+
+    data = [x.rstrip().split(';') for x in fin]
+    r = re.compile(r"(?:<(\w+)> )?(.+)")
+
+    def items():
+        codePointPrev = -1
+        i = 0
+        while i < len(data):
+            flds = data[i]
+            codePoint = int(flds[0], 16)
+            name = flds[1]
+            combiningClass = int(flds[3])
+            codes = flds[5]
+
+            for cp in range(codePointPrev + 1, codePoint):
+                yield cp, combiningClass, None, []
+
+            if flds[1].endswith('First>'):
+                fldsLast = data[i + 1]
+                codePointLast = int(fldsLast[0], 16)
+                for cp in range(codePoint, codePointLast + 1):
+                    yield cp, combiningClass, None, []
+                codePointPrev = codePointLast
+                i += 2
+            else:
+                m = r.match(codes)
+                if m:
+                    compat = m.group(1)
+                    codes = [int(x, 16) for x in m.group(2).split(' ')]
+                    yield codePoint, combiningClass, compat, codes
+                else:
+                    yield codePoint, combiningClass, None, []
+                codePointPrev = codePoint
+                i += 1
+
+        for cp in range(codePointPrev + 1, MaxCode + 1):
+            yield cp, combiningClass, None, []
+
+    for cp, cls, compat, codes in items():
+        if compat:
+            compat = '"%s"' % compat
+        else:
+            compat = 'nullptr'
+        if codes:
+            codes = 'U"%s"' % ''.join(["\\U%08X" % x for x in codes])
+        else:
+            codes = 'nullptr'
+        fout.write("%d, %s, %s,\n" % (cls, compat, codes))
+
+#------------------------------------------------------------------------------
+# genNomalizationCompositionTable
+#------------------------------------------------------------------------------
+
+def genNomalizationCompositionTable(ucd, out):
+    fin = open(ucd + '/UnicodeData.txt')
+    finExclusions = open(ucd + '/CompositionExclusions.txt')
+    fout = open(out + '/_normalization_composition.cpp', 'w')
+
+    data = [x.rstrip().split(';') for x in fin]
+    r = re.compile(r"(?:<(\w+)> )?(.+)")
+
+    def items():
+        codePointPrev = -1
+        i = 0
+        while i < len(data):
+            flds = data[i]
+            codePoint = int(flds[0], 16)
+            name = flds[1]
+            combiningClass = int(flds[3])
+            codes = flds[5]
+
+            if flds[1].endswith('First>'):
+                fldsLast = data[i + 1]
+                codePointLast = int(fldsLast[0], 16)
+                codePointPrev = codePointLast
+                i += 2
+            else:
+                m = r.match(codes)
+                if m:
+                    compat = m.group(1)
+                    codes = [int(x, 16) for x in m.group(2).split(' ')]
+                    if len(codes) == 2 and not compat and combiningClass == 0:
+                        yield codePoint, codes
+                codePointPrev = codePoint
+                i += 1
+
+    exclusions = set()
+    rRange = re.compile(r"(?:# )?([0-9A-F]{4,})(?:\.\.([0-9A-F]+))?.*")
+    for line in finExclusions:
+        m = rRange.match(line)
+        if m:
+            first = int(m.group(1), 16)
+            if m.group(2):
+                last = int(m.group(2), 16)
+                for i in range(first, last + 1):
+                    exclusions.add(i)
+            else:
+                exclusions.add(first)
+
+    for cp, codes in items():
+        if not cp in exclusions:
+            fout.write('{ U"\U%08X\U%08X", 0x%08X },\n' % (codes[0], codes[1], cp))
+
+#------------------------------------------------------------------------------
+# getGraphemeBreakPropertyTable
+#------------------------------------------------------------------------------
+
+def getGraphemeBreakPropertyTable(ucd, out):
+    fin = open(ucd + '/auxiliary/GraphemeBreakProperty.txt')
+    fout = open(out + '/_grapheme_break_properties.cpp', 'w')
+
+    values = ['Unassigned'] * (MaxCode + 1)
+    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s+;\s+(\w+)\s+#.*")
+
+    for line in fin:
+        m = r.match(line)
+        if m:
+            codePoint = int(m.group(1), 16)
+            value = m.group(3)
+
+            if m.group(2):
+                codePointLast = int(m.group(2), 16)
+                for cp in range(codePoint, codePointLast + 1):
+                    values[cp] = value
+            else:
+                values[codePoint] = value
+
+    for val in values:
+        fout.write("GraphemeBreak::%s,\n" % val)
+
+#------------------------------------------------------------------------------
+# Main
+#------------------------------------------------------------------------------
+
+if (len(sys.argv) < 3):
+    print('usage: python gen_tables.py UCD_DIR OUT_DIR')
+else:
+    ucd = sys.argv[1]
+    out = sys.argv[2]
+
+    genGeneralCategoryPropertyTable(ucd, out)
+    genBlockPropertyTable(ucd, out)
+    genScriptPropertyTable(ucd, out)
+    genScriptExtensionIdTable(ucd, out)
+    genScriptExtensionPropertyForIdTable(ucd, out)
+    genNomalizationPropertyTable(ucd, out)
+    genNomalizationCompositionTable(ucd, out)
+    getGraphemeBreakPropertyTable(ucd, out)
