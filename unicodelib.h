@@ -117,6 +117,8 @@ extern bool is_combining_character(char32_t cp);
 
 extern size_t combining_character_sequence_length(const char32_t *s32,
                                                   size_t l);
+extern size_t combining_character_sequence_count(const char32_t *s32,
+                                                 size_t l);
 
 // The following functions  support 'extended' grapheme cluster, not 'legacy'
 // graphme cluster.

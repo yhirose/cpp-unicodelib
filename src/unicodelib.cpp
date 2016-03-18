@@ -190,6 +190,16 @@ size_t combining_character_sequence_length(const char32_t *s32, size_t l) {
   return i;
 }
 
+size_t combining_character_sequence_count(const char32_t* s32, size_t l) {
+  size_t count = 0;
+  size_t i = 0;
+  while (i < l) {
+    count++;
+    i += combining_character_sequence_length(s32 + i, l - i);
+  }
+  return count;
+}
+
 bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
   // GB1: sot ÷
   if (i == 0) {

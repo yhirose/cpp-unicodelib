@@ -15,7 +15,7 @@ const char32_t MaxCode = 0x0010FFFF;
 
 ## Functions
 
-### Unicode properties
+### Unicode Properties
 
 ```cpp
 GeneralCategory general_category(char32_t cp);
@@ -82,13 +82,14 @@ std::u32string to_nfkd(const char32_t *s32, size_t l);
 
 ```cpp
 size_t combining_character_sequence_length(const char32_t* s32, size_t l);
+size_t combining_character_sequence_count(const char32_t* s32, size_t l);
 
 bool is_grapheme_boundary(const char32_t* s32, size_t l, size_t i);
 size_t grapheme_length(const char32_t* s32, size_t l);
 size_t grapheme_count(const char32_t* s32, size_t l);
 ```
 
-### UTF8 encode/decode
+### UTF8 Encode/Decode
 
 ```cpp
 size_t encode_byte_length(char32_t uc);

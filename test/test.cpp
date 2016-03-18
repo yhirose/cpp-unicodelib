@@ -161,6 +161,9 @@ TEST_CASE("Combining character sequence", "[combining character sequence]") {
 
   std::u32string zwnj = U"\u0061\u200C\u0062"; // TODO: Need better examples
   REQUIRE(unicode::combining_character_sequence_length(zwnj.data(), zwnj.length()) == 2);
+
+  std::u32string count = U"\u0061\u0301\u0302\u0062\u0301\u0063";
+  REQUIRE(unicode::combining_character_sequence_count(count.data(), count.length()) == 3);
 }
 
 TEST_CASE("Grapheme cluster segmentations", "[graphme cluster]") {
