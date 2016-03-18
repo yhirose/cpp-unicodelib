@@ -107,17 +107,19 @@ extern bool is_symbol(char32_t cp);
 extern bool is_separator(char32_t cp);
 extern bool is_other(char32_t cp);
 
-//-----------------------------------------------------------------------------
-// Combination
-//-----------------------------------------------------------------------------
-
 extern bool is_graphic_character(char32_t cp);
 extern bool is_base_character(char32_t cp);
 extern bool is_combining_character(char32_t cp);
 
-extern size_t combining_character_sequence_length(const char32_t* s32, size_t l);
+//-----------------------------------------------------------------------------
+// Combination
+//-----------------------------------------------------------------------------
 
-// They support 'extended' grapheme cluster, not 'legacy' graphme cluster.
+extern size_t combining_character_sequence_length(const char32_t *s32,
+                                                  size_t l);
+
+// The following functions  support 'extended' grapheme cluster, not 'legacy'
+// graphme cluster.
 extern bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i);
 extern size_t grapheme_length(const char32_t *s32, size_t l);
 extern size_t grapheme_count(const char32_t *s32, size_t l);
