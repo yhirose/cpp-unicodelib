@@ -12,8 +12,8 @@ GeneralCategory general_category(char32_t cp) {
   return _general_category_properties[cp];
 }
 
-bool is_cased_letter(char32_t cp) {
-  switch (general_category(cp)) {
+bool is_cased_letter_category(GeneralCategory gc) {
+  switch (gc) {
   case GeneralCategory::Lu:
   case GeneralCategory::Ll:
   case GeneralCategory::Lt:
@@ -23,8 +23,8 @@ bool is_cased_letter(char32_t cp) {
   }
 }
 
-bool is_letter(char32_t cp) {
-  switch (general_category(cp)) {
+bool is_letter_category(GeneralCategory gc) {
+  switch (gc) {
   case GeneralCategory::Lu:
   case GeneralCategory::Ll:
   case GeneralCategory::Lt:
@@ -36,8 +36,8 @@ bool is_letter(char32_t cp) {
   }
 }
 
-bool is_mark(char32_t cp) {
-  switch (general_category(cp)) {
+bool is_mark_category(GeneralCategory gc) {
+  switch (gc) {
   case GeneralCategory::Mn:
   case GeneralCategory::Mc:
   case GeneralCategory::Me:
@@ -47,8 +47,8 @@ bool is_mark(char32_t cp) {
   }
 }
 
-bool is_number(char32_t cp) {
-  switch (general_category(cp)) {
+bool is_number_category(GeneralCategory gc) {
+  switch (gc) {
   case GeneralCategory::Nd:
   case GeneralCategory::Nl:
   case GeneralCategory::No:
@@ -58,8 +58,8 @@ bool is_number(char32_t cp) {
   }
 }
 
-bool is_punctuation(char32_t cp) {
-  switch (general_category(cp)) {
+bool is_punctuation_category(GeneralCategory gc) {
+  switch (gc) {
   case GeneralCategory::Pc:
   case GeneralCategory::Pd:
   case GeneralCategory::Ps:
@@ -73,8 +73,8 @@ bool is_punctuation(char32_t cp) {
   }
 }
 
-bool is_symbol(char32_t cp) {
-  switch (general_category(cp)) {
+bool is_symbol_category(GeneralCategory gc) {
+  switch (gc) {
   case GeneralCategory::Sm:
   case GeneralCategory::Sc:
   case GeneralCategory::Sk:
@@ -85,8 +85,8 @@ bool is_symbol(char32_t cp) {
   }
 }
 
-bool is_separator(char32_t cp) {
-  switch (general_category(cp)) {
+bool is_separator_category(GeneralCategory gc) {
+  switch (gc) {
   case GeneralCategory::Zs:
   case GeneralCategory::Zl:
   case GeneralCategory::Zp:
@@ -96,8 +96,8 @@ bool is_separator(char32_t cp) {
   }
 }
 
-bool is_other(char32_t cp) {
-  switch (general_category(cp)) {
+bool is_other_category(GeneralCategory gc) {
+  switch (gc) {
   case GeneralCategory::Cc:
   case GeneralCategory::Cf:
   case GeneralCategory::Cs:
@@ -109,27 +109,180 @@ bool is_other(char32_t cp) {
   }
 }
 
-bool is_general_category(GeneralCategory gc, char32_t cp) {
+bool is_cased_letter(char32_t cp) {
+  return is_cased_letter_category(general_category(cp));
+}
+
+bool is_letter(char32_t cp) { return is_letter_category(general_category(cp)); }
+
+bool is_mark(char32_t cp) { return is_mark_category(general_category(cp)); }
+
+bool is_number(char32_t cp) { return is_number_category(general_category(cp)); }
+
+bool is_punctuation(char32_t cp) {
+  return is_punctuation_category(general_category(cp));
+}
+
+bool is_symbol(char32_t cp) { return is_symbol_category(general_category(cp)); }
+
+bool is_separator(char32_t cp) {
+  return is_separator_category(general_category(cp));
+}
+
+bool is_other(char32_t cp) { return is_other_category(general_category(cp)); }
+
+//-----------------------------------------------------------------------------
+// Combination
+//-----------------------------------------------------------------------------
+
+bool is_graphic_character(char32_t cp) {
+  // D50 Graphic character: A character with the General Category of Letter (L),
+  // Combining Mark (M), Number (N), Punctuation (P), Symbol (S), or Space
+  // Separator (Zs).
+  return is_base_character(cp) || is_mark(cp);
+}
+
+bool is_base_character(char32_t cp) {
+  // D51 Base character: Any graphic character except for those with the General
+  // Category of  Combining Mark (M).
+  auto gc = general_category(cp);
   switch (gc) {
-  case GeneralCategory::L:
-    return is_letter(cp);
-  case GeneralCategory::LC:
-    return is_cased_letter(cp);
-  case GeneralCategory::M:
-    return is_mark(cp);
-  case GeneralCategory::N:
-    return is_number(cp);
-  case GeneralCategory::P:
-    return is_punctuation(cp);
-  case GeneralCategory::S:
-    return is_symbol(cp);
-  case GeneralCategory::Z:
-    return is_separator(cp);
-  case GeneralCategory::C:
-    return is_other(cp);
+  case GeneralCategory::Zs:
+    return true;
   default:
-    return general_category(cp) == gc;
+    return is_letter_category(gc) || is_number_category(gc) ||
+           is_punctuation_category(gc) || is_symbol_category(gc);
   }
+}
+
+bool is_combining_character(char32_t cp) {
+  // D52 Combining character: A character with the General Category of Combining Mark
+  // (M)
+  return is_mark(cp);
+}
+
+size_t combining_character_sequence_length(const char32_t *s32, size_t l) {
+  // D56 Combining character sequence: A maximal character sequence consisting of either a
+  // base character followed by a sequence of one or more characters where each is a
+  // combining character, zero width joiner, or zero width non-joiner; or a
+  // sequence of one or more characters where each is a combining character, zero
+  // width joiner, or zero width non-joiner.
+
+  const char32_t ZERO_WIDTH_JOINER = 0x200D;
+  const char32_t ZERO_WIDTH_NON_JOINER = 0x200C;
+
+  size_t i = 0;
+  if (l) {
+    if (is_base_character(s32[i])) {
+      i++;
+    }
+    while (i < l) {
+      auto cp = s32[i];
+      if (is_combining_character(cp) ||
+          cp == ZERO_WIDTH_JOINER ||
+          cp == ZERO_WIDTH_NON_JOINER) {
+        i++;
+      } else {
+        break;
+      }
+    }
+  }
+  return i;
+}
+
+bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
+  // GB1: sot ÷
+  if (i == 0) {
+    return true;
+  }
+
+  // GB2: ÷ eot
+  if (i == l) {
+    return true;
+  }
+
+  auto lp = _grapheme_break_properties[s32[i - 1]];
+  auto rp = _grapheme_break_properties[s32[i]];
+
+  // GB3: CR × LF
+  if ((lp == GraphemeBreak::CR) && (rp == GraphemeBreak::LF)) {
+    return false;
+  }
+
+  // GB4: (Control|CR|LF) ÷
+  if ((lp == GraphemeBreak::Control || lp == GraphemeBreak::CR ||
+       lp == GraphemeBreak::LF)) {
+    return true;
+  }
+
+  // GB5: ÷ (Control|CR|LF)
+  if ((rp == GraphemeBreak::Control || rp == GraphemeBreak::CR ||
+       rp == GraphemeBreak::LF)) {
+    return true;
+  }
+
+  // GB6: L × (L|V|LV|LVT)
+  if ((lp == GraphemeBreak::L) &&
+      (rp == GraphemeBreak::L || rp == GraphemeBreak::V ||
+       rp == GraphemeBreak::LV || rp == GraphemeBreak::LVT)) {
+    return false;
+  }
+
+  // GB7: (LV|V) × (V|T)
+  if ((lp == GraphemeBreak::LV || lp == GraphemeBreak::V) &&
+      (rp == GraphemeBreak::V || rp == GraphemeBreak::T)) {
+    return false;
+  }
+
+  // GB8: (LVT|T) × T
+  if ((lp == GraphemeBreak::LVT || lp == GraphemeBreak::T) &&
+      (rp == GraphemeBreak::T)) {
+    return false;
+  }
+
+  // GB8a: Regional_Indicator × Regional_Indicator
+  if ((lp == GraphemeBreak::Regional_Indicator) &&
+      (rp == GraphemeBreak::Regional_Indicator)) {
+    return false;
+  }
+
+  // GB9: × Extend
+  if (rp == GraphemeBreak::Extend) {
+    return false;
+  }
+
+  // GB9a: × SpacingMark
+  if (rp == GraphemeBreak::SpacingMark) {
+    return false;
+  }
+
+  // GB9b: Prepend ×
+  if (lp == GraphemeBreak::Prepend) {
+    return false;
+  }
+
+  // GB10: Any ÷ Any
+  return true;
+}
+
+size_t grapheme_length(const char32_t *s32, size_t l) {
+  size_t i = 1;
+  for (; i < l; i++) {
+    if (is_grapheme_boundary(s32, l, i)) {
+      return i;
+    }
+  }
+  return i;
+}
+
+size_t grapheme_count(const char32_t *s32, size_t l) {
+  size_t count = 0;
+  size_t i = 0;
+  while (i < l) {
+    count++;
+    i += grapheme_length(s32 + i, l - i);
+  }
+  return count;
 }
 
 //-----------------------------------------------------------------------------
@@ -387,105 +540,6 @@ std::u32string to_nfkc(const char32_t *s32, size_t l) {
 
 std::u32string to_nfkd(const char32_t *s32, size_t l) {
   return decompose(s32, l, Normalization::NFKD);
-}
-
-//-----------------------------------------------------------------------------
-// Text segmentation
-//-----------------------------------------------------------------------------
-
-bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
-  // GB1: sot ÷
-  if (i == 0) {
-    return true;
-  }
-
-  // GB2: ÷ eot
-  if (i == l) {
-    return true;
-  }
-
-  auto lp = _grapheme_break_properties[s32[i - 1]];
-  auto rp = _grapheme_break_properties[s32[i]];
-
-  // GB3: CR × LF
-  if ((lp == GraphemeBreak::CR) && (rp == GraphemeBreak::LF)) {
-    return false;
-  }
-
-  // GB4: (Control|CR|LF) ÷
-  if ((lp == GraphemeBreak::Control || lp == GraphemeBreak::CR ||
-       lp == GraphemeBreak::LF)) {
-    return true;
-  }
-
-  // GB5: ÷ (Control|CR|LF)
-  if ((rp == GraphemeBreak::Control || rp == GraphemeBreak::CR ||
-       rp == GraphemeBreak::LF)) {
-    return true;
-  }
-
-  // GB6: L × (L|V|LV|LVT)
-  if ((lp == GraphemeBreak::L) &&
-      (rp == GraphemeBreak::L || rp == GraphemeBreak::V ||
-       rp == GraphemeBreak::LV || rp == GraphemeBreak::LVT)) {
-    return false;
-  }
-
-  // GB7: (LV|V) × (V|T)
-  if ((lp == GraphemeBreak::LV || lp == GraphemeBreak::V) &&
-      (rp == GraphemeBreak::V || rp == GraphemeBreak::T)) {
-    return false;
-  }
-
-  // GB8: (LVT|T) × T
-  if ((lp == GraphemeBreak::LVT || lp == GraphemeBreak::T) &&
-      (rp == GraphemeBreak::T)) {
-    return false;
-  }
-
-  // GB8a: Regional_Indicator × Regional_Indicator
-  if ((lp == GraphemeBreak::Regional_Indicator) &&
-      (rp == GraphemeBreak::Regional_Indicator)) {
-    return false;
-  }
-
-  // GB9: × Extend
-  if (rp == GraphemeBreak::Extend) {
-    return false;
-  }
-
-  // GB9a: × SpacingMark
-  if (rp == GraphemeBreak::SpacingMark) {
-    return false;
-  }
-
-  // GB9b: Prepend ×
-  if (lp == GraphemeBreak::Prepend) {
-    return false;
-  }
-
-  // GB10: Any ÷ Any
-  return true;
-}
-
-size_t grapheme_length(const char32_t *s32, size_t l) {
-  size_t i = 1;
-  for (; i < l; i++) {
-    if (is_grapheme_boundary(s32, l, i)) {
-      return i;
-    }
-  }
-  return i;
-}
-
-size_t grapheme_count(const char32_t *s32, size_t l) {
-  size_t count = 0;
-  size_t i = 0;
-  while (i < l) {
-    count++;
-    i += grapheme_length(s32 + i, l - i);
-  }
-  return count;
 }
 
 //-----------------------------------------------------------------------------

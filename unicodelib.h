@@ -5,8 +5,8 @@
 //  MIT License
 //
 
-#ifndef _CPPFSTLIB_UNICODELIB_H_
-#define _CPPFSTLIB_UNICODELIB_H_
+#ifndef _CPPUNICODELIB_UNICODELIB_H_
+#define _CPPUNICODELIB_UNICODELIB_H_
 
 #include <cstdlib>
 #include <string>
@@ -31,30 +31,22 @@ enum class GeneralCategory {
   Lowercase_Letter = Ll,
   Lt,
   Titlecase_Letter = Lt,
-  LC,
-  Cased_Letter = LC,
   Lm,
   Modifier_Letter = Lm,
   Lo,
   Other_Letter = Lo,
-  L,
-  Letter = L,
   Mn,
   Nonspacing_Mark = Mn,
   Mc,
   Spacing_Mark = Mc,
   Me,
   Enclosing_Mark = Me,
-  M,
-  Mark = M,
   Nd,
   Decimal_Number = Nd,
   Nl,
   Letter_Number = Nl,
   No,
   Other_Number = No,
-  N,
-  Number = N,
   Pc,
   Connector_Punctuation = Pc,
   Pd,
@@ -69,8 +61,6 @@ enum class GeneralCategory {
   Final_Punctuation = Pf,
   Po,
   Other_Punctuation = Po,
-  P,
-  Punctuation = P,
   Sm,
   Math_Symbol = Sm,
   Sc,
@@ -79,16 +69,12 @@ enum class GeneralCategory {
   Modifier_Symbol = Sk,
   So,
   Other_Symbol = So,
-  S,
-  Symbol = S,
   Zs,
   Space_Separator = Zs,
   Zl,
   Line_Separator = Zl,
   Zp,
   Paragraph_Separator = Zp,
-  Z,
-  Separator = Z,
   Cc,
   Control = Cc,
   Cf,
@@ -99,13 +85,19 @@ enum class GeneralCategory {
   Private_Use = Co,
   Cn,
   Unassigned = Cn,
-  C,
-  Other = C,
 };
 
 extern GeneralCategory general_category(char32_t cp);
 
-extern bool is_general_category(GeneralCategory gc, char32_t cp);
+extern bool is_cased_letter_category(GeneralCategory gc);
+extern bool is_letter_category(GeneralCategory gc);
+extern bool is_mark_category(GeneralCategory gc);
+extern bool is_number_category(GeneralCategory gc);
+extern bool is_punctuation_category(GeneralCategory gc);
+extern bool is_symbol_category(GeneralCategory gc);
+extern bool is_separator_category(GeneralCategory gc);
+extern bool is_other_category(GeneralCategory gc);
+
 extern bool is_cased_letter(char32_t cp);
 extern bool is_letter(char32_t cp);
 extern bool is_mark(char32_t cp);
@@ -114,6 +106,21 @@ extern bool is_punctuation(char32_t cp);
 extern bool is_symbol(char32_t cp);
 extern bool is_separator(char32_t cp);
 extern bool is_other(char32_t cp);
+
+//-----------------------------------------------------------------------------
+// Combination
+//-----------------------------------------------------------------------------
+
+extern bool is_graphic_character(char32_t cp);
+extern bool is_base_character(char32_t cp);
+extern bool is_combining_character(char32_t cp);
+
+extern size_t combining_character_sequence_length(const char32_t* s32, size_t l);
+
+// They support 'extended' grapheme cluster, not 'legacy' graphme cluster.
+extern bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i);
+extern size_t grapheme_length(const char32_t *s32, size_t l);
+extern size_t grapheme_count(const char32_t *s32, size_t l);
 
 //-----------------------------------------------------------------------------
 // Block
@@ -532,14 +539,6 @@ enum class Script {
 
 extern Script script(char32_t cp);
 extern bool is_script(Script sc, char32_t cp);
-
-//-----------------------------------------------------------------------------
-// Text segmentation
-//-----------------------------------------------------------------------------
-
-extern bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i);
-extern size_t grapheme_length(const char32_t *s32, size_t l);
-extern size_t grapheme_count(const char32_t *s32, size_t l);
 
 //-----------------------------------------------------------------------------
 // Normalization

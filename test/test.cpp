@@ -107,34 +107,20 @@ TEST_CASE("General category", "[property]") {
 }
 
 TEST_CASE("General category predicate functions", "[property]") {
-  REQUIRE(unicode::is_general_category(unicode::GeneralCategory::L, U'a') ==
-          true);
-  REQUIRE(unicode::is_general_category(unicode::GeneralCategory::LC, U'A') ==
-          true);
-  REQUIRE(unicode::is_general_category(unicode::GeneralCategory::L, U'あ') ==
-          true);
-  REQUIRE(unicode::is_general_category(unicode::GeneralCategory::M, 0x0303) ==
-          true);
-  REQUIRE(unicode::is_general_category(unicode::GeneralCategory::N, U'1') ==
-          true);
-  REQUIRE(unicode::is_general_category(unicode::GeneralCategory::N, U'¼') ==
-          true);
-  REQUIRE(unicode::is_general_category(unicode::GeneralCategory::P, U'-') ==
-          true);
-  REQUIRE(unicode::is_general_category(unicode::GeneralCategory::Z, 0x2028) ==
-          true);
-  REQUIRE(unicode::is_general_category(unicode::GeneralCategory::S, U'€') ==
-          true);
-  REQUIRE(unicode::is_general_category(unicode::GeneralCategory::C, 0x0000) ==
-          true);
-  REQUIRE(unicode::is_general_category(unicode::GeneralCategory::C, 0x00AD) ==
-          true); // Soft hyphen
-  REQUIRE(unicode::is_general_category(unicode::GeneralCategory::C, 0xD800) ==
-          true); // Surrogate
-  REQUIRE(unicode::is_general_category(unicode::GeneralCategory::C, 0xE000) ==
-          true); // Private Use
-  REQUIRE(unicode::is_general_category(unicode::GeneralCategory::C, 0x0378) ==
-          true); // Unassigned
+  REQUIRE(unicode::is_letter(U'a') == true);
+  REQUIRE(unicode::is_cased_letter(U'A') == true);
+  REQUIRE(unicode::is_letter(U'あ') == true);
+  REQUIRE(unicode::is_mark(0x0303) == true);
+  REQUIRE(unicode::is_number(U'1') == true);
+  REQUIRE(unicode::is_number(U'¼') == true);
+  REQUIRE(unicode::is_punctuation(U'-') == true);
+  REQUIRE(unicode::is_separator(0x2028) == true);
+  REQUIRE(unicode::is_symbol(U'€') == true);
+  REQUIRE(unicode::is_other(0x0000) == true);
+  REQUIRE(unicode::is_other(0x00AD) == true); // Soft hyphen
+  REQUIRE(unicode::is_other(0xD800) == true); // Surrogate
+  REQUIRE(unicode::is_other(0xE000) == true); // Private Use
+  REQUIRE(unicode::is_other(0x0378) == true); // Unassigned
 }
 
 TEST_CASE("Block", "[block]") {
@@ -153,7 +139,31 @@ TEST_CASE("Script extension", "[script]") {
   REQUIRE(unicode::is_script(unicode::Script::Katakana, U'ー'));
 }
 
-TEST_CASE("Grapheme cluster segmentations", "[text segmentation]") {
+TEST_CASE("Combining character sequence", "[combining character sequence]") {
+  REQUIRE(unicode::is_graphic_character(U'あ'));
+  REQUIRE(unicode::is_graphic_character(0x0001) == false);
+  REQUIRE(unicode::is_base_character(U'A'));
+  REQUIRE(unicode::is_base_character(0x0300) == false);
+  REQUIRE(unicode::is_combining_character(U'A') == false);
+  REQUIRE(unicode::is_combining_character(0x0300));
+
+  std::u32string base = U"\u0061\u0062";
+  REQUIRE(unicode::combining_character_sequence_length(base.data(), base.length()) == 1);
+
+  std::u32string valid = U"\u0061\u0301\u0302\u0062";
+  REQUIRE(unicode::combining_character_sequence_length(valid.data(), valid.length()) == 3);
+
+  std::u32string invalid = U"\u0301\u0302\u0062";
+  REQUIRE(unicode::combining_character_sequence_length(invalid.data(), invalid.length()) == 2);
+
+  std::u32string zwj = U"\u0061\u200D\u0062"; // TODO: Need better examples
+  REQUIRE(unicode::combining_character_sequence_length(zwj.data(), zwj.length()) == 2);
+
+  std::u32string zwnj = U"\u0061\u200C\u0062"; // TODO: Need better examples
+  REQUIRE(unicode::combining_character_sequence_length(zwnj.data(), zwnj.length()) == 2);
+}
+
+TEST_CASE("Grapheme cluster segmentations", "[graphme cluster]") {
   ifstream fs("../../UCD/auxiliary/GraphemeBreakTest.txt");
   REQUIRE(fs);
 
@@ -213,11 +223,11 @@ TEST_CASE("Normalization", "[normalization]") {
       fields.push_back(codes);
     });
 
-    const auto& c1 = fields[0];
-    const auto& c2 = fields[1];
-    const auto& c3 = fields[2];
-    const auto& c4 = fields[3];
-    const auto& c5 = fields[4];
+    const auto &c1 = fields[0];
+    const auto &c2 = fields[1];
+    const auto &c3 = fields[2];
+    const auto &c4 = fields[3];
+    const auto &c5 = fields[4];
 
     // NFC
     //   c2 == toNFC(c1) == toNFC(c2) == toNFC(c3)
@@ -238,7 +248,8 @@ TEST_CASE("Normalization", "[normalization]") {
     REQUIRE(c5 == unicode::to_nfd(c5.data(), c5.length()));
 
     // NFKC
-    //   c4 == toNFKC(c1) == toNFKC(c2) == toNFKC(c3) == toNFKC(c4) == toNFKC(c5)
+    //   c4 == toNFKC(c1) == toNFKC(c2) == toNFKC(c3) == toNFKC(c4) ==
+    //   toNFKC(c5)
     REQUIRE(c4 == unicode::to_nfkc(c1.data(), c1.length()));
     REQUIRE(c4 == unicode::to_nfkc(c2.data(), c2.length()));
     REQUIRE(c4 == unicode::to_nfkc(c3.data(), c3.length()));
@@ -246,7 +257,8 @@ TEST_CASE("Normalization", "[normalization]") {
     REQUIRE(c4 == unicode::to_nfkc(c5.data(), c5.length()));
 
     // NFKD
-    //   c5 == toNFKD(c1) == toNFKD(c2) == toNFKD(c3) == toNFKD(c4) == toNFKD(c5)
+    //   c5 == toNFKD(c1) == toNFKD(c2) == toNFKD(c3) == toNFKD(c4) ==
+    //   toNFKD(c5)
     REQUIRE(c5 == unicode::to_nfkd(c1.data(), c1.length()));
     REQUIRE(c5 == unicode::to_nfkd(c2.data(), c2.length()));
     REQUIRE(c5 == unicode::to_nfkd(c3.data(), c3.length()));

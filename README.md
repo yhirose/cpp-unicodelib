@@ -20,7 +20,16 @@ const size_t UTF8MaxByteLen = 4;
 
 ```cpp
 GeneralCategory general_category(char32_t cp);
-bool is_general_category(GeneralCategory gc, char32_t cp);
+
+bool is_cased_letter_category(GeneralCategory gc);
+bool is_letter_category(GeneralCategory gc);
+bool is_mark_category(GeneralCategory gc);
+bool is_number_category(GeneralCategory gc);
+bool is_punctuation_category(GeneralCategory gc);
+bool is_symbol_category(GeneralCategory gc);
+bool is_separator_category(GeneralCategory gc);
+bool is_other_category(GeneralCategory gc);
+
 bool is_cased_letter(char32_t cp);
 bool is_letter(char32_t cp);
 bool is_mark(char32_t cp);
@@ -56,6 +65,8 @@ std::u32string to_nfkd(const char32_t *s32, size_t l);
 ### Text segmentation
 
 ```cpp
+size_t combining_character_sequence_length(const char32_t* s32, size_t l);
+
 bool is_grapheme_boundary(const char32_t* s32, size_t l, size_t i);
 size_t grapheme_length(const char32_t* s32, size_t l);
 size_t grapheme_count(const char32_t* s32, size_t l);
