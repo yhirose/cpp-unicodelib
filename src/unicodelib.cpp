@@ -1,8 +1,105 @@
 #include "unicodelib.h"
-#include "unicodelib_data.h"
 #include <algorithm>
+#include "unicodelib_data.h"
 
 namespace unicode {
+
+const char32_t ZERO_WIDTH_JOINER = 0x200D;
+const char32_t ZERO_WIDTH_NON_JOINER = 0x200C;
+
+namespace hangul {
+
+//-----------------------------------------------------------------------------
+// Hangul Algorithm
+//-----------------------------------------------------------------------------
+
+// Common Constants
+const char32_t SBase = 0xAC00, LBase = 0x1100, VBase = 0x1161, TBase = 0x11A7,
+               LCount = 19, VCount = 21, TCount = 28,
+               NCount = VCount * TCount,  // 588
+    SCount = LCount * NCount;             // 11172
+
+static bool is_precomposed_syllable(char32_t cp) {
+  return SBase <= cp && cp < SBase + SCount;
+}
+
+static bool is_decomposed_syllable(const char32_t *source, size_t len) {
+  if (len < 2) {
+    return false;
+  }
+
+  auto first = source[0];
+  auto second = source[1];
+
+  if (LBase <= first && first < LBase + LCount) {
+    if (VBase <= second && second < VBase + VCount) {
+      return true;
+    }
+  }
+
+  if (SBase <= first && first < SBase + SCount &&
+      ((first - SBase) % TCount) == 0) {
+    if (TBase <= second && second < TBase + TCount) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static void decompose_hangul(char32_t cp, std::u32string &out) {
+  auto SIndex = cp - SBase;
+  auto L = LBase + SIndex / NCount;
+  auto V = VBase + (SIndex % NCount) / TCount;
+  auto T = TBase + SIndex % TCount;
+  out += L;
+  out += V;
+  if (T != TBase) {
+    out += T;
+  }
+}
+
+static size_t compose_hangul(const char32_t *source, size_t len,
+                             std::u32string &out) {
+  auto last = source[0];  // copy first char
+  out += last;
+
+  size_t i = 1;
+  for (; i < len; i++) {
+    auto ch = source[i];
+
+    // 1. check to see if two current characters are L and V
+    int LIndex = last - LBase;
+    if (0 <= LIndex && LIndex < LCount) {
+      int VIndex = ch - VBase;
+      if (0 <= VIndex && VIndex < VCount) {
+        // make syllable of form LV
+        last = (char32_t)(SBase + (LIndex * VCount + VIndex) * TCount);
+        out.back() = last;  // reset last
+        continue;           // discard ch
+      }
+    }
+
+    // 2. check to see if two current characters are LV and T
+    int SIndex = last - SBase;
+    if (0 <= SIndex && SIndex < SCount && (SIndex % TCount) == 0) {
+      int TIndex = ch - TBase;
+      if (0 <= TIndex && TIndex <= TCount) {
+        // make syllable of form LVT
+        last += TIndex;
+        out.back() = last;  // reset last
+        continue;           // discard ch
+      }
+    }
+
+    // if neither case was true, break
+    break;
+  }
+
+  return i;
+}
+
+}  // namespace hangul
 
 //-----------------------------------------------------------------------------
 // General Category
@@ -14,98 +111,98 @@ GeneralCategory general_category(char32_t cp) {
 
 bool is_cased_letter_category(GeneralCategory gc) {
   switch (gc) {
-  case GeneralCategory::Lu:
-  case GeneralCategory::Ll:
-  case GeneralCategory::Lt:
-    return true;
-  default:
-    return false;
+    case GeneralCategory::Lu:
+    case GeneralCategory::Ll:
+    case GeneralCategory::Lt:
+      return true;
+    default:
+      return false;
   }
 }
 
 bool is_letter_category(GeneralCategory gc) {
   switch (gc) {
-  case GeneralCategory::Lu:
-  case GeneralCategory::Ll:
-  case GeneralCategory::Lt:
-  case GeneralCategory::Lm:
-  case GeneralCategory::Lo:
-    return true;
-  default:
-    return false;
+    case GeneralCategory::Lu:
+    case GeneralCategory::Ll:
+    case GeneralCategory::Lt:
+    case GeneralCategory::Lm:
+    case GeneralCategory::Lo:
+      return true;
+    default:
+      return false;
   }
 }
 
 bool is_mark_category(GeneralCategory gc) {
   switch (gc) {
-  case GeneralCategory::Mn:
-  case GeneralCategory::Mc:
-  case GeneralCategory::Me:
-    return true;
-  default:
-    return false;
+    case GeneralCategory::Mn:
+    case GeneralCategory::Mc:
+    case GeneralCategory::Me:
+      return true;
+    default:
+      return false;
   }
 }
 
 bool is_number_category(GeneralCategory gc) {
   switch (gc) {
-  case GeneralCategory::Nd:
-  case GeneralCategory::Nl:
-  case GeneralCategory::No:
-    return true;
-  default:
-    return false;
+    case GeneralCategory::Nd:
+    case GeneralCategory::Nl:
+    case GeneralCategory::No:
+      return true;
+    default:
+      return false;
   }
 }
 
 bool is_punctuation_category(GeneralCategory gc) {
   switch (gc) {
-  case GeneralCategory::Pc:
-  case GeneralCategory::Pd:
-  case GeneralCategory::Ps:
-  case GeneralCategory::Pe:
-  case GeneralCategory::Pi:
-  case GeneralCategory::Pf:
-  case GeneralCategory::Po:
-    return true;
-  default:
-    return false;
+    case GeneralCategory::Pc:
+    case GeneralCategory::Pd:
+    case GeneralCategory::Ps:
+    case GeneralCategory::Pe:
+    case GeneralCategory::Pi:
+    case GeneralCategory::Pf:
+    case GeneralCategory::Po:
+      return true;
+    default:
+      return false;
   }
 }
 
 bool is_symbol_category(GeneralCategory gc) {
   switch (gc) {
-  case GeneralCategory::Sm:
-  case GeneralCategory::Sc:
-  case GeneralCategory::Sk:
-  case GeneralCategory::So:
-    return true;
-  default:
-    return false;
+    case GeneralCategory::Sm:
+    case GeneralCategory::Sc:
+    case GeneralCategory::Sk:
+    case GeneralCategory::So:
+      return true;
+    default:
+      return false;
   }
 }
 
 bool is_separator_category(GeneralCategory gc) {
   switch (gc) {
-  case GeneralCategory::Zs:
-  case GeneralCategory::Zl:
-  case GeneralCategory::Zp:
-    return true;
-  default:
-    return false;
+    case GeneralCategory::Zs:
+    case GeneralCategory::Zl:
+    case GeneralCategory::Zp:
+      return true;
+    default:
+      return false;
   }
 }
 
 bool is_other_category(GeneralCategory gc) {
   switch (gc) {
-  case GeneralCategory::Cc:
-  case GeneralCategory::Cf:
-  case GeneralCategory::Cs:
-  case GeneralCategory::Co:
-  case GeneralCategory::Cn:
-    return true;
-  default:
-    return false;
+    case GeneralCategory::Cc:
+    case GeneralCategory::Cf:
+    case GeneralCategory::Cs:
+    case GeneralCategory::Co:
+    case GeneralCategory::Cn:
+      return true;
+    default:
+      return false;
   }
 }
 
@@ -147,30 +244,65 @@ bool is_base_character(char32_t cp) {
   // Category of  Combining Mark (M).
   auto gc = general_category(cp);
   switch (gc) {
-  case GeneralCategory::Zs:
-    return true;
-  default:
-    return is_letter_category(gc) || is_number_category(gc) ||
-           is_punctuation_category(gc) || is_symbol_category(gc);
+    case GeneralCategory::Zs:
+      return true;
+    default:
+      return is_letter_category(gc) || is_number_category(gc) ||
+             is_punctuation_category(gc) || is_symbol_category(gc);
   }
 }
 
+static bool is_standard_korean_syllable_block(const char32_t *s32, size_t l, size_t &length) {
+  // D134 Standard Korean syllable block: A sequence of one or more L followed
+  // by a sequence of one or more V and a sequence of zero or more T, or any
+  // other sequence that is canonically equivalent.
+  size_t i = 0;
+  if (i == l || _grapheme_break_properties[s32[i]] != GraphemeBreak::L) {
+    return false;
+  }
+  i++;
+  while (i < l && _grapheme_break_properties[s32[i]] == GraphemeBreak::L) {
+    i++;
+  }
+  if (i == l || _grapheme_break_properties[s32[i]] != GraphemeBreak::V) {
+    return false;
+  }
+  i++;
+  while (i < l && _grapheme_break_properties[s32[i]] == GraphemeBreak::V) {
+    i++;
+  }
+  while (i < l || _grapheme_break_properties[s32[i]] == GraphemeBreak::T) {
+    i++;
+  }
+  length = i;
+  return true;
+}
+
+static bool is_extended_base(const char32_t *s32, size_t l, size_t &length) {
+  // D51a Extended base: Any base character, or any standard Korean syllable block.
+  if (l > 0) {
+    if (is_standard_korean_syllable_block(s32, l, length)) {
+      return true;
+    } else if (is_base_character(s32[0])) {
+      length = 1;
+      return true;
+    }
+  }
+  return false;
+}
+
 bool is_combining_character(char32_t cp) {
-  // D52 Combining character: A character with the General Category of Combining Mark
-  // (M)
+  // D52 Combining character: A character with the General Category of Combining
+  // Mark (M)
   return is_mark(cp);
 }
 
 size_t combining_character_sequence_length(const char32_t *s32, size_t l) {
-  // D56 Combining character sequence: A maximal character sequence consisting of either a
-  // base character followed by a sequence of one or more characters where each is a
-  // combining character, zero width joiner, or zero width non-joiner; or a
-  // sequence of one or more characters where each is a combining character, zero
-  // width joiner, or zero width non-joiner.
-
-  const char32_t ZERO_WIDTH_JOINER = 0x200D;
-  const char32_t ZERO_WIDTH_NON_JOINER = 0x200C;
-
+  // D56 Combining character sequence: A maximal character sequence consisting
+  // of either a base character followed by a sequence of one or more characters
+  // where each is a combining character, zero width joiner, or zero width
+  // non-joiner; or a sequence of one or more characters where each is a
+  // combining character, zero width joiner, or zero width non-joiner.
   size_t i = 0;
   if (l) {
     if (is_base_character(s32[i])) {
@@ -178,8 +310,7 @@ size_t combining_character_sequence_length(const char32_t *s32, size_t l) {
     }
     while (i < l) {
       auto cp = s32[i];
-      if (is_combining_character(cp) ||
-          cp == ZERO_WIDTH_JOINER ||
+      if (is_combining_character(cp) || cp == ZERO_WIDTH_JOINER ||
           cp == ZERO_WIDTH_NON_JOINER) {
         i++;
       } else {
@@ -190,12 +321,47 @@ size_t combining_character_sequence_length(const char32_t *s32, size_t l) {
   return i;
 }
 
-size_t combining_character_sequence_count(const char32_t* s32, size_t l) {
+size_t extended_combining_character_sequence_length(const char32_t *s32, size_t l) {
+  // D56a Extended combining character sequence: A maximal character sequence consisting of
+  // either an extended base followed by a sequence of one or more characters where
+  // each is a combining character, zero width joiner, or zero width non-joiner ; or
+  // a sequence of one or more characters where each is a combining character, zero
+  // width joiner, or zero width non-joiner.
+  size_t i = 0;
+  if (l) {
+    size_t length;
+    if (is_extended_base(s32, l, length)) {
+      i += length;
+    }
+    while (i < l) {
+      auto cp = s32[i];
+      if (is_combining_character(cp) || cp == ZERO_WIDTH_JOINER ||
+          cp == ZERO_WIDTH_NON_JOINER) {
+        i++;
+      } else {
+        break;
+      }
+    }
+  }
+  return i;
+}
+
+size_t combining_character_sequence_count(const char32_t *s32, size_t l) {
   size_t count = 0;
   size_t i = 0;
   while (i < l) {
     count++;
     i += combining_character_sequence_length(s32 + i, l - i);
+  }
+  return count;
+}
+
+size_t extended_combining_character_sequence_count(const char32_t *s32, size_t l) {
+  size_t count = 0;
+  size_t i = 0;
+  while (i < l) {
+    count++;
+    i += extended_combining_character_sequence_length(s32 + i, l - i);
   }
   return count;
 }
@@ -310,14 +476,14 @@ Script script(char32_t cp) { return _script_properties[cp]; }
 bool is_script(Script sc, char32_t cp) {
   auto val = script(cp);
   switch (val) {
-  case Script::Common:
-  case Script::Inherited: {
-    auto id = _script_extension_ids[cp];
-    const auto &props = _script_extension_properties_for_id[id];
-    return std::find(props.begin(), props.end(), sc) != props.end();
-  }
-  default:
-    return sc == val;
+    case Script::Common:
+    case Script::Inherited: {
+      auto id = _script_extension_ids[cp];
+      const auto &props = _script_extension_properties_for_id[id];
+      return std::find(props.begin(), props.end(), sc) != props.end();
+    }
+    default:
+      return sc == val;
   }
 }
 
@@ -325,105 +491,9 @@ bool is_script(Script sc, char32_t cp) {
 // Normalization
 //-----------------------------------------------------------------------------
 
-// Implementation is based on
-// http://unicode.org/reports/tr15/tr15-18.html#Hangul
-namespace hangul {
-
-// Common Constants
-const char32_t SBase = 0xAC00, LBase = 0x1100, VBase = 0x1161, TBase = 0x11A7,
-               LCount = 19, VCount = 21, TCount = 28,
-               NCount = VCount * TCount, // 588
-    SCount = LCount * NCount;            // 11172
-
-static bool is_hangul(char32_t cp) {
-  return SBase <= cp && cp < SBase + SCount;
-}
-
-static bool is_hangul_jamo(const char32_t *source, size_t len) {
-  if (len < 2) {
-    return false;
-  }
-
-  auto first = source[0];
-  auto second = source[1];
-
-  if (LBase <= first && first < LBase + LCount) {
-    if (VBase <= second && second < VBase + VCount) {
-      return true;
-    }
-  }
-
-  if (SBase <= first && first < SBase + SCount &&
-      ((first - SBase) % TCount) == 0) {
-    if (TBase <= second && second < TBase + TCount) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-// Hangul Decomposition
-static void decompose_hangul(char32_t cp, std::u32string &out) {
-  auto SIndex = cp - SBase;
-  auto L = LBase + SIndex / NCount;
-  auto V = VBase + (SIndex % NCount) / TCount;
-  auto T = TBase + SIndex % TCount;
-  out += L;
-  out += V;
-  if (T != TBase) {
-    out += T;
-  }
-}
-
-// Hangul Composition
-static size_t compose_hangul(const char32_t *source, size_t len,
-                             std::u32string &out) {
-  auto last = source[0]; // copy first char
-  out += last;
-
-  size_t i = 1;
-  for (; i < len; i++) {
-    auto ch = source[i];
-
-    // 1. check to see if two current characters are L and V
-    int LIndex = last - LBase;
-    if (0 <= LIndex && LIndex < LCount) {
-      int VIndex = ch - VBase;
-      if (0 <= VIndex && VIndex < VCount) {
-
-        // make syllable of form LV
-        last = (char32_t)(SBase + (LIndex * VCount + VIndex) * TCount);
-        out.back() = last; // reset last
-        continue;          // discard ch
-      }
-    }
-
-    // 2. check to see if two current characters are LV and T
-    int SIndex = last - SBase;
-    if (0 <= SIndex && SIndex < SCount && (SIndex % TCount) == 0) {
-      int TIndex = ch - TBase;
-      if (0 <= TIndex && TIndex <= TCount) {
-
-        // make syllable of form LVT
-        last += TIndex;
-        out.back() = last; // reset last
-        continue;          // discard ch
-      }
-    }
-
-    // if neither case was true, break
-    break;
-  }
-
-  return i;
-}
-
-} // namespace hangul
-
 static void decompose_code(const char32_t cp, std::u32string &out,
                            Normalization norm) {
-  if (hangul::is_hangul(cp)) {
+  if (hangul::is_precomposed_syllable(cp)) {
     hangul::decompose_hangul(cp, out);
   } else {
     const auto &prop = _normalization_properties[cp];
@@ -527,7 +597,7 @@ static std::u32string compose(const std::u32string &s32) {
   std::u32string out;
   size_t i = 0;
   while (i < s32.length()) {
-    if (hangul::is_hangul_jamo(s32.data() + i, s32.length() - i)) {
+    if (hangul::is_decomposed_syllable(s32.data() + i, s32.length() - i)) {
       i += hangul::compose_hangul(s32.data() + i, s32.length() - i, out);
     } else {
       i += compose_codes(s32.data() + i, s32.length() - i, out);
@@ -574,7 +644,7 @@ size_t encode_byte_length(char32_t cp) {
     return 3;
   } else if (cp < 0xe000) {
     return 0;
-  } // D800 - DFFF is invalid...
+  }  // D800 - DFFF is invalid...
   else if (cp < 0x10000) {
     return 3;
   } else if (cp < 0x110000) {
@@ -596,7 +666,7 @@ size_t encode(char32_t cp, char *buff, size_t buff_len) {
     buff[1] = (uint8_t)(0x80 | ((cp >> 6) & 0x3F));
     buff[2] = (uint8_t)(0x80 | (cp & 0x3F));
     return 3;
-  } else if (cp < 0xE000) { // D800 - DFFF is invalid...
+  } else if (cp < 0xE000) {  // D800 - DFFF is invalid...
     return 0;
   } else if (cp < 0x10000) {
     buff[0] = (uint8_t)(0xE0 | ((cp >> 12) & 0xF));
@@ -732,6 +802,6 @@ size_t codepoint_count(const char *s8, size_t l) {
   return count;
 }
 
-} // namespace unicode
+}  // namespace unicode
 
 // vim: et ts=2 sw=2 cin cino=\:0 ff=unix

@@ -84,6 +84,9 @@ std::u32string to_nfkd(const char32_t *s32, size_t l);
 size_t combining_character_sequence_length(const char32_t* s32, size_t l);
 size_t combining_character_sequence_count(const char32_t* s32, size_t l);
 
+size_t extended_combining_character_sequence_length(const char32_t* s32, size_t l);
+size_t extended_combining_character_sequence_count(const char32_t* s32, size_t l);
+
 bool is_grapheme_boundary(const char32_t* s32, size_t l, size_t i);
 size_t grapheme_length(const char32_t* s32, size_t l);
 size_t grapheme_count(const char32_t* s32, size_t l);

@@ -164,6 +164,10 @@ TEST_CASE("Combining character sequence", "[combining character sequence]") {
 
   std::u32string count = U"\u0061\u0301\u0302\u0062\u0301\u0063";
   REQUIRE(unicode::combining_character_sequence_count(count.data(), count.length()) == 3);
+
+  std::u32string korean = U"\uD4DB\u1111\u1171\u11B6";
+  REQUIRE(unicode::combining_character_sequence_count(korean.data(), korean.length()) == 4);
+  REQUIRE(unicode::extended_combining_character_sequence_count(korean.data(), korean.length()) == 2);
 }
 
 TEST_CASE("Grapheme cluster segmentations", "[graphme cluster]") {
@@ -181,16 +185,19 @@ TEST_CASE("Grapheme cluster segmentations", "[graphme cluster]") {
     std::vector<bool> boundary;
     size_t expected_count = 0;
 
-    std::stringstream ss(line);
-    std::string ope;
+    stringstream ss(line);
+    string ope;
+    char32_t ope_cp;
     ss >> ope;
-    boundary.push_back(ope == "÷");
+    unicode::decode(ope.data(), ope.length(), ope_cp);
+    boundary.push_back(ope_cp == U'÷');
     while (!ss.eof()) {
       int val;
-      ss >> std::hex >> val;
+      ss >> hex >> val;
       s32 += (char32_t)val;
       ss >> ope;
-      auto is_boundary = (ope == "÷");
+      unicode::decode(ope.data(), ope.length(), ope_cp);
+      auto is_boundary = (ope_cp == U'÷');
       boundary.push_back(is_boundary);
       expected_count += (is_boundary ? 1 : 0);
     }
