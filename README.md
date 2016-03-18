@@ -43,7 +43,7 @@ bool is_base_character(char32_t cp);
 bool is_combining_character(char32_t cp);
 ```
 
-### Unicode code block
+### Code Block
 
 ```cpp
 Block block(char32_t cp)
@@ -54,6 +54,19 @@ Block block(char32_t cp)
 ```cpp
 Script script(char32_t cp);
 bool is_script(Script sc, char32_t cp); // Script Extension support
+```
+
+### Casing (TODO:)
+
+```cpp
+bool is_uppsercase(const char32_t *s32, size_t l);
+bool is_lowercase(const char32_t *s32, size_t l);
+bool is_titlecase(const char32_t *s32, size_t l);
+
+std::u32string to_uppsercase(const char32_t *s32, size_t l);
+std::u32string to_lowercase(const char32_t *s32, size_t l);
+std::u32string to_titlecase(const char32_t *s32, size_t l);
+std::u32string to_case_fold(const char32_t *s32, size_t l);
 ```
 
 ### Normalization
