@@ -45,8 +45,10 @@ def genGeneralCategoryPropertyTable(ucd, out):
         for cp in range(codePointPrev + 1, MaxCode + 1):
             yield cp, 'Cn'
 
+    fout.write("const GeneralCategory _general_category_properties[] = {\n")
     for cp, val in items():
         fout.write("GeneralCategory::%s,\n" % val)
+    fout.write("};\n")
 
 #------------------------------------------------------------------------------
 # genBlockPropertyTable
@@ -69,8 +71,10 @@ def genBlockPropertyTable(ucd, out):
             for cp in range(codePointFirst, codePointLast + 1):
                 values[cp] = block
 
+    fout.write("const Block _block_properties[] = {\n")
     for val in values:
         fout.write("    Block::%s,\n" % val)
+    fout.write("};\n")
 
 #------------------------------------------------------------------------------
 # genScriptPropertyTable
@@ -96,8 +100,10 @@ def genScriptPropertyTable(ucd, out):
             else:
                 values[codePoint] = value
 
+    fout.write("const Script _script_properties[] = {\n")
     for val in values:
         fout.write("Script::%s,\n" % val)
+    fout.write("};\n")
 
 #------------------------------------------------------------------------------
 # genScriptExtensionIdTable
@@ -128,8 +134,10 @@ def genScriptExtensionIdTable(ucd, out):
                 else:
                     values[codePoint] = id
 
+    fout.write("const int _script_extension_ids[] = {\n")
     for id in values:
         fout.write("%d,\n" % id)
+    fout.write("};\n")
 
 #------------------------------------------------------------------------------
 # genScriptExtensionPropertyForIdTable
@@ -278,6 +286,7 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
     values = [-1] * (MaxCode + 1)
     rHeader = re.compile(r"# Script_Extensions=(.*)")
 
+    fout.write("const std::vector<std::vector<Script>> _script_extension_properties_for_id = {\n")
     id = 0
     for line in fin:
         m = rHeader.match(line)
@@ -287,6 +296,7 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
                 fout.write('    Script::%s, \n' % sc)
             fout.write('},\n')
             id += 1
+    fout.write("};\n")
 
 #------------------------------------------------------------------------------
 # genNomalizationPropertyTable
@@ -333,6 +343,7 @@ def genNomalizationPropertyTable(ucd, out):
         for cp in range(codePointPrev + 1, MaxCode + 1):
             yield cp, combiningClass, None, []
 
+    fout.write("const NormalizationProperties _normalization_properties[] = {\n")
     for cp, cls, compat, codes in items():
         if compat:
             compat = '"%s"' % compat
@@ -343,6 +354,7 @@ def genNomalizationPropertyTable(ucd, out):
         else:
             codes = 'nullptr'
         fout.write("%d, %s, %s,\n" % (cls, compat, codes))
+    fout.write("};\n")
 
 #------------------------------------------------------------------------------
 # genNomalizationCompositionTable
@@ -394,9 +406,11 @@ def genNomalizationCompositionTable(ucd, out):
             else:
                 exclusions.add(first)
 
+    fout.write("const std::unordered_map<std::u32string, char32_t> _normalization_composition = {\n")
     for cp, codes in items():
         if not cp in exclusions:
-            fout.write('{ U"\U%08X\U%08X", 0x%08X },\n' % (codes[0], codes[1], cp))
+            fout.write('{ U"\\U%08X\\U%08X", 0x%08X },\n' % (codes[0], codes[1], cp))
+    fout.write("};\n")
 
 #------------------------------------------------------------------------------
 # getGraphemeBreakPropertyTable
@@ -422,8 +436,10 @@ def getGraphemeBreakPropertyTable(ucd, out):
             else:
                 values[codePoint] = value
 
+    fout.write("const GraphemeBreak _grapheme_break_properties[] = {\n")
     for val in values:
         fout.write("GraphemeBreak::%s,\n" % val)
+    fout.write("};\n")
 
 #------------------------------------------------------------------------------
 # Main
