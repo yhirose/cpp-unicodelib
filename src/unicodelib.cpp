@@ -1,5 +1,8 @@
 #include "unicodelib.h"
 #include <algorithm>
+#include <cassert>
+#include <cstring>
+#include <iostream>
 #include "unicodelib_data.h"
 
 namespace unicode {
@@ -229,6 +232,513 @@ bool is_separator(char32_t cp) {
 bool is_other(char32_t cp) { return is_other_category(general_category(cp)); }
 
 //-----------------------------------------------------------------------------
+// Property
+//-----------------------------------------------------------------------------
+
+const uint32_t Property_White_Space = 0b00000000000000000000000000000001;
+const uint32_t Property_Bidi_Control = 0b00000000000000000000000000000010;
+const uint32_t Property_Join_Control = 0b00000000000000000000000000000100;
+const uint32_t Property_Dash = 0b00000000000000000000000000001000;
+const uint32_t Property_Hyphen = 0b00000000000000000000000000010000;
+const uint32_t Property_Quotation_Mark = 0b00000000000000000000000000100000;
+const uint32_t Property_Terminal_Punctuation =
+    0b00000000000000000000000001000000;
+const uint32_t Property_Other_Math = 0b00000000000000000000000010000000;
+const uint32_t Property_Hex_Digit = 0b00000000000000000000000100000000;
+const uint32_t Property_ASCII_Hex_Digit = 0b00000000000000000000001000000000;
+const uint32_t Property_Other_Alphabetic = 0b00000000000000000000010000000000;
+const uint32_t Property_Ideographic = 0b00000000000000000000100000000000;
+const uint32_t Property_Diacritic = 0b00000000000000000001000000000000;
+const uint32_t Property_Extender = 0b00000000000000000010000000000000;
+const uint32_t Property_Other_Lowercase = 0b00000000000000000100000000000000;
+const uint32_t Property_Other_Uppercase = 0b00000000000000001000000000000000;
+const uint32_t Property_Noncharacter_Code_Point =
+    0b00000000000000010000000000000000;
+const uint32_t Property_Other_Grapheme_Extend =
+    0b00000000000000100000000000000000;
+const uint32_t Property_IDS_Binary_Operator =
+    0b00000000000001000000000000000000;
+const uint32_t Property_Radical = 0b00000000000010000000000000000000;
+const uint32_t Property_Unified_Ideograph = 0b00000000000100000000000000000000;
+const uint32_t Property_Other_Default_Ignorable_Code_Point =
+    0b00000000001000000000000000000000;
+const uint32_t Property_Deprecated = 0b00000000010000000000000000000000;
+const uint32_t Property_Soft_Dotted = 0b00000000100000000000000000000000;
+const uint32_t Property_Logical_Order_Exception =
+    0b00000001000000000000000000000000;
+const uint32_t Property_Other_ID_Start = 0b00000010000000000000000000000000;
+const uint32_t Property_Other_ID_Continue = 0b00000100000000000000000000000000;
+const uint32_t Property_STerm = 0b00001000000000000000000000000000;
+const uint32_t Property_Variation_Selector = 0b00010000000000000000000000000000;
+const uint32_t Property_Pattern_White_Space =
+    0b00100000000000000000000000000000;
+const uint32_t Property_Pattern_Syntax = 0b01000000000000000000000000000000;
+
+bool is_white_space(char32_t cp) {
+  return _properties[cp] & Property_White_Space;
+}
+
+bool is_bidi_control(char32_t cp) {
+  return _properties[cp] & Property_Bidi_Control;
+}
+
+bool is_join_control(char32_t cp) {
+  return _properties[cp] & Property_Join_Control;
+}
+
+bool is_dash(char32_t cp) {
+  return _properties[cp] & Property_Dash;
+}
+
+bool is_hyphen(char32_t cp) {
+  return _properties[cp] & Property_Hyphen;
+}
+
+bool is_quotation_mark(char32_t cp) {
+  return _properties[cp] & Property_Quotation_Mark;
+}
+
+bool is_terminal_punctuation(char32_t cp) {
+  return _properties[cp] & Property_Terminal_Punctuation;
+}
+
+bool is_other_math(char32_t cp) {
+  return _properties[cp] & Property_Other_Math;
+}
+
+bool is_hex_digit(char32_t cp) {
+  return _properties[cp] & Property_Hex_Digit;
+}
+
+bool is_ascii_hex_digit(char32_t cp) {
+  return _properties[cp] & Property_ASCII_Hex_Digit;
+}
+
+bool is_other_alphabetic(char32_t cp) {
+  return _properties[cp] & Property_Other_Alphabetic;
+}
+
+bool is_ideographic(char32_t cp) {
+  return _properties[cp] & Property_Ideographic;
+}
+
+bool is_diacritic(char32_t cp) {
+  return _properties[cp] & Property_Diacritic;
+}
+
+bool is_extender(char32_t cp) {
+  return _properties[cp] & Property_Extender;
+}
+
+bool is_other_lowercase(char32_t cp) {
+  return _properties[cp] & Property_Other_Lowercase;
+}
+
+bool is_other_uppercase(char32_t cp) {
+  return _properties[cp] & Property_Other_Uppercase;
+}
+
+bool is_noncharacter_code_point(char32_t cp) {
+  return _properties[cp] & Property_Noncharacter_Code_Point;
+}
+
+bool is_other_grapheme_extend(char32_t cp) {
+  return _properties[cp] & Property_Other_Grapheme_Extend;
+}
+
+bool is_ids_binary_operator(char32_t cp) {
+  return _properties[cp] & Property_IDS_Binary_Operator;
+}
+
+bool is_radical(char32_t cp) {
+  return _properties[cp] & Property_Radical;
+}
+
+bool is_unified_ideograph(char32_t cp) {
+  return _properties[cp] & Property_Unified_Ideograph;
+}
+
+bool is_other_default_ignorable_code_point(char32_t cp) {
+  return _properties[cp] & Property_Other_Default_Ignorable_Code_Point;
+}
+
+bool is_deprecated(char32_t cp) {
+  return _properties[cp] & Property_Deprecated;
+}
+
+bool is_soft_dotted(char32_t cp) {
+  return _properties[cp] & Property_Soft_Dotted;
+}
+
+bool is_logical_order_exception(char32_t cp) {
+  return _properties[cp] & Property_Logical_Order_Exception;
+}
+
+bool is_other_id_start(char32_t cp) {
+  return _properties[cp] & Property_Other_ID_Start;
+}
+
+bool is_other_id_continue(char32_t cp) {
+  return _properties[cp] & Property_Other_ID_Continue;
+}
+
+bool is_sterm(char32_t cp) {
+  return _properties[cp] & Property_STerm;
+}
+
+bool is_variation_selector(char32_t cp) {
+  return _properties[cp] & Property_Variation_Selector;
+}
+
+bool is_pattern_white_space(char32_t cp) {
+  return _properties[cp] & Property_Pattern_White_Space;
+}
+
+bool is_pattern_syntax(char32_t cp) {
+  return _properties[cp] & Property_Pattern_Syntax;
+}
+
+//-----------------------------------------------------------------------------
+// Derived Property
+//-----------------------------------------------------------------------------
+
+const uint32_t DerivedProperty_Math = 0b00000000000000000000000000000001;
+const uint32_t DerivedProperty_Alphabetic =
+    0b00000000000000000000000000000010;
+const uint32_t DerivedProperty_Lowercase =
+    0b00000000000000000000000000000100;
+const uint32_t DerivedProperty_Uppercase =
+    0b00000000000000000000000000001000;
+const uint32_t DerivedProperty_Cased =
+    0b00000000000000000000000000010000;
+const uint32_t DerivedProperty_Case_Ignorable =
+    0b00000000000000000000000000100000;
+const uint32_t DerivedProperty_Changes_When_Lowercased =
+    0b00000000000000000000000001000000;
+const uint32_t DerivedProperty_Changes_When_Uppercased =
+    0b00000000000000000000000010000000;
+const uint32_t DerivedProperty_Changes_When_Titlecased =
+    0b00000000000000000000000100000000;
+const uint32_t DerivedProperty_Changes_When_Casefolded =
+    0b00000000000000000000001000000000;
+const uint32_t DerivedProperty_Changes_When_Casemapped =
+    0b00000000000000000000010000000000;
+const uint32_t DerivedProperty_ID_Start =
+    0b00000000000000000000100000000000;
+const uint32_t DerivedProperty_ID_Continue =
+    0b00000000000000000001000000000000;
+const uint32_t DerivedProperty_XID_Start =
+    0b00000000000000000010000000000000;
+const uint32_t DerivedProperty_XID_Continue =
+    0b00000000000000000100000000000000;
+const uint32_t DerivedProperty_Default_Ignorable_Code_Point =
+    0b00000000000000001000000000000000;
+const uint32_t DerivedProperty_Grapheme_Extend =
+    0b00000000000000010000000000000000;
+const uint32_t DerivedProperty_Grapheme_Base =
+    0b00000000000000100000000000000000;
+const uint32_t DerivedProperty_Grapheme_Link =
+    0b00000000000001000000000000000000;
+
+bool is_math(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Math;
+}
+
+bool is_alphabetic(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Alphabetic;
+}
+
+bool is_lowercase(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Lowercase;
+}
+
+bool is_uppercase(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Uppercase;
+}
+
+bool is_cased(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Cased;
+}
+
+bool is_case_ignorable(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Case_Ignorable;
+}
+
+bool is_changes_when_lowercased(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Changes_When_Lowercased;
+}
+
+bool is_changes_when_uppercased(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Changes_When_Uppercased;
+}
+
+bool is_changes_when_titlecased(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Changes_When_Titlecased;
+}
+
+bool is_changes_when_casefolded(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Changes_When_Casefolded;
+}
+
+bool is_changes_when_casemapped(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Changes_When_Casemapped;
+}
+
+bool is_id_start(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_ID_Start;
+}
+
+bool is_id_continue(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_ID_Continue;
+}
+
+bool is_xid_start(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_XID_Start;
+}
+
+bool is_xid_continue(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_XID_Continue;
+}
+
+bool is_default_ignorable_code_point(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Default_Ignorable_Code_Point;
+}
+
+bool is_grapheme_extend(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Grapheme_Extend;
+}
+
+bool is_grapheme_base(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Grapheme_Base;
+}
+
+bool is_grapheme_link(char32_t cp) {
+  return _derived_core_properties[cp] & DerivedProperty_Grapheme_Link;
+}
+
+//-----------------------------------------------------------------------------
+// Case
+//-----------------------------------------------------------------------------
+
+static char32_t simple_case_mapping(char32_t cp, CaseMappingType type) {
+  using namespace std;
+  auto it = _simple_case_mappings.find(cp);
+  if (it != _simple_case_mappings.end()) {
+    return it->second[(size_t)type];
+  }
+  return cp;
+}
+
+char32_t simple_uppercase_mapping(char32_t cp) {
+  return simple_case_mapping(cp, CaseMappingType::Upper);
+}
+
+char32_t simple_lowercase_mapping(char32_t cp) {
+  return simple_case_mapping(cp, CaseMappingType::Lower);
+}
+
+char32_t simple_titlecase_mapping(char32_t cp) {
+  return simple_case_mapping(cp, CaseMappingType::Title);
+}
+
+char32_t simple_case_folding(char32_t cp) {
+  auto it = _case_foldings.find(cp);
+  if (it != _case_foldings.end()) {
+    auto cp = it->first;
+    const auto &cf = it->second;
+    if (cf.S) {
+      return cf.S;
+    }
+    return cf.C;
+  }
+  return cp;
+}
+
+static bool is_language_qualified(const char *user_lang,
+                                  const char *spec_lang) {
+  return !spec_lang || (user_lang && !strcmp(user_lang, spec_lang));
+}
+
+static bool is_final_sigma(const char32_t *s32, size_t l, size_t i) {
+  //  C is preceded by a sequence consisting of a cased letter and
+  //  then zero or more case-ignorable characters, and C is not
+  //  followed by a sequence consisting of zero or more case-ignorable
+  //  characters and then a cased letter
+
+  //  Before C: \p{cased} (\p{case-ignorable})*
+  int pos = i - 1;
+  while (pos >= 0 && is_case_ignorable(s32[pos])) {
+    pos--;
+  }
+  if (pos < 0 || !is_cased(s32[pos])) {
+    return false;
+  }
+
+  //  After C: !((\p{case-ignorable})* \p{cased})
+  pos = i + 1;
+  while (pos < l && is_case_ignorable(s32[pos])) {
+    pos++;
+  }
+  if (pos < l && is_cased(s32[pos])) {
+    return false;
+  }
+
+  return true;
+}
+
+static void full_case_mapping(const char32_t *s32, size_t l, size_t i,
+                       const char *lang, CaseMappingType type, std::u32string &out) {
+  assert(i < l);
+  auto cp = s32[i];
+  auto count = _special_case_mappings.count(cp);
+  if (count != 0) {
+    auto r = _special_case_mappings.equal_range(cp);
+    for (auto it = r.first; it != r.second; ++it) {
+      const auto &sc = it->second;
+      if (is_language_qualified(lang, sc.language)) {
+        switch (sc.context) {
+          case SpecialCasingContext::Final_Sigma:
+            if (is_final_sigma(s32, l, i)) {
+              out += sc.case_mapping_codes(type);
+              return;
+            }
+            break;
+          case SpecialCasingContext::Not_Final_Sigma:
+            if (!is_final_sigma(s32, l, i)) {
+              out += sc.case_mapping_codes(type);
+              return;
+            }
+            break;
+          case SpecialCasingContext::After_Soft_Dotted:
+            break;
+          case SpecialCasingContext::More_Above:
+            break;
+          case SpecialCasingContext::Before_Dot:
+          case SpecialCasingContext::Not_Before_Dot:
+            break;
+          case SpecialCasingContext::After_I:
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  }
+
+  out += simple_case_mapping(s32[i], type);
+}
+
+void uppercase_mapping(const char32_t *s32, size_t l, size_t i,
+                       const char *lang, std::u32string &out) {
+  full_case_mapping(s32, l, i, lang, CaseMappingType::Upper, out);
+}
+
+static void lowercase_mapping(const char32_t *s32, size_t l, size_t i,
+                       const char *lang, std::u32string &out) {
+  full_case_mapping(s32, l, i, lang, CaseMappingType::Lower, out);
+}
+
+void titlecase_mapping(const char32_t *s32, size_t l, size_t i,
+                       const char *lang, std::u32string &out) {
+  full_case_mapping(s32, l, i, lang, CaseMappingType::Title, out);
+}
+
+std::u32string to_uppercase(const char32_t *s32, size_t l, const char *lang) {
+  // R1 toUppercase(X): Map each character C in X to Uppercase_Mapping(C)
+  std::u32string out;
+  for (size_t i = 0; i < l; i++) {
+    uppercase_mapping(s32, l, i, lang, out);
+  }
+  return out;
+}
+
+std::u32string to_lowercase(const char32_t *s32, size_t l, const char *lang) {
+  // R2 toLowercase(X): Map each character C in X to Lowercase_Mapping(C)
+  std::u32string out;
+  for (size_t i = 0; i < l; i++) {
+    lowercase_mapping(s32, l, i, lang, out);
+  }
+  return out;
+}
+
+std::u32string to_titlecase(const char32_t *s32, size_t l, const char *lang) {
+  // R3 toTitlecase(X): Find the word boundaries in X according to Unicode Standard
+  // Annex #29, “Unicode Text Segmentation.” For each word boundary, find the first
+  // cased character F following the word boundary. If F exists, map F to
+  // Titlecase_Mapping(F); then map all characters C between F and the following
+  // word boundary to Lowercase_Mapping(C)
+  std::u32string out;
+  for (size_t i = 0; i < l; i++) {
+    titlecase_mapping(s32, l, i, lang, out);
+  }
+  return out;
+}
+
+static void case_folding(
+    char32_t cp, bool special_case_for_uppercase_I_and_dotted_uppercase_I,
+    std::u32string &out) {
+  auto it = _case_foldings.find(cp);
+  if (it != _case_foldings.end()) {
+    auto cp = it->first;
+    const auto &cf = it->second;
+    if (special_case_for_uppercase_I_and_dotted_uppercase_I && cf.T) {
+      out += cf.T;
+      return;
+    } else if (cf.F) {
+      out += cf.F;
+      return;
+    } else if (cf.S) {
+      out += cf.S;
+      return;
+    } else if (cf.C) {
+      out += cf.C;
+      return;
+    }
+  }
+  out += cp;
+}
+
+std::u32string to_case_fold(
+    const char32_t *s32, size_t l,
+    bool special_case_for_uppercase_I_and_dotted_uppercase_I) {
+  std::u32string out;
+  for (size_t i = 0; i < l; i++) {
+    case_folding(s32[i], special_case_for_uppercase_I_and_dotted_uppercase_I,
+                 out);
+  }
+  return out;
+}
+
+bool caseless_match(const char32_t *s1, size_t l1, const char32_t *s2,
+                    size_t l2,
+                    bool special_case_for_uppercase_I_and_dotted_uppercase_I) {
+  return to_case_fold(s1, l1,
+                      special_case_for_uppercase_I_and_dotted_uppercase_I) ==
+         to_case_fold(s2, l2,
+                      special_case_for_uppercase_I_and_dotted_uppercase_I);
+}
+
+bool is_uppercase(const char32_t *s32, size_t l) {
+  // D140 isUppercase(X): isUppercase(X) is true when toUppercase(Y) = Y
+  for (size_t i = 0; i < l; i++) {
+    if (is_changes_when_uppercased(s32[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool is_lowercase(const char32_t *s32, size_t l) {
+  // D139 isLowercase(X): isLowercase(X) is true when toLowercase(Y) = Y
+  for (size_t i = 0; i < l; i++) {
+    if (is_changes_when_lowercased(s32[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+//-----------------------------------------------------------------------------
 // Combination
 //-----------------------------------------------------------------------------
 
@@ -252,7 +762,8 @@ bool is_base_character(char32_t cp) {
   }
 }
 
-static bool is_standard_korean_syllable_block(const char32_t *s32, size_t l, size_t &length) {
+static bool is_standard_korean_syllable_block(const char32_t *s32, size_t l,
+                                              size_t &length) {
   // D134 Standard Korean syllable block: A sequence of one or more L followed
   // by a sequence of one or more V and a sequence of zero or more T, or any
   // other sequence that is canonically equivalent.
@@ -279,7 +790,8 @@ static bool is_standard_korean_syllable_block(const char32_t *s32, size_t l, siz
 }
 
 static bool is_extended_base(const char32_t *s32, size_t l, size_t &length) {
-  // D51a Extended base: Any base character, or any standard Korean syllable block.
+  // D51a Extended base: Any base character, or any standard Korean syllable
+  // block.
   if (l > 0) {
     if (is_standard_korean_syllable_block(s32, l, length)) {
       return true;
@@ -321,11 +833,16 @@ size_t combining_character_sequence_length(const char32_t *s32, size_t l) {
   return i;
 }
 
-size_t extended_combining_character_sequence_length(const char32_t *s32, size_t l) {
-  // D56a Extended combining character sequence: A maximal character sequence consisting of
-  // either an extended base followed by a sequence of one or more characters where
-  // each is a combining character, zero width joiner, or zero width non-joiner ; or
-  // a sequence of one or more characters where each is a combining character, zero
+size_t extended_combining_character_sequence_length(const char32_t *s32,
+                                                    size_t l) {
+  // D56a Extended combining character sequence: A maximal character sequence
+  // consisting of
+  // either an extended base followed by a sequence of one or more characters
+  // where
+  // each is a combining character, zero width joiner, or zero width non-joiner
+  // ; or
+  // a sequence of one or more characters where each is a combining character,
+  // zero
   // width joiner, or zero width non-joiner.
   size_t i = 0;
   if (l) {
@@ -356,7 +873,8 @@ size_t combining_character_sequence_count(const char32_t *s32, size_t l) {
   return count;
 }
 
-size_t extended_combining_character_sequence_count(const char32_t *s32, size_t l) {
+size_t extended_combining_character_sequence_count(const char32_t *s32,
+                                                   size_t l) {
   size_t count = 0;
   size_t i = 0;
   while (i < l) {

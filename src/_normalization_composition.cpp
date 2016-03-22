@@ -1,3 +1,4 @@
+const std::unordered_map<std::u32string, char32_t> _normalization_composition = {
 { U"\U00000041\U00000300", 0x000000C0 },
 { U"\U00000041\U00000301", 0x000000C1 },
 { U"\U00000041\U00000302", 0x000000C2 },
@@ -938,3 +939,4 @@
 { U"\U000114B9\U000114BD", 0x000114BE },
 { U"\U000115B8\U000115AF", 0x000115BA },
 { U"\U000115B9\U000115AF", 0x000115BB },
+};

@@ -4,6 +4,11 @@
 namespace unicode {
 
 #include "_general_category_properties.cpp"
+#include "_properties.cpp"
+#include "_derived_core_properties.cpp"
+#include "_simple_case_mappings.cpp"
+#include "_special_case_mappings.cpp"
+#include "_case_foldings.cpp"
 #include "_block_properties.cpp"
 #include "_script_properties.cpp"
 #include "_script_extension_ids.cpp"

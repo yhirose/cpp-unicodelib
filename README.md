@@ -56,7 +56,7 @@ Script script(char32_t cp);
 bool is_script(Script sc, char32_t cp); // Script Extension support
 ```
 
-### Casing (TODO:)
+### Case
 
 ```cpp
 bool is_uppsercase(const char32_t *s32, size_t l);

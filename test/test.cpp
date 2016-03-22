@@ -6,7 +6,8 @@
 
 using namespace std;
 
-template <class Fn> void split(const char *b, const char *e, char d, Fn fn) {
+template <class Fn>
+void split(const char *b, const char *e, char d, Fn fn) {
   int i = 0;
   int beg = 0;
 
@@ -22,6 +23,377 @@ template <class Fn> void split(const char *b, const char *e, char d, Fn fn) {
     fn(&b[beg], &b[i]);
   }
 }
+
+//-----------------------------------------------------------------------------
+// General Category
+//-----------------------------------------------------------------------------
+
+TEST_CASE("General category", "[general category]") {
+  REQUIRE(unicode::general_category(0x0000) == unicode::GeneralCategory::Cc);
+  REQUIRE(unicode::general_category(0x0370) == unicode::GeneralCategory::Lu);
+  REQUIRE(unicode::general_category(0x0371) == unicode::GeneralCategory::Ll);
+  REQUIRE(unicode::general_category(0x0483) == unicode::GeneralCategory::Mn);
+  REQUIRE(unicode::general_category(unicode::MaxCode) ==
+          unicode::GeneralCategory::Unassigned);
+}
+
+TEST_CASE("General category predicate functions", "[general category]") {
+  REQUIRE(unicode::is_letter(U'a') == true);
+  REQUIRE(unicode::is_cased_letter(U'A') == true);
+  REQUIRE(unicode::is_letter(U'あ') == true);
+  REQUIRE(unicode::is_mark(0x0303) == true);
+  REQUIRE(unicode::is_number(U'1') == true);
+  REQUIRE(unicode::is_number(U'¼') == true);
+  REQUIRE(unicode::is_punctuation(U'-') == true);
+  REQUIRE(unicode::is_separator(0x2028) == true);
+  REQUIRE(unicode::is_symbol(U'€') == true);
+  REQUIRE(unicode::is_other(0x0000) == true);
+  REQUIRE(unicode::is_other(0x00AD) == true);  // Soft hyphen
+  REQUIRE(unicode::is_other(0xD800) == true);  // Surrogate
+  REQUIRE(unicode::is_other(0xE000) == true);  // Private Use
+  REQUIRE(unicode::is_other(0x0378) == true);  // Unassigned
+}
+
+//-----------------------------------------------------------------------------
+// Property
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Derived Property
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Case
+//-----------------------------------------------------------------------------
+
+TEST_CASE("Case property", "[case]") {
+  REQUIRE(unicode::general_category(U'h') == unicode::GeneralCategory::Ll);
+  REQUIRE(unicode::is_lowercase(U'h') == true);
+  REQUIRE(unicode::is_uppercase(U'h') == false);
+
+  REQUIRE(unicode::general_category(U'H') == unicode::GeneralCategory::Lu);
+  REQUIRE(unicode::is_lowercase(U'H') == false);
+  REQUIRE(unicode::is_uppercase(U'H') == true);
+
+  REQUIRE(unicode::general_category(0x24D7) == unicode::GeneralCategory::So);
+  REQUIRE(unicode::is_lowercase(0x24D7) == true);
+  REQUIRE(unicode::is_uppercase(0x24D7) == false);
+
+  REQUIRE(unicode::general_category(0x24BD) == unicode::GeneralCategory::So);
+  REQUIRE(unicode::is_lowercase(0x24BD) == false);
+  REQUIRE(unicode::is_uppercase(0x24BD) == true);
+
+  REQUIRE(unicode::general_category(0x02B0) == unicode::GeneralCategory::Lm);
+  REQUIRE(unicode::is_lowercase(0x02B0) == true);
+  REQUIRE(unicode::is_uppercase(0x02B0) == false);
+
+  REQUIRE(unicode::general_category(0x1D34) == unicode::GeneralCategory::Lm);
+  REQUIRE(unicode::is_lowercase(0x1D34) == true);
+  REQUIRE(unicode::is_uppercase(0x1D34) == false);
+
+  REQUIRE(unicode::general_category(0x02BD) == unicode::GeneralCategory::Lm);
+  REQUIRE(unicode::is_lowercase(0x02BD) == false);
+  REQUIRE(unicode::is_uppercase(0x02BD) == false);
+}
+
+TEST_CASE("Simple case mapping", "[case]") {
+  REQUIRE(unicode::simple_lowercase_mapping(U'A') == U'a');
+  REQUIRE(unicode::simple_lowercase_mapping(U'a') == U'a');
+  REQUIRE(unicode::simple_lowercase_mapping(U'あ') == U'あ');
+  REQUIRE(unicode::simple_lowercase_mapping(U',') == U',');
+  REQUIRE(unicode::simple_lowercase_mapping(0x118DF) == 0x118DF);
+  REQUIRE(unicode::simple_lowercase_mapping(0x118BF) == 0x118DF);
+
+  REQUIRE(unicode::simple_uppercase_mapping(U'A') == U'A');
+  REQUIRE(unicode::simple_uppercase_mapping(U'a') == U'A');
+  REQUIRE(unicode::simple_uppercase_mapping(U'あ') == U'あ');
+  REQUIRE(unicode::simple_uppercase_mapping(U',') == U',');
+  REQUIRE(unicode::simple_uppercase_mapping(0x118DF) == 0x118BF);
+  REQUIRE(unicode::simple_uppercase_mapping(0x118BF) == 0x118BF);
+
+  REQUIRE(unicode::simple_lowercase_mapping(U'Ǳ') == U'ǳ');
+  REQUIRE(unicode::simple_lowercase_mapping(U'ǲ') == U'ǳ');
+  REQUIRE(unicode::simple_lowercase_mapping(U'ǳ') == U'ǳ');
+  REQUIRE(unicode::simple_uppercase_mapping(U'Ǳ') == U'Ǳ');
+  REQUIRE(unicode::simple_uppercase_mapping(U'ǲ') == U'Ǳ');
+  REQUIRE(unicode::simple_uppercase_mapping(U'ǳ') == U'Ǳ');
+  REQUIRE(unicode::simple_titlecase_mapping(U'Ǳ') == U'ǲ');
+  REQUIRE(unicode::simple_titlecase_mapping(U'ǲ') == U'ǲ');
+  REQUIRE(unicode::simple_titlecase_mapping(U'ǳ') == U'ǲ');
+}
+
+TEST_CASE("Simple case folding", "[case]") {
+  REQUIRE(unicode::simple_case_folding(U'A') == U'a');
+  REQUIRE(unicode::simple_case_folding(U'a') == U'a');
+  REQUIRE(unicode::simple_case_folding(U'あ') == U'あ');
+  REQUIRE(unicode::simple_case_folding(U',') == U',');
+  REQUIRE(unicode::simple_case_folding(0x118DF) == 0x118DF);
+  REQUIRE(unicode::simple_case_folding(0x118BF) == 0x118DF);
+  REQUIRE(unicode::simple_case_folding(U'Ǳ') == U'ǳ');
+  REQUIRE(unicode::simple_case_folding(U'ǲ') == U'ǳ');
+  REQUIRE(unicode::simple_case_folding(U'ǳ') == U'ǳ');
+}
+
+static std::u32string to_lowercase(const char32_t *s32, const char* lang = nullptr) {
+  std::u32string str = s32;
+  return unicode::to_lowercase(str.data(), str.length(), lang);
+}
+
+static std::u32string to_uppercase(const char32_t *s32, const char* lang = nullptr) {
+  std::u32string str = s32;
+  return unicode::to_uppercase(str.data(), str.length(), lang);
+}
+
+TEST_CASE("Full case mapping", "[case]") {
+  // Sigma
+  REQUIRE(to_lowercase(U"Σ") == U"σ");
+  REQUIRE(to_lowercase(U"ΧΑΟΣ") == U"χαος");
+  REQUIRE(to_lowercase(U"ΧΑΟΣΣ") == U"χαοσς");
+  REQUIRE(to_lowercase(U"ΧΑΟΣ Σ") == U"χαος σ");
+
+  REQUIRE(to_uppercase(U"σ") == U"Σ");
+  REQUIRE(to_uppercase(U"χαος") == U"ΧΑΟΣ");
+  REQUIRE(to_uppercase(U"χαοσς") == U"ΧΑΟΣΣ");
+  REQUIRE(to_uppercase(U"χαος σ") == U"ΧΑΟΣ Σ");
+}
+
+static std::u32string to_case_fold(const char32_t *s32, bool special = false) {
+  std::u32string str = s32;
+  return unicode::to_case_fold(str.data(), str.length(), special);
+}
+
+static bool caseless_match(const char32_t *s1, const char32_t *s2,
+                           bool special = false) {
+  std::u32string str1 = s1;
+  std::u32string str2 = s2;
+  return unicode::caseless_match(str1.data(), str1.length(), str2.data(),
+                                 str2.length(), special);
+}
+
+TEST_CASE("Full case folding", "[case]") {
+  REQUIRE(caseless_match(U"résumé", U"RéSUMé") == true);
+
+  // German
+  REQUIRE(caseless_match(U"MASSE", U"Maße") == true);
+  REQUIRE(caseless_match(U"Dürst", U"DüRST") == true);
+
+  // Turkish dot I
+  REQUIRE(caseless_match(U"Istanbul", U"ıstanbul") == false);
+  REQUIRE(caseless_match(U"İstanbul", U"istanbul") == false);
+  REQUIRE(caseless_match(U"İstanbul", U"ıstanbul") == false);
+  REQUIRE(caseless_match(U"İstanbul", U"Istanbul") == false);
+  REQUIRE(caseless_match(U"Istanbul", U"istanbul") == true);
+  REQUIRE(caseless_match(U"Istanbul", U"ıstanbul", true) == true);
+  REQUIRE(caseless_match(U"İstanbul", U"istanbul", true) == true);
+  REQUIRE(caseless_match(U"İstanbul", U"ıstanbul", true) == false);
+  REQUIRE(caseless_match(U"İstanbul", U"Istanbul", true) == false);
+  REQUIRE(caseless_match(U"Istanbul", U"istanbul", true) == false);
+
+  // Sigma
+  REQUIRE(caseless_match(U"όσος", U"ΌΣΟΣ") == true);
+
+  // French (ignore diacritics)
+  //REQUIRE(caseless_match(U"côte", U"côté") == true);
+}
+
+static bool is_uppercase(const char32_t *s32) {
+  std::u32string str = s32;
+  return unicode::is_uppercase(str.data(), str.length());
+}
+
+static bool is_lowercase(const char32_t *s32) {
+  std::u32string str = s32;
+  return unicode::is_lowercase(str.data(), str.length());
+}
+
+TEST_CASE("case detection", "[case]") {
+  REQUIRE(is_uppercase(U"ΌΣΟΣ HELLO") == true);
+  REQUIRE(is_uppercase(U"όσος hello") == false);
+  REQUIRE(is_lowercase(U"ΌΣΟΣ HELLO") == false);
+  REQUIRE(is_lowercase(U"όσος hello") == true);
+}
+
+//-----------------------------------------------------------------------------
+// Combination
+//-----------------------------------------------------------------------------
+
+TEST_CASE("Combining character sequence", "[combination]") {
+  REQUIRE(unicode::is_graphic_character(U'あ'));
+  REQUIRE(unicode::is_graphic_character(0x0001) == false);
+  REQUIRE(unicode::is_base_character(U'A'));
+  REQUIRE(unicode::is_base_character(0x0300) == false);
+  REQUIRE(unicode::is_combining_character(U'A') == false);
+  REQUIRE(unicode::is_combining_character(0x0300));
+
+  std::u32string base = U"\u0061\u0062";
+  REQUIRE(unicode::combining_character_sequence_length(base.data(),
+                                                       base.length()) == 1);
+
+  std::u32string valid = U"\u0061\u0301\u0302\u0062";
+  REQUIRE(unicode::combining_character_sequence_length(valid.data(),
+                                                       valid.length()) == 3);
+
+  std::u32string invalid = U"\u0301\u0302\u0062";
+  REQUIRE(unicode::combining_character_sequence_length(invalid.data(),
+                                                       invalid.length()) == 2);
+
+  std::u32string zwj = U"\u0061\u200D\u0062";  // TODO: Need better examples
+  REQUIRE(unicode::combining_character_sequence_length(zwj.data(),
+                                                       zwj.length()) == 2);
+
+  std::u32string zwnj = U"\u0061\u200C\u0062";  // TODO: Need better examples
+  REQUIRE(unicode::combining_character_sequence_length(zwnj.data(),
+                                                       zwnj.length()) == 2);
+
+  std::u32string count = U"\u0061\u0301\u0302\u0062\u0301\u0063";
+  REQUIRE(unicode::combining_character_sequence_count(count.data(),
+                                                      count.length()) == 3);
+
+  std::u32string korean = U"\uD4DB\u1111\u1171\u11B6";
+  REQUIRE(unicode::combining_character_sequence_count(korean.data(),
+                                                      korean.length()) == 4);
+  REQUIRE(unicode::extended_combining_character_sequence_count(
+              korean.data(), korean.length()) == 2);
+}
+
+TEST_CASE("Grapheme cluster segmentations", "[combination]") {
+  ifstream fs("../../UCD/auxiliary/GraphemeBreakTest.txt");
+  REQUIRE(fs);
+
+  std::string line;
+  while (std::getline(fs, line)) {
+    if (line.empty() || line[0] == '#') {
+      continue;
+    }
+    line.erase(line.find('\t'));
+
+    std::u32string s32;
+    std::vector<bool> boundary;
+    size_t expected_count = 0;
+
+    stringstream ss(line);
+    string ope;
+    char32_t ope_cp;
+    ss >> ope;
+    unicode::decode(ope.data(), ope.length(), ope_cp);
+    boundary.push_back(ope_cp == U'÷');
+    while (!ss.eof()) {
+      int val;
+      ss >> hex >> val;
+      s32 += (char32_t)val;
+      ss >> ope;
+      unicode::decode(ope.data(), ope.length(), ope_cp);
+      auto is_boundary = (ope_cp == U'÷');
+      boundary.push_back(is_boundary);
+      expected_count += (is_boundary ? 1 : 0);
+    }
+
+    for (auto i = 0u; i < boundary.size(); i++) {
+      REQUIRE(boundary[i] ==
+              unicode::is_grapheme_boundary(s32.data(), s32.length(), i));
+    }
+
+    size_t actual_count = unicode::grapheme_count(s32.data(), s32.length());
+    REQUIRE(expected_count == actual_count);
+  }
+}
+
+//-----------------------------------------------------------------------------
+// Block
+//-----------------------------------------------------------------------------
+
+TEST_CASE("Block", "[block]") {
+  REQUIRE(unicode::block(U'a') == unicode::Block::BasicLatin);
+  REQUIRE(unicode::block(U'あ') == unicode::Block::Hiragana);
+}
+
+//-----------------------------------------------------------------------------
+// Script
+//-----------------------------------------------------------------------------
+
+TEST_CASE("Script", "[script]") {
+  REQUIRE(unicode::script(U'a') == unicode::Script::Latin);
+  REQUIRE(unicode::script(U'あ') == unicode::Script::Hiragana);
+  REQUIRE(unicode::script(U'ー') == unicode::Script::Common);
+}
+
+TEST_CASE("Script extension", "[script]") {
+  REQUIRE(unicode::is_script(unicode::Script::Hiragana, U'ー'));
+  REQUIRE(unicode::is_script(unicode::Script::Katakana, U'ー'));
+}
+
+//-----------------------------------------------------------------------------
+// Normalization
+//-----------------------------------------------------------------------------
+
+TEST_CASE("Normalization", "[normalization]") {
+  ifstream fs("../../UCD/NormalizationTest.txt");
+  REQUIRE(fs);
+
+  std::string line;
+  while (std::getline(fs, line)) {
+    if (line.empty() || line[0] == '#' || line[0] == '@') {
+      continue;
+    }
+    line.erase(line.find("; #"));
+
+    vector<u32string> fields;
+    split(line.data(), line.data() + line.length(), ';', [&](auto b, auto e) {
+      u32string codes;
+      split(b, e, ' ', [&](auto b, auto e) {
+        char32_t cp = stoi(string(b, e), nullptr, 16);
+        codes += cp;
+      });
+      fields.push_back(codes);
+    });
+
+    const auto &c1 = fields[0];
+    const auto &c2 = fields[1];
+    const auto &c3 = fields[2];
+    const auto &c4 = fields[3];
+    const auto &c5 = fields[4];
+
+    // NFC
+    //   c2 == toNFC(c1) == toNFC(c2) == toNFC(c3)
+    //   c4 == toNFC(c4) == toNFC(c5)
+    REQUIRE(c2 == unicode::to_nfc(c1.data(), c1.length()));
+    REQUIRE(c2 == unicode::to_nfc(c2.data(), c2.length()));
+    REQUIRE(c2 == unicode::to_nfc(c3.data(), c3.length()));
+    REQUIRE(c4 == unicode::to_nfc(c4.data(), c4.length()));
+    REQUIRE(c4 == unicode::to_nfc(c5.data(), c5.length()));
+
+    // NFD
+    //   c3 == toNFD(c1) == toNFD(c2) == toNFD(c3)
+    //   c5 == toNFD(c4) == toNFD(c5)
+    REQUIRE(c3 == unicode::to_nfd(c1.data(), c1.length()));
+    REQUIRE(c3 == unicode::to_nfd(c2.data(), c2.length()));
+    REQUIRE(c3 == unicode::to_nfd(c3.data(), c3.length()));
+    REQUIRE(c5 == unicode::to_nfd(c4.data(), c4.length()));
+    REQUIRE(c5 == unicode::to_nfd(c5.data(), c5.length()));
+
+    // NFKC
+    //   c4 == toNFKC(c1) == toNFKC(c2) == toNFKC(c3) == toNFKC(c4) ==
+    //   toNFKC(c5)
+    REQUIRE(c4 == unicode::to_nfkc(c1.data(), c1.length()));
+    REQUIRE(c4 == unicode::to_nfkc(c2.data(), c2.length()));
+    REQUIRE(c4 == unicode::to_nfkc(c3.data(), c3.length()));
+    REQUIRE(c4 == unicode::to_nfkc(c4.data(), c4.length()));
+    REQUIRE(c4 == unicode::to_nfkc(c5.data(), c5.length()));
+
+    // NFKD
+    //   c5 == toNFKD(c1) == toNFKD(c2) == toNFKD(c3) == toNFKD(c4) ==
+    //   toNFKD(c5)
+    REQUIRE(c5 == unicode::to_nfkd(c1.data(), c1.length()));
+    REQUIRE(c5 == unicode::to_nfkd(c2.data(), c2.length()));
+    REQUIRE(c5 == unicode::to_nfkd(c3.data(), c3.length()));
+    REQUIRE(c5 == unicode::to_nfkd(c4.data(), c4.length()));
+    REQUIRE(c5 == unicode::to_nfkd(c5.data(), c5.length()));
+  }
+}
+
+//-----------------------------------------------------------------------------
+// UTF8 encode/decode
+//-----------------------------------------------------------------------------
 
 std::string u8text = u8"日本語もOKです。";
 std::u32string u32text = U"日本語もOKです。";
@@ -95,186 +467,6 @@ TEST_CASE("decode 2", "[utf8]") {
 TEST_CASE("decode 3", "[utf8]") {
   REQUIRE(unicode::decode(u8text) == u32text);
   REQUIRE(unicode::decode(u8text.data(), u8text.length()) == u32text);
-}
-
-TEST_CASE("General category", "[property]") {
-  REQUIRE(unicode::general_category(0x0000) == unicode::GeneralCategory::Cc);
-  REQUIRE(unicode::general_category(0x0370) == unicode::GeneralCategory::Lu);
-  REQUIRE(unicode::general_category(0x0371) == unicode::GeneralCategory::Ll);
-  REQUIRE(unicode::general_category(0x0483) == unicode::GeneralCategory::Mn);
-  REQUIRE(unicode::general_category(unicode::MaxCode) ==
-          unicode::GeneralCategory::Unassigned);
-}
-
-TEST_CASE("General category predicate functions", "[property]") {
-  REQUIRE(unicode::is_letter(U'a') == true);
-  REQUIRE(unicode::is_cased_letter(U'A') == true);
-  REQUIRE(unicode::is_letter(U'あ') == true);
-  REQUIRE(unicode::is_mark(0x0303) == true);
-  REQUIRE(unicode::is_number(U'1') == true);
-  REQUIRE(unicode::is_number(U'¼') == true);
-  REQUIRE(unicode::is_punctuation(U'-') == true);
-  REQUIRE(unicode::is_separator(0x2028) == true);
-  REQUIRE(unicode::is_symbol(U'€') == true);
-  REQUIRE(unicode::is_other(0x0000) == true);
-  REQUIRE(unicode::is_other(0x00AD) == true); // Soft hyphen
-  REQUIRE(unicode::is_other(0xD800) == true); // Surrogate
-  REQUIRE(unicode::is_other(0xE000) == true); // Private Use
-  REQUIRE(unicode::is_other(0x0378) == true); // Unassigned
-}
-
-TEST_CASE("Block", "[block]") {
-  REQUIRE(unicode::block(U'a') == unicode::Block::BasicLatin);
-  REQUIRE(unicode::block(U'あ') == unicode::Block::Hiragana);
-}
-
-TEST_CASE("Script", "[script]") {
-  REQUIRE(unicode::script(U'a') == unicode::Script::Latin);
-  REQUIRE(unicode::script(U'あ') == unicode::Script::Hiragana);
-  REQUIRE(unicode::script(U'ー') == unicode::Script::Common);
-}
-
-TEST_CASE("Script extension", "[script]") {
-  REQUIRE(unicode::is_script(unicode::Script::Hiragana, U'ー'));
-  REQUIRE(unicode::is_script(unicode::Script::Katakana, U'ー'));
-}
-
-TEST_CASE("Combining character sequence", "[combining character sequence]") {
-  REQUIRE(unicode::is_graphic_character(U'あ'));
-  REQUIRE(unicode::is_graphic_character(0x0001) == false);
-  REQUIRE(unicode::is_base_character(U'A'));
-  REQUIRE(unicode::is_base_character(0x0300) == false);
-  REQUIRE(unicode::is_combining_character(U'A') == false);
-  REQUIRE(unicode::is_combining_character(0x0300));
-
-  std::u32string base = U"\u0061\u0062";
-  REQUIRE(unicode::combining_character_sequence_length(base.data(), base.length()) == 1);
-
-  std::u32string valid = U"\u0061\u0301\u0302\u0062";
-  REQUIRE(unicode::combining_character_sequence_length(valid.data(), valid.length()) == 3);
-
-  std::u32string invalid = U"\u0301\u0302\u0062";
-  REQUIRE(unicode::combining_character_sequence_length(invalid.data(), invalid.length()) == 2);
-
-  std::u32string zwj = U"\u0061\u200D\u0062"; // TODO: Need better examples
-  REQUIRE(unicode::combining_character_sequence_length(zwj.data(), zwj.length()) == 2);
-
-  std::u32string zwnj = U"\u0061\u200C\u0062"; // TODO: Need better examples
-  REQUIRE(unicode::combining_character_sequence_length(zwnj.data(), zwnj.length()) == 2);
-
-  std::u32string count = U"\u0061\u0301\u0302\u0062\u0301\u0063";
-  REQUIRE(unicode::combining_character_sequence_count(count.data(), count.length()) == 3);
-
-  std::u32string korean = U"\uD4DB\u1111\u1171\u11B6";
-  REQUIRE(unicode::combining_character_sequence_count(korean.data(), korean.length()) == 4);
-  REQUIRE(unicode::extended_combining_character_sequence_count(korean.data(), korean.length()) == 2);
-}
-
-TEST_CASE("Grapheme cluster segmentations", "[graphme cluster]") {
-  ifstream fs("../../UCD/auxiliary/GraphemeBreakTest.txt");
-  REQUIRE(fs);
-
-  std::string line;
-  while (std::getline(fs, line)) {
-    if (line.empty() || line[0] == '#') {
-      continue;
-    }
-    line.erase(line.find('\t'));
-
-    std::u32string s32;
-    std::vector<bool> boundary;
-    size_t expected_count = 0;
-
-    stringstream ss(line);
-    string ope;
-    char32_t ope_cp;
-    ss >> ope;
-    unicode::decode(ope.data(), ope.length(), ope_cp);
-    boundary.push_back(ope_cp == U'÷');
-    while (!ss.eof()) {
-      int val;
-      ss >> hex >> val;
-      s32 += (char32_t)val;
-      ss >> ope;
-      unicode::decode(ope.data(), ope.length(), ope_cp);
-      auto is_boundary = (ope_cp == U'÷');
-      boundary.push_back(is_boundary);
-      expected_count += (is_boundary ? 1 : 0);
-    }
-
-    for (auto i = 0u; i < boundary.size(); i++) {
-      REQUIRE(boundary[i] ==
-              unicode::is_grapheme_boundary(s32.data(), s32.length(), i));
-    }
-
-    size_t actual_count = unicode::grapheme_count(s32.data(), s32.length());
-    REQUIRE(expected_count == actual_count);
-  }
-}
-
-TEST_CASE("Normalization", "[normalization]") {
-  ifstream fs("../../UCD/NormalizationTest.txt");
-  REQUIRE(fs);
-
-  std::string line;
-  while (std::getline(fs, line)) {
-    if (line.empty() || line[0] == '#' || line[0] == '@') {
-      continue;
-    }
-    line.erase(line.find("; #"));
-
-    vector<u32string> fields;
-    split(line.data(), line.data() + line.length(), ';', [&](auto b, auto e) {
-      u32string codes;
-      split(b, e, ' ', [&](auto b, auto e) {
-        char32_t cp = stoi(string(b, e), nullptr, 16);
-        codes += cp;
-      });
-      fields.push_back(codes);
-    });
-
-    const auto &c1 = fields[0];
-    const auto &c2 = fields[1];
-    const auto &c3 = fields[2];
-    const auto &c4 = fields[3];
-    const auto &c5 = fields[4];
-
-    // NFC
-    //   c2 == toNFC(c1) == toNFC(c2) == toNFC(c3)
-    //   c4 == toNFC(c4) == toNFC(c5)
-    REQUIRE(c2 == unicode::to_nfc(c1.data(), c1.length()));
-    REQUIRE(c2 == unicode::to_nfc(c2.data(), c2.length()));
-    REQUIRE(c2 == unicode::to_nfc(c3.data(), c3.length()));
-    REQUIRE(c4 == unicode::to_nfc(c4.data(), c4.length()));
-    REQUIRE(c4 == unicode::to_nfc(c5.data(), c5.length()));
-
-    // NFD
-    //   c3 == toNFD(c1) == toNFD(c2) == toNFD(c3)
-    //   c5 == toNFD(c4) == toNFD(c5)
-    REQUIRE(c3 == unicode::to_nfd(c1.data(), c1.length()));
-    REQUIRE(c3 == unicode::to_nfd(c2.data(), c2.length()));
-    REQUIRE(c3 == unicode::to_nfd(c3.data(), c3.length()));
-    REQUIRE(c5 == unicode::to_nfd(c4.data(), c4.length()));
-    REQUIRE(c5 == unicode::to_nfd(c5.data(), c5.length()));
-
-    // NFKC
-    //   c4 == toNFKC(c1) == toNFKC(c2) == toNFKC(c3) == toNFKC(c4) ==
-    //   toNFKC(c5)
-    REQUIRE(c4 == unicode::to_nfkc(c1.data(), c1.length()));
-    REQUIRE(c4 == unicode::to_nfkc(c2.data(), c2.length()));
-    REQUIRE(c4 == unicode::to_nfkc(c3.data(), c3.length()));
-    REQUIRE(c4 == unicode::to_nfkc(c4.data(), c4.length()));
-    REQUIRE(c4 == unicode::to_nfkc(c5.data(), c5.length()));
-
-    // NFKD
-    //   c5 == toNFKD(c1) == toNFKD(c2) == toNFKD(c3) == toNFKD(c4) ==
-    //   toNFKD(c5)
-    REQUIRE(c5 == unicode::to_nfkd(c1.data(), c1.length()));
-    REQUIRE(c5 == unicode::to_nfkd(c2.data(), c2.length()));
-    REQUIRE(c5 == unicode::to_nfkd(c3.data(), c3.length()));
-    REQUIRE(c5 == unicode::to_nfkd(c4.data(), c4.length()));
-    REQUIRE(c5 == unicode::to_nfkd(c5.data(), c5.length()));
-  }
 }
 
 // vim: et ts=2 sw=2 cin cino=\:0 ff=unix

@@ -1,3 +1,4 @@
+const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
 {
     Script::Devanagari, 
 },
@@ -234,3 +235,4 @@
     Script::Telugu, 
     Script::Tirhuta, 
 },
+};

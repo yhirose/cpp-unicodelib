@@ -112,6 +112,102 @@ extern bool is_base_character(char32_t cp);
 extern bool is_combining_character(char32_t cp);
 
 //-----------------------------------------------------------------------------
+// Property
+//-----------------------------------------------------------------------------
+
+extern bool is_white_space(char32_t cp);
+extern bool is_bidi_control(char32_t cp);
+extern bool is_join_control(char32_t cp);
+extern bool is_dash(char32_t cp);
+extern bool is_hyphen(char32_t cp);
+extern bool is_quotation_mark(char32_t cp);
+extern bool is_terminal_punctuation(char32_t cp);
+extern bool is_other_math(char32_t cp);
+extern bool is_hex_digit(char32_t cp);
+extern bool is_ascii_hex_digit(char32_t cp);
+extern bool is_other_alphabetic(char32_t cp);
+extern bool is_ideographic(char32_t cp);
+extern bool is_diacritic(char32_t cp);
+extern bool is_extender(char32_t cp);
+extern bool is_other_lowercase(char32_t cp);
+extern bool is_other_uppercase(char32_t cp);
+extern bool is_noncharacter_code_point(char32_t cp);
+extern bool is_other_grapheme_extend(char32_t cp);
+extern bool is_ids_binary_operator(char32_t cp);
+extern bool is_radical(char32_t cp);
+extern bool is_unified_ideograph(char32_t cp);
+extern bool is_other_default_ignorable_code_point(char32_t cp);
+extern bool is_deprecated(char32_t cp);
+extern bool is_soft_dotted(char32_t cp);
+extern bool is_logical_order_exception(char32_t cp);
+extern bool is_other_id_start(char32_t cp);
+extern bool is_other_id_continue(char32_t cp);
+extern bool is_sterm(char32_t cp);
+extern bool is_variation_selector(char32_t cp);
+extern bool is_pattern_white_space(char32_t cp);
+extern bool is_pattern_syntax(char32_t cp);
+
+//-----------------------------------------------------------------------------
+// Derived Property
+//-----------------------------------------------------------------------------
+
+extern bool is_math(char32_t cp);
+extern bool is_alphabetic(char32_t cp);
+extern bool is_lowercase(char32_t cp);
+extern bool is_uppercase(char32_t cp);
+extern bool is_cased(char32_t cp);
+extern bool is_case_ignorable(char32_t cp);
+extern bool is_changes_when_lowercased(char32_t cp);
+extern bool is_changes_when_uppercased(char32_t cp);
+extern bool is_changes_when_titlecased(char32_t cp);
+extern bool is_changes_when_casefolded(char32_t cp);
+extern bool is_changes_when_casemapped(char32_t cp);
+extern bool is_id_start(char32_t cp);
+extern bool is_id_continue(char32_t cp);
+extern bool is_xid_start(char32_t cp);
+extern bool is_xid_continue(char32_t cp);
+extern bool is_default_ignorable_code_point(char32_t cp);
+extern bool is_grapheme_extend(char32_t cp);
+extern bool is_grapheme_base(char32_t cp);
+extern bool is_grapheme_link(char32_t cp);
+
+//-----------------------------------------------------------------------------
+// Case
+//-----------------------------------------------------------------------------
+
+extern char32_t simple_uppercase_mapping(char32_t cp);
+extern char32_t simple_lowercase_mapping(char32_t cp);
+extern char32_t simple_titlecase_mapping(char32_t cp);
+extern char32_t simple_case_folding(char32_t cp);
+
+extern std::u32string to_uppercase(const char32_t *s32, size_t l,
+                                   const char *lang = nullptr);
+extern std::u32string to_lowercase(const char32_t *s32, size_t l,
+                                   const char *lang = nullptr);
+/* TODO:
+extern std::u32string to_titlecase(const char32_t *s32, size_t l,
+                                   const char *lang = nullptr);
+*/
+extern std::u32string to_case_fold(
+    const char32_t *s32, size_t l,
+    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
+
+extern bool is_uppercase(const char32_t *s32, size_t l);
+extern bool is_lowercase(const char32_t *s32, size_t l);
+/* TODO:
+extern bool is_titlecase(const char32_t *s32, size_t l);
+extern bool is_case_fold(const char32_t *s32, size_t l);
+*/
+
+extern bool caseless_match(
+    const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
+    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
+/* TODO:
+extern bool canonical_caseless_match(const char32_t *s1, size_t l1,
+                                     const char32_t *s2, size_t l2);
+*/
+
+//-----------------------------------------------------------------------------
 // Combination
 //-----------------------------------------------------------------------------
 
@@ -573,17 +669,20 @@ extern size_t encode(char32_t cp, std::string &out);
 extern std::string encode(char32_t cp);
 extern void encode(const char32_t *s32, size_t l, std::string &out);
 extern std::string encode(const char32_t *s32, size_t l);
-template <typename T> inline void encode(const T &s32, std::string &out) {
+template <typename T>
+inline void encode(const T &s32, std::string &out) {
   encode(s32.data(), s32.length(), out);
 }
-template <typename T> inline std::string encode(const T &s32) {
+template <typename T>
+inline std::string encode(const T &s32) {
   std::string out;
   encode(s32, out);
   return out;
 }
 
 extern size_t decode_byte_length(const char *s8, size_t l);
-template <typename T> inline size_t decode_byte_length(const T &s8) {
+template <typename T>
+inline size_t decode_byte_length(const T &s8) {
   return decode_byte_length(s8.data(), s8.length());
 }
 
@@ -591,13 +690,16 @@ extern bool decode(const char *s8, size_t l, size_t &bytes, char32_t &cp);
 extern size_t decode(const char *s8, size_t l, char32_t &out);
 extern void decode(const char *s8, size_t l, std::u32string &out);
 extern std::u32string decode(const char *s8, size_t l);
-template <typename T> inline size_t decode(const T &s8, char32_t &cp) {
+template <typename T>
+inline size_t decode(const T &s8, char32_t &cp) {
   return decode(s8.data(), s8.length(), cp);
 }
-template <typename T> inline void decode(const T &s8, std::u32string &out) {
+template <typename T>
+inline void decode(const T &s8, std::u32string &out) {
   decode(s8.data(), s8.length(), out);
 }
-template <typename T> inline std::u32string decode(const T &s8) {
+template <typename T>
+inline std::u32string decode(const T &s8) {
   std::u32string out;
   decode(s8.data(), s8.length(), out);
   return out;
@@ -605,7 +707,7 @@ template <typename T> inline std::u32string decode(const T &s8) {
 
 extern size_t codepoint_count(const char *s8, size_t l);
 
-} // namespace unicode
+}  // namespace unicode
 
 #endif
 
