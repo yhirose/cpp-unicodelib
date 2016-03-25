@@ -15,7 +15,9 @@ const char32_t MaxCode = 0x0010FFFF;
 
 ## Functions
 
-### Unicode Properties
+### Unicode Property
+
+#### General Category
 
 ```cpp
 GeneralCategory general_category(char32_t cp);
@@ -41,6 +43,88 @@ bool is_other(char32_t cp);
 bool is_graphic_character(char32_t cp);
 bool is_base_character(char32_t cp);
 bool is_combining_character(char32_t cp);
+```
+
+#### Property
+
+```cpp
+bool is_white_space(char32_t cp);
+bool is_bidi_control(char32_t cp);
+bool is_join_control(char32_t cp);
+bool is_dash(char32_t cp);
+bool is_hyphen(char32_t cp);
+bool is_quotation_mark(char32_t cp);
+bool is_terminal_punctuation(char32_t cp);
+bool is_other_math(char32_t cp);
+bool is_hex_digit(char32_t cp);
+bool is_ascii_hex_digit(char32_t cp);
+bool is_other_alphabetic(char32_t cp);
+bool is_ideographic(char32_t cp);
+bool is_diacritic(char32_t cp);
+bool is_extender(char32_t cp);
+bool is_other_lowercase(char32_t cp);
+bool is_other_uppercase(char32_t cp);
+bool is_noncharacter_code_point(char32_t cp);
+bool is_other_grapheme_extend(char32_t cp);
+bool is_ids_binary_operator(char32_t cp);
+bool is_radical(char32_t cp);
+bool is_unified_ideograph(char32_t cp);
+bool is_other_default_ignorable_code_point(char32_t cp);
+bool is_deprecated(char32_t cp);
+bool is_soft_dotted(char32_t cp);
+bool is_logical_order_exception(char32_t cp);
+bool is_other_id_start(char32_t cp);
+bool is_other_id_continue(char32_t cp);
+bool is_sterm(char32_t cp);
+bool is_variation_selector(char32_t cp);
+bool is_pattern_white_space(char32_t cp);
+bool is_pattern_syntax(char32_t cp);
+```
+
+#### Derived Property
+
+```cpp
+bool is_math(char32_t cp);
+bool is_alphabetic(char32_t cp);
+bool is_lowercase(char32_t cp);
+bool is_uppercase(char32_t cp);
+bool is_cased(char32_t cp);
+bool is_case_ignorable(char32_t cp);
+bool is_changes_when_lowercased(char32_t cp);
+bool is_changes_when_uppercased(char32_t cp);
+bool is_changes_when_titlecased(char32_t cp);
+bool is_changes_when_casefolded(char32_t cp);
+bool is_changes_when_casemapped(char32_t cp);
+bool is_id_start(char32_t cp);
+bool is_id_continue(char32_t cp);
+bool is_xid_start(char32_t cp);
+bool is_xid_continue(char32_t cp);
+bool is_default_ignorable_code_point(char32_t cp);
+bool is_grapheme_extend(char32_t cp);
+bool is_grapheme_base(char32_t cp);
+bool is_grapheme_link(char32_t cp);
+```
+
+### Case
+
+```cpp
+char32_t simple_uppercase_mapping(char32_t cp);
+char32_t simple_lowercase_mapping(char32_t cp);
+char32_t simple_titlecase_mapping(char32_t cp);
+char32_t simple_case_folding(char32_t cp);
+
+std::u32string to_uppercase(const char32_t *s32, size_t l, const char *lang = nullptr);
+std::u32string to_lowercase(const char32_t *s32, size_t l, const char *lang = nullptr);
+std::u32string to_titlecase(const char32_t *s32, size_t l, const char *lang = nullptr); // TODO:
+std::u32string to_case_fold(const char32_t *s32, size_t l, bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
+
+bool is_uppercase(const char32_t *s32, size_t l);
+bool is_lowercase(const char32_t *s32, size_t l);
+bool is_titlecase(const char32_t *s32, size_t l); // TODO:
+bool is_case_fold(const char32_t *s32, size_t l); // TODO:
+
+bool caseless_match(const char32_t *s1, size_t l1, const char32_t *s2, size_t l2, bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
+bool canonical_caseless_match(const char32_t *s1, size_t l1, const char32_t *s2, size_t l2); // TODO:
 ```
 
 ### Code Block
