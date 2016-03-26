@@ -1454,6 +1454,13 @@ bool is_script(Script sc, char32_t cp) {
 // Normalization
 //-----------------------------------------------------------------------------
 
+enum class Normalization {
+  NFC,
+  NFD,
+  NFKC,
+  NFKD,
+};
+
 static void decompose_code(const char32_t cp, std::u32string &out,
                            Normalization norm) {
   if (hangul::is_precomposed_syllable(cp)) {
@@ -1596,9 +1603,11 @@ std::u32string to_nfkd(const char32_t *s32, size_t l) {
    U+010000-U+10FFFF = 11110www 10xxxxxx 10yyyyyy 10zzzzzz
 */
 
+namespace utf8 {
+
 const size_t UTF8MaxByteLen = 4;
 
-size_t encode_byte_length(char32_t cp) {
+size_t codepoint_byte_length(char32_t cp) {
   if (cp < 0x0080) {
     return 1;
   } else if (cp < 0x0800) {
@@ -1616,7 +1625,7 @@ size_t encode_byte_length(char32_t cp) {
   return 0;
 }
 
-size_t encode(char32_t cp, char *buff, size_t buff_len) {
+static size_t encode_codepoint(char32_t cp, char *buff, size_t buff_len) {
   if (cp < 0x0080) {
     buff[0] = (uint8_t)(cp & 0x7F);
     return 1;
@@ -1646,32 +1655,20 @@ size_t encode(char32_t cp, char *buff, size_t buff_len) {
   return 0;
 }
 
-size_t encode(char32_t cp, std::string &out) {
+size_t encode_codepoint(char32_t cp, std::string &out) {
   char b[UTF8MaxByteLen];
-  auto l = encode(cp, b, UTF8MaxByteLen);
+  auto l = encode_codepoint(cp, b, UTF8MaxByteLen);
   out.append(b, l);
   return l;
 }
 
-std::string encode(char32_t cp) {
-  std::string out;
-  encode(cp, out);
-  return out;
-}
-
 void encode(const char32_t *s32, size_t l, std::string &out) {
   for (size_t i = 0; i < l; i++) {
-    encode(s32[i], out);
+    encode_codepoint(s32[i], out);
   }
 }
 
-std::string encode(const char32_t *s32, size_t l) {
-  std::string out;
-  encode(s32, l, out);
-  return out;
-}
-
-size_t decode_byte_length(const char *s8, size_t l) {
+size_t codepoint_byte_length(const char *s8, size_t l) {
   if (l) {
     uint8_t b = s8[0];
     if ((b & 0x80) == 0) {
@@ -1687,7 +1684,8 @@ size_t decode_byte_length(const char *s8, size_t l) {
   return 0;
 }
 
-bool decode(const char *s8, size_t l, size_t &bytes, char32_t &cp) {
+static bool decode_codepoint(const char *s8, size_t l, size_t &bytes,
+                             char32_t &cp) {
   if (l) {
     uint8_t b = s8[0];
     if ((b & 0x80) == 0) {
@@ -1720,9 +1718,9 @@ bool decode(const char *s8, size_t l, size_t &bytes, char32_t &cp) {
   return false;
 }
 
-size_t decode(const char *s8, size_t l, char32_t &out) {
+size_t decode_codepoint(const char *s8, size_t l, char32_t &out) {
   size_t bytes;
-  if (decode(s8, l, bytes, out)) {
+  if (decode_codepoint(s8, l, bytes, out)) {
     return bytes;
   }
   return 0;
@@ -1746,24 +1744,20 @@ void decode(const char *s8, size_t l, std::u32string &out) {
            [&](const char *s, size_t l, size_t beg, size_t end, size_t i) {
              size_t bytes;
              char32_t cp;
-             decode(&s[beg], (end - beg), bytes, cp);
+             decode_codepoint(&s[beg], (end - beg), bytes, cp);
              out += cp;
            });
 }
 
-std::u32string decode(const char *s8, size_t l) {
-  std::u32string out;
-  decode(s8, l, out);
-  return out;
-}
-
 size_t codepoint_count(const char *s8, size_t l) {
   size_t count = 0;
-  for (size_t i = 0; i < l; i += decode_byte_length(s8 + i, l - i)) {
+  for (size_t i = 0; i < l; i += codepoint_byte_length(s8 + i, l - i)) {
     count++;
   }
   return count;
 }
+
+}  // namespace utf8
 
 }  // namespace unicode
 
