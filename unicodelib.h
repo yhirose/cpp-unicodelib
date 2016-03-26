@@ -180,28 +180,28 @@ extern std::u32string to_uppercase(const char32_t *s32, size_t l,
                                    const char *lang = nullptr);
 extern std::u32string to_lowercase(const char32_t *s32, size_t l,
                                    const char *lang = nullptr);
-/* TODO:
 extern std::u32string to_titlecase(const char32_t *s32, size_t l,
                                    const char *lang = nullptr);
-*/
 extern std::u32string to_case_fold(
     const char32_t *s32, size_t l,
     bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
 
 extern bool is_uppercase(const char32_t *s32, size_t l);
 extern bool is_lowercase(const char32_t *s32, size_t l);
-/* TODO:
 extern bool is_titlecase(const char32_t *s32, size_t l);
 extern bool is_case_fold(const char32_t *s32, size_t l);
-*/
 
 extern bool caseless_match(
     const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
     bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
-/* TODO:
-extern bool canonical_caseless_match(const char32_t *s1, size_t l1,
-                                     const char32_t *s2, size_t l2);
-*/
+
+extern bool canonical_caseless_match(
+    const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
+    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
+
+extern bool compatibility_caseless_match(
+    const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
+    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
 
 //-----------------------------------------------------------------------------
 // Text Segmentation
@@ -673,43 +673,124 @@ extern size_t encode(char32_t cp, std::string &out);
 extern std::string encode(char32_t cp);
 extern void encode(const char32_t *s32, size_t l, std::string &out);
 extern std::string encode(const char32_t *s32, size_t l);
-template <typename T>
-inline void encode(const T &s32, std::string &out) {
-  encode(s32.data(), s32.length(), out);
-}
-template <typename T>
-inline std::string encode(const T &s32) {
-  std::string out;
-  encode(s32, out);
-  return out;
-}
 
 extern size_t decode_byte_length(const char *s8, size_t l);
-template <typename T>
-inline size_t decode_byte_length(const T &s8) {
-  return decode_byte_length(s8.data(), s8.length());
-}
 
 extern bool decode(const char *s8, size_t l, size_t &bytes, char32_t &cp);
 extern size_t decode(const char *s8, size_t l, char32_t &out);
 extern void decode(const char *s8, size_t l, std::u32string &out);
 extern std::u32string decode(const char *s8, size_t l);
-template <typename T>
-inline size_t decode(const T &s8, char32_t &cp) {
+
+extern size_t codepoint_count(const char *s8, size_t l);
+
+//-----------------------------------------------------------------------------
+// Inline Wrapper functions
+//-----------------------------------------------------------------------------
+
+inline std::u32string to_lowercase(const std::u32string &s32,
+                                   const char *lang = nullptr) {
+  return to_lowercase(s32.data(), s32.length(), lang);
+}
+
+inline std::u32string to_uppercase(const std::u32string &s32,
+                                   const char *lang = nullptr) {
+  return to_uppercase(s32.data(), s32.length(), lang);
+}
+
+inline std::u32string to_titlecase(const std::u32string &s32,
+                                   const char *lang = nullptr) {
+  return to_titlecase(s32.data(), s32.length(), lang);
+}
+
+inline std::u32string to_case_fold(
+    const std::u32string &s32,
+    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
+  return to_case_fold(s32.data(), s32.length(),
+                      special_case_for_uppercase_I_and_dotted_uppercase_I);
+}
+
+inline bool is_uppercase(const std::u32string &s32) {
+  return is_uppercase(s32.data(), s32.length());
+}
+
+inline bool is_lowercase(const std::u32string &s32) {
+  return is_lowercase(s32.data(), s32.length());
+}
+
+inline bool is_titlecase(const std::u32string &s32) {
+  return is_titlecase(s32.data(), s32.length());
+}
+
+inline bool is_case_fold(const std::u32string &s32) {
+  return is_case_fold(s32.data(), s32.length());
+}
+
+inline bool caseless_match(
+    const std::u32string &s1, const std::u32string &s2,
+    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
+  return caseless_match(s1.data(), s1.length(), s2.data(), s2.length(),
+                        special_case_for_uppercase_I_and_dotted_uppercase_I);
+}
+
+inline bool canonical_caseless_match(
+    const std::u32string &s1, const std::u32string &s2,
+    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
+  return canonical_caseless_match(
+      s1.data(), s1.length(), s2.data(), s2.length(),
+      special_case_for_uppercase_I_and_dotted_uppercase_I);
+}
+
+inline bool compatibility_caseless_match(
+    const std::u32string &s1, const std::u32string &s2,
+    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
+  return compatibility_caseless_match(
+      s1.data(), s1.length(), s2.data(), s2.length(),
+      special_case_for_uppercase_I_and_dotted_uppercase_I);
+}
+
+inline std::u32string to_nfc(const std::u32string &s32) {
+  return to_nfc(s32.data(), s32.length());
+}
+
+inline std::u32string to_nfd(const std::u32string &s32) {
+  return to_nfd(s32.data(), s32.length());
+}
+
+inline std::u32string to_nfkc(const std::u32string &s32) {
+  return to_nfkc(s32.data(), s32.length());
+}
+
+inline std::u32string to_nfkd(const std::u32string &s32) {
+  return to_nfkd(s32.data(), s32.length());
+}
+
+inline void encode(const std::u32string &s32, std::string &out) {
+  encode(s32.data(), s32.length(), out);
+}
+
+inline std::string encode(const std::u32string &s32) {
+  std::string out;
+  encode(s32, out);
+  return out;
+}
+
+inline size_t decode_byte_length(const std::string &s8) {
+  return decode_byte_length(s8.data(), s8.length());
+}
+
+inline size_t decode(const std::string &s8, char32_t &cp) {
   return decode(s8.data(), s8.length(), cp);
 }
-template <typename T>
-inline void decode(const T &s8, std::u32string &out) {
+
+inline void decode(const std::string &s8, std::u32string &out) {
   decode(s8.data(), s8.length(), out);
 }
-template <typename T>
-inline std::u32string decode(const T &s8) {
+
+inline std::u32string decode(const std::string &s8) {
   std::u32string out;
   decode(s8.data(), s8.length(), out);
   return out;
 }
-
-extern size_t codepoint_count(const char *s8, size_t l);
 
 }  // namespace unicode
 

@@ -134,85 +134,64 @@ TEST_CASE("Simple case folding", "[case]") {
   REQUIRE(unicode::simple_case_folding(U'ǳ') == U'ǳ');
 }
 
-static std::u32string to_lowercase(const char32_t *s32,
-                                   const char *lang = nullptr) {
-  std::u32string str = s32;
-  return unicode::to_lowercase(str.data(), str.length(), lang);
-}
-
-static std::u32string to_uppercase(const char32_t *s32,
-                                   const char *lang = nullptr) {
-  std::u32string str = s32;
-  return unicode::to_uppercase(str.data(), str.length(), lang);
-}
-
 TEST_CASE("Full case mapping", "[case]") {
   // Sigma
-  REQUIRE(to_lowercase(U"Σ") == U"σ");
-  REQUIRE(to_lowercase(U"ΧΑΟΣ") == U"χαος");
-  REQUIRE(to_lowercase(U"ΧΑΟΣΣ") == U"χαοσς");
-  REQUIRE(to_lowercase(U"ΧΑΟΣ Σ") == U"χαος σ");
+  REQUIRE(unicode::to_lowercase(U"Σ") == U"σ");
+  REQUIRE(unicode::to_lowercase(U"ΧΑΟΣ") == U"χαος");
+  REQUIRE(unicode::to_lowercase(U"ΧΑΟΣΣ") == U"χαοσς");
+  REQUIRE(unicode::to_lowercase(U"ΧΑΟΣ Σ") == U"χαος σ");
 
-  REQUIRE(to_uppercase(U"σ") == U"Σ");
-  REQUIRE(to_uppercase(U"χαος") == U"ΧΑΟΣ");
-  REQUIRE(to_uppercase(U"χαοσς") == U"ΧΑΟΣΣ");
-  REQUIRE(to_uppercase(U"χαος σ") == U"ΧΑΟΣ Σ");
-}
+  REQUIRE(unicode::to_uppercase(U"σ") == U"Σ");
+  REQUIRE(unicode::to_uppercase(U"χαος") == U"ΧΑΟΣ");
+  REQUIRE(unicode::to_uppercase(U"χαοσς") == U"ΧΑΟΣΣ");
+  REQUIRE(unicode::to_uppercase(U"χαος σ") == U"ΧΑΟΣ Σ");
 
-static std::u32string to_case_fold(const char32_t *s32, bool special = false) {
-  std::u32string str = s32;
-  return unicode::to_case_fold(str.data(), str.length(), special);
-}
-
-static bool caseless_match(const char32_t *s1, const char32_t *s2,
-                           bool special = false) {
-  std::u32string str1 = s1;
-  std::u32string str2 = s2;
-  return unicode::caseless_match(str1.data(), str1.length(), str2.data(),
-                                 str2.length(), special);
+  // Title case
+  REQUIRE(unicode::to_titlecase(U"hello WORLD. A, a.") == U"Hello World. A, A.");
+  REQUIRE(unicode::to_titlecase(U"ΧΑΟΣ χαος Σ σ") == U"Χαος Χαος Σ Σ");
+  REQUIRE(unicode::to_titlecase(U"Ǳabc ǳabc ǲabc") == U"ǲabc ǲabc ǲabc");
 }
 
 TEST_CASE("Full case folding", "[case]") {
-  REQUIRE(caseless_match(U"résumé", U"RéSUMé") == true);
+  REQUIRE(unicode::to_case_fold(U"heiss") == unicode::to_case_fold(U"heiß"));
+}
+
+TEST_CASE("Casless match", "[case]") {
+  REQUIRE(unicode::caseless_match(U"résumé", U"RéSUMé") == true);
 
   // German
-  REQUIRE(caseless_match(U"MASSE", U"Maße") == true);
-  REQUIRE(caseless_match(U"Dürst", U"DüRST") == true);
+  REQUIRE(unicode::caseless_match(U"MASSE", U"Maße") == true);
+  REQUIRE(unicode::caseless_match(U"Dürst", U"DüRST") == true);
 
   // Turkish dot I
-  REQUIRE(caseless_match(U"Istanbul", U"ıstanbul") == false);
-  REQUIRE(caseless_match(U"İstanbul", U"istanbul") == false);
-  REQUIRE(caseless_match(U"İstanbul", U"ıstanbul") == false);
-  REQUIRE(caseless_match(U"İstanbul", U"Istanbul") == false);
-  REQUIRE(caseless_match(U"Istanbul", U"istanbul") == true);
-  REQUIRE(caseless_match(U"Istanbul", U"ıstanbul", true) == true);
-  REQUIRE(caseless_match(U"İstanbul", U"istanbul", true) == true);
-  REQUIRE(caseless_match(U"İstanbul", U"ıstanbul", true) == false);
-  REQUIRE(caseless_match(U"İstanbul", U"Istanbul", true) == false);
-  REQUIRE(caseless_match(U"Istanbul", U"istanbul", true) == false);
+  REQUIRE(unicode::caseless_match(U"Istanbul", U"ıstanbul") == false);
+  REQUIRE(unicode::caseless_match(U"İstanbul", U"istanbul") == false);
+  REQUIRE(unicode::caseless_match(U"İstanbul", U"ıstanbul") == false);
+  REQUIRE(unicode::caseless_match(U"İstanbul", U"Istanbul") == false);
+  REQUIRE(unicode::caseless_match(U"Istanbul", U"istanbul") == true);
+  REQUIRE(unicode::caseless_match(U"Istanbul", U"ıstanbul", true) == true);
+  REQUIRE(unicode::caseless_match(U"İstanbul", U"istanbul", true) == true);
+  REQUIRE(unicode::caseless_match(U"İstanbul", U"ıstanbul", true) == false);
+  REQUIRE(unicode::caseless_match(U"İstanbul", U"Istanbul", true) == false);
+  REQUIRE(unicode::caseless_match(U"Istanbul", U"istanbul", true) == false);
 
   // Sigma
-  REQUIRE(caseless_match(U"όσος", U"ΌΣΟΣ") == true);
+  REQUIRE(unicode::caseless_match(U"όσος", U"ΌΣΟΣ") == true);
 
   // French (ignore diacritics)
-  // REQUIRE(caseless_match(U"côte", U"côté") == true);
-}
-
-static bool is_uppercase(const char32_t *s32) {
-  std::u32string str = s32;
-  return unicode::is_uppercase(str.data(), str.length());
-}
-
-static bool is_lowercase(const char32_t *s32) {
-  std::u32string str = s32;
-  return unicode::is_lowercase(str.data(), str.length());
+  // REQUIRE(unicode::caseless_match(U"côte", U"côté") == true);
 }
 
 TEST_CASE("case detection", "[case]") {
-  REQUIRE(is_uppercase(U"ΌΣΟΣ HELLO") == true);
-  REQUIRE(is_uppercase(U"όσος hello") == false);
-  REQUIRE(is_lowercase(U"ΌΣΟΣ HELLO") == false);
-  REQUIRE(is_lowercase(U"όσος hello") == true);
+  REQUIRE(unicode::is_uppercase(U"ΌΣΟΣ HELLO") == true);
+  REQUIRE(unicode::is_uppercase(U"όσος hello") == false);
+  REQUIRE(unicode::is_lowercase(U"ΌΣΟΣ HELLO") == false);
+  REQUIRE(unicode::is_lowercase(U"όσος hello") == true);
+  REQUIRE(unicode::is_titlecase(U"ΌΣΟΣ HELLO") == false);
+  REQUIRE(unicode::is_titlecase(U"όσος hello") == false);
+  REQUIRE(unicode::is_titlecase(U"Όσος Hello") == true);
+  REQUIRE(unicode::is_case_fold(U"heiss") == true);
+  REQUIRE(unicode::is_case_fold(U"heiß") == false);
 }
 
 //-----------------------------------------------------------------------------
@@ -299,22 +278,24 @@ void read_text_segmentation_test_file(const char *path, T callback) {
 
 TEST_CASE("Grapheme cluster segmentation", "[segmentation]") {
   auto path = "../../UCD/auxiliary/GraphemeBreakTest.txt";
-  read_text_segmentation_test_file(
-      path, [](const auto &s32, const auto &boundary, auto expected_count, auto ln) {
-        for (auto i = 0u; i < boundary.size(); i++) {
-          auto actual = unicode::is_grapheme_boundary(s32.data(), s32.length(), i);
-          REQUIRE(boundary[i] == actual);
-        }
+  read_text_segmentation_test_file(path, [](const auto &s32,
+                                            const auto &boundary,
+                                            auto expected_count, auto ln) {
+    for (auto i = 0u; i < boundary.size(); i++) {
+      auto actual = unicode::is_grapheme_boundary(s32.data(), s32.length(), i);
+      REQUIRE(boundary[i] == actual);
+    }
 
-        size_t actual_count = unicode::grapheme_count(s32.data(), s32.length());
-        REQUIRE(expected_count == actual_count);
-      });
+    size_t actual_count = unicode::grapheme_count(s32.data(), s32.length());
+    REQUIRE(expected_count == actual_count);
+  });
 }
 
 TEST_CASE("Word segmentation", "[segmentation]") {
   auto path = "../../UCD/auxiliary/WordBreakTest.txt";
   read_text_segmentation_test_file(
-      path, [](const auto &s32, const auto &boundary, auto expected_count, auto ln) {
+      path,
+      [](const auto &s32, const auto &boundary, auto expected_count, auto ln) {
         for (auto i = 0u; i < boundary.size(); i++) {
           auto actual = unicode::is_word_boundary(s32.data(), s32.length(), i);
           REQUIRE(boundary[i] == actual);
@@ -324,13 +305,14 @@ TEST_CASE("Word segmentation", "[segmentation]") {
 
 TEST_CASE("Sentence segmentation", "[segmentation]") {
   auto path = "../../UCD/auxiliary/SentenceBreakTest.txt";
-  read_text_segmentation_test_file(
-      path, [](const auto &s32, const auto &boundary, auto expected_count, auto ln) {
-        for (auto i = 0u; i < boundary.size(); i++) {
-          auto actual = unicode::is_sentence_boundary(s32.data(), s32.length(), i);
-          REQUIRE(boundary[i] == actual);
-        }
-      });
+  read_text_segmentation_test_file(path, [](const auto &s32,
+                                            const auto &boundary,
+                                            auto expected_count, auto ln) {
+    for (auto i = 0u; i < boundary.size(); i++) {
+      auto actual = unicode::is_sentence_boundary(s32.data(), s32.length(), i);
+      REQUIRE(boundary[i] == actual);
+    }
+  });
 }
 
 //-----------------------------------------------------------------------------
@@ -391,38 +373,38 @@ TEST_CASE("Normalization", "[normalization]") {
     // NFC
     //   c2 == toNFC(c1) == toNFC(c2) == toNFC(c3)
     //   c4 == toNFC(c4) == toNFC(c5)
-    REQUIRE(c2 == unicode::to_nfc(c1.data(), c1.length()));
-    REQUIRE(c2 == unicode::to_nfc(c2.data(), c2.length()));
-    REQUIRE(c2 == unicode::to_nfc(c3.data(), c3.length()));
-    REQUIRE(c4 == unicode::to_nfc(c4.data(), c4.length()));
-    REQUIRE(c4 == unicode::to_nfc(c5.data(), c5.length()));
+    REQUIRE(c2 == unicode::to_nfc(c1));
+    REQUIRE(c2 == unicode::to_nfc(c2));
+    REQUIRE(c2 == unicode::to_nfc(c3));
+    REQUIRE(c4 == unicode::to_nfc(c4));
+    REQUIRE(c4 == unicode::to_nfc(c5));
 
     // NFD
     //   c3 == toNFD(c1) == toNFD(c2) == toNFD(c3)
     //   c5 == toNFD(c4) == toNFD(c5)
-    REQUIRE(c3 == unicode::to_nfd(c1.data(), c1.length()));
-    REQUIRE(c3 == unicode::to_nfd(c2.data(), c2.length()));
-    REQUIRE(c3 == unicode::to_nfd(c3.data(), c3.length()));
-    REQUIRE(c5 == unicode::to_nfd(c4.data(), c4.length()));
-    REQUIRE(c5 == unicode::to_nfd(c5.data(), c5.length()));
+    REQUIRE(c3 == unicode::to_nfd(c1));
+    REQUIRE(c3 == unicode::to_nfd(c2));
+    REQUIRE(c3 == unicode::to_nfd(c3));
+    REQUIRE(c5 == unicode::to_nfd(c4));
+    REQUIRE(c5 == unicode::to_nfd(c5));
 
     // NFKC
     //   c4 == toNFKC(c1) == toNFKC(c2) == toNFKC(c3) == toNFKC(c4) ==
     //   toNFKC(c5)
-    REQUIRE(c4 == unicode::to_nfkc(c1.data(), c1.length()));
-    REQUIRE(c4 == unicode::to_nfkc(c2.data(), c2.length()));
-    REQUIRE(c4 == unicode::to_nfkc(c3.data(), c3.length()));
-    REQUIRE(c4 == unicode::to_nfkc(c4.data(), c4.length()));
-    REQUIRE(c4 == unicode::to_nfkc(c5.data(), c5.length()));
+    REQUIRE(c4 == unicode::to_nfkc(c1));
+    REQUIRE(c4 == unicode::to_nfkc(c2));
+    REQUIRE(c4 == unicode::to_nfkc(c3));
+    REQUIRE(c4 == unicode::to_nfkc(c4));
+    REQUIRE(c4 == unicode::to_nfkc(c5));
 
     // NFKD
     //   c5 == toNFKD(c1) == toNFKD(c2) == toNFKD(c3) == toNFKD(c4) ==
     //   toNFKD(c5)
-    REQUIRE(c5 == unicode::to_nfkd(c1.data(), c1.length()));
-    REQUIRE(c5 == unicode::to_nfkd(c2.data(), c2.length()));
-    REQUIRE(c5 == unicode::to_nfkd(c3.data(), c3.length()));
-    REQUIRE(c5 == unicode::to_nfkd(c4.data(), c4.length()));
-    REQUIRE(c5 == unicode::to_nfkd(c5.data(), c5.length()));
+    REQUIRE(c5 == unicode::to_nfkd(c1));
+    REQUIRE(c5 == unicode::to_nfkd(c2));
+    REQUIRE(c5 == unicode::to_nfkd(c3));
+    REQUIRE(c5 == unicode::to_nfkd(c4));
+    REQUIRE(c5 == unicode::to_nfkd(c5));
   }
 }
 

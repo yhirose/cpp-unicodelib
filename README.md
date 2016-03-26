@@ -115,16 +115,17 @@ char32_t simple_case_folding(char32_t cp);
 
 std::u32string to_uppercase(const char32_t *s32, size_t l, const char *lang = nullptr);
 std::u32string to_lowercase(const char32_t *s32, size_t l, const char *lang = nullptr);
-std::u32string to_titlecase(const char32_t *s32, size_t l, const char *lang = nullptr); // TODO:
+std::u32string to_titlecase(const char32_t *s32, size_t l, const char *lang = nullptr);
 std::u32string to_case_fold(const char32_t *s32, size_t l, bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
 
 bool is_uppercase(const char32_t *s32, size_t l);
 bool is_lowercase(const char32_t *s32, size_t l);
-bool is_titlecase(const char32_t *s32, size_t l); // TODO:
-bool is_case_fold(const char32_t *s32, size_t l); // TODO:
+bool is_titlecase(const char32_t *s32, size_t l);
+bool is_case_fold(const char32_t *s32, size_t l);
 
 bool caseless_match(const char32_t *s1, size_t l1, const char32_t *s2, size_t l2, bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
-bool canonical_caseless_match(const char32_t *s1, size_t l1, const char32_t *s2, size_t l2); // TODO:
+bool canonical_caseless_match(const char32_t *s1, size_t l1, const char32_t *s2, size_t l2, bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
+bool compatibility_caseless_match(const char32_t *s1, size_t l1, const char32_t *s2, size_t l2, bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
 ```
 
 ### Code Block

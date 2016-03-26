@@ -643,15 +643,33 @@ std::u32string to_lowercase(const char32_t *s32, size_t l, const char *lang) {
 
 std::u32string to_titlecase(const char32_t *s32, size_t l, const char *lang) {
   // R3 toTitlecase(X): Find the word boundaries in X according to Unicode
-  // Standard
-  // Annex #29, “Unicode Text Segmentation.” For each word boundary, find the
-  // first
-  // cased character F following the word boundary. If F exists, map F to
-  // Titlecase_Mapping(F); then map all characters C between F and the following
-  // word boundary to Lowercase_Mapping(C)
+  // Standard Annex #29, “Unicode Text Segmentation.” For each word boundary,
+  // find the first cased character F following the word boundary. If F exists,
+  // map F to Titlecase_Mapping(F); then map all characters C between F and the
+  // following word boundary to Lowercase_Mapping(C)
   std::u32string out;
-  for (size_t i = 0; i < l; i++) {
+  size_t i = 0;
+  while (i < l) {
+    while (i < l && !is_cased(s32[i])) {
+      out += s32[i];
+      i++;
+    }
+
+    if (i == l) {
+      break;
+    }
+
     titlecase_mapping(s32, l, i, lang, out);
+    i++;
+
+    if (i == l) {
+      break;
+    }
+
+    while (i < l && !is_word_boundary(s32, l, i)) {
+      lowercase_mapping(s32, l, i, lang, out);
+      i++;
+    }
   }
   return out;
 }
@@ -683,21 +701,13 @@ static void case_folding(
 std::u32string to_case_fold(
     const char32_t *s32, size_t l,
     bool special_case_for_uppercase_I_and_dotted_uppercase_I) {
+  // R4 toCasefold(X): Map each character C in X to Case_Folding(C)
   std::u32string out;
   for (size_t i = 0; i < l; i++) {
     case_folding(s32[i], special_case_for_uppercase_I_and_dotted_uppercase_I,
                  out);
   }
   return out;
-}
-
-bool caseless_match(const char32_t *s1, size_t l1, const char32_t *s2,
-                    size_t l2,
-                    bool special_case_for_uppercase_I_and_dotted_uppercase_I) {
-  return to_case_fold(s1, l1,
-                      special_case_for_uppercase_I_and_dotted_uppercase_I) ==
-         to_case_fold(s2, l2,
-                      special_case_for_uppercase_I_and_dotted_uppercase_I);
 }
 
 bool is_uppercase(const char32_t *s32, size_t l) {
@@ -718,6 +728,93 @@ bool is_lowercase(const char32_t *s32, size_t l) {
     }
   }
   return true;
+}
+
+bool is_titlecase(const char32_t *s32, size_t l) {
+  // D141 isTitlecase(X): isTitlecase(X) is true when toTitlecase(Y) = Y
+  size_t i = 0;
+  while (i < l) {
+    while (i < l && !is_cased(s32[i])) {
+      if (is_changes_when_lowercased(s32[i])) {
+        return false;
+      }
+      i++;
+    }
+
+    if (i == l) {
+      break;
+    }
+
+    if (is_changes_when_titlecased(s32[i])) {
+      return false;
+    }
+    i++;
+
+    if (i == l) {
+      break;
+    }
+
+    while (i < l && !is_word_boundary(s32, l, i)) {
+      if (is_changes_when_lowercased(s32[i])) {
+        return false;
+      }
+      i++;
+    }
+  }
+
+  return true;
+}
+
+bool is_case_fold(const char32_t *s32, size_t l) {
+  // D142 isCasefolded(X): isCasefolded(X) is true when toCasefold(Y) = Y
+  for (size_t i = 0; i < l; i++) {
+    if (is_changes_when_casefolded(s32[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool caseless_match(const char32_t *s1, size_t l1, const char32_t *s2,
+                    size_t l2,
+                    bool special_case_for_uppercase_I_and_dotted_uppercase_I) {
+  // D144 A string X is a caseless match for a string Y if and only if
+  // toCasefold(X) = toCasefold(Y)
+  return to_case_fold(s1, l1,
+                      special_case_for_uppercase_I_and_dotted_uppercase_I) ==
+         to_case_fold(s2, l2,
+                      special_case_for_uppercase_I_and_dotted_uppercase_I);
+}
+
+bool canonical_caseless_match(
+    const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
+    bool special_case_for_uppercase_I_and_dotted_uppercase_I) {
+  // D145 A string X is a canonical caseless match for a string Y if and only if
+  // NFD(toCasefold(NFD(X))) = NFD(toCasefold(NFD(Y)))
+  return to_nfd(to_case_fold(
+             to_nfd(s1, l1),
+             special_case_for_uppercase_I_and_dotted_uppercase_I)) ==
+         to_nfd(
+             to_case_fold(to_nfd(s2, l2),
+                          special_case_for_uppercase_I_and_dotted_uppercase_I));
+}
+
+bool compatibility_caseless_match(
+    const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
+    bool special_case_for_uppercase_I_and_dotted_uppercase_I) {
+  // D146 A string X is a compatibility caseless match for a string Y if and
+  // only if NFKD(toCasefold(NFKD(toCasefold(NFD(X))))) =
+  // NFKD(toCasefold(NFKD(toCasefold(NFD(Y)))))
+  return to_nfkd(to_case_fold(
+             to_nfkd(to_case_fold(
+                 to_nfd(s1, l1),
+                 special_case_for_uppercase_I_and_dotted_uppercase_I)),
+             special_case_for_uppercase_I_and_dotted_uppercase_I)) ==
+         to_nfkd(to_case_fold(
+             to_nfkd(to_case_fold(
+                 to_nfd(s2, l2),
+                 special_case_for_uppercase_I_and_dotted_uppercase_I)),
+             special_case_for_uppercase_I_and_dotted_uppercase_I));
 }
 
 //-----------------------------------------------------------------------------
@@ -818,14 +915,10 @@ size_t combining_character_sequence_length(const char32_t *s32, size_t l) {
 size_t extended_combining_character_sequence_length(const char32_t *s32,
                                                     size_t l) {
   // D56a Extended combining character sequence: A maximal character sequence
-  // consisting of
-  // either an extended base followed by a sequence of one or more characters
-  // where
-  // each is a combining character, zero width joiner, or zero width non-joiner
-  // ; or
-  // a sequence of one or more characters where each is a combining character,
-  // zero
-  // width joiner, or zero width non-joiner.
+  // consisting of either an extended base followed by a sequence of one or more
+  // characters where each is a combining character, zero width joiner, or zero
+  // width non-joiner; or a sequence of one or more characters where each is a
+  // combining character, zero width joiner, or zero width non-joiner.
   size_t i = 0;
   if (l) {
     size_t length;
@@ -990,7 +1083,8 @@ static int previous_word_break_property_position(const char32_t *s32, int i) {
   return pos;
 }
 
-static size_t next_word_break_property_position(const char32_t *s32, size_t l, size_t i) {
+static size_t next_word_break_property_position(const char32_t *s32, size_t l,
+                                                size_t i) {
   auto prop = WordBreak::Unassigned;
   auto pos = i + 1;
   while (pos < l) {
@@ -1023,12 +1117,14 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   }
 
   // WB3a: (Newline|CR|LF) ÷
-  if ((lp == WordBreak::Newline || lp == WordBreak::CR || lp == WordBreak::LF)) {
+  if ((lp == WordBreak::Newline || lp == WordBreak::CR ||
+       lp == WordBreak::LF)) {
     return true;
   }
 
   // WB3b: ÷ (Newline|CR|LF)
-  if ((rp == WordBreak::Newline || rp == WordBreak::CR || rp == WordBreak::LF)) {
+  if ((rp == WordBreak::Newline || rp == WordBreak::CR ||
+       rp == WordBreak::LF)) {
     return true;
   }
 
@@ -1041,8 +1137,8 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   }
 
   // Find left property
-  //int lpos;
-  //std::tie(lp, lpos) = previous_word_break_property(s32, i);
+  // int lpos;
+  // std::tie(lp, lpos) = previous_word_break_property(s32, i);
   lp = WordBreak::Unassigned;
   auto lpos = previous_word_break_property_position(s32, i);
   if (lpos >= 0) {
@@ -1096,8 +1192,7 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   }
 
   // WB8: Numeric × Numeric
-  if ((lp == WordBreak::Numeric) &&
-      (rp == WordBreak::Numeric)) {
+  if ((lp == WordBreak::Numeric) && (rp == WordBreak::Numeric)) {
     return false;
   }
 
@@ -1112,14 +1207,16 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   }
 
   // WB11: Numeric (MidNum | MidNumLetQ) × Numeric
-  if ((lp1 == WordBreak::Numeric && (lp == WordBreak::MidNum || MidNumLetQ(lp))) &&
+  if ((lp1 == WordBreak::Numeric &&
+       (lp == WordBreak::MidNum || MidNumLetQ(lp))) &&
       (rp == WordBreak::Numeric)) {
     return false;
   }
 
   // WB12: Numeric × (MidNum | MidNumLetQ) Numeric
   if ((lp == WordBreak::Numeric) &&
-      ((rp == WordBreak::MidNum || MidNumLetQ(rp)) && rp1 == WordBreak::Numeric)) {
+      ((rp == WordBreak::MidNum || MidNumLetQ(rp)) &&
+       rp1 == WordBreak::Numeric)) {
     return false;
   }
 
@@ -1129,7 +1226,8 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   }
 
   // WB13a: (AHLetter | Numeric | Katakana | ExtendNumLet) × ExtendNumLet
-  if ((AHLetter(lp) || lp == WordBreak::Katakana || lp == WordBreak::Numeric || lp == WordBreak::Katakana || lp == WordBreak::ExtendNumLet) &&
+  if ((AHLetter(lp) || lp == WordBreak::Katakana || lp == WordBreak::Numeric ||
+       lp == WordBreak::Katakana || lp == WordBreak::ExtendNumLet) &&
       (rp == WordBreak::ExtendNumLet)) {
     return false;
   }
@@ -1155,14 +1253,16 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
 //-----------------------------------------------------------------------------
 
 inline bool ParaSep(SentenceBreak p) {
-  return p == SentenceBreak::Sep || p == SentenceBreak::CR || p == SentenceBreak::LF;
+  return p == SentenceBreak::Sep || p == SentenceBreak::CR ||
+         p == SentenceBreak::LF;
 }
 
 inline bool SATerm(SentenceBreak p) {
   return p == SentenceBreak::STerm || p == SentenceBreak::ATerm;
 }
 
-static int previous_sentence_break_property_position(const char32_t *s32, int i) {
+static int previous_sentence_break_property_position(const char32_t *s32,
+                                                     int i) {
   auto prop = SentenceBreak::Unassigned;
   auto pos = i - 1;
   while (pos >= 0) {
@@ -1175,7 +1275,8 @@ static int previous_sentence_break_property_position(const char32_t *s32, int i)
   return pos;
 }
 
-static size_t next_sentence_break_property_position(const char32_t *s32, size_t l, size_t i) {
+static size_t next_sentence_break_property_position(const char32_t *s32,
+                                                    size_t l, size_t i) {
   auto pos = i + 1;
   while (pos < l) {
     auto prop = _sentence_break_properties[s32[pos]];
@@ -1240,7 +1341,8 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
   }
 
   // SB7: (Upper | Lower) ATerm × Upper
-  if (((lp1 == SentenceBreak::Upper || lp1 == SentenceBreak::Lower) && (lp == SentenceBreak::ATerm)) &&
+  if (((lp1 == SentenceBreak::Upper || lp1 == SentenceBreak::Lower) &&
+       (lp == SentenceBreak::ATerm)) &&
       (rp == SentenceBreak::Upper)) {
     return false;
   }
@@ -1270,17 +1372,16 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
     size_t pos = i;
     while (pos < l) {
       rp2 = _sentence_break_properties[s32[pos]];
-      if (ParaSep(rp2) || SATerm(rp2) ||
-          rp2 == SentenceBreak::OLetter ||
-          rp2 == SentenceBreak::Upper ||
-          rp2 == SentenceBreak::Lower) {
+      if (ParaSep(rp2) || SATerm(rp2) || rp2 == SentenceBreak::OLetter ||
+          rp2 == SentenceBreak::Upper || rp2 == SentenceBreak::Lower) {
         break;
       }
       pos = next_sentence_break_property_position(s32, l, pos);
     }
   }
 
-  // SB8: ATerm Close* Sp* × (¬(OLetter | Upper | Lower | ParaSep | SATerm))* Lower
+  // SB8: ATerm Close* Sp* × (¬(OLetter | Upper | Lower | ParaSep | SATerm))*
+  // Lower
   if ((lp2 == SentenceBreak::ATerm) && (rp2 == SentenceBreak::Lower)) {
     return false;
   }
@@ -1303,7 +1404,8 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
   }
 
   // SB9: SATerm Close* × (Close | Sp | ParaSep)
-  if ((SATerm(lp3)) && (rp == SentenceBreak::Close || rp == SentenceBreak::Sp || ParaSep(rp))) {
+  if ((SATerm(lp3)) &&
+      (rp == SentenceBreak::Close || rp == SentenceBreak::Sp || ParaSep(rp))) {
     return false;
   }
 
