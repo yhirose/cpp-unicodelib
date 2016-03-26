@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
-#include <iostream>
 #include "unicodelib_data.h"
 
 namespace unicode {
@@ -286,13 +285,9 @@ bool is_join_control(char32_t cp) {
   return _properties[cp] & Property_Join_Control;
 }
 
-bool is_dash(char32_t cp) {
-  return _properties[cp] & Property_Dash;
-}
+bool is_dash(char32_t cp) { return _properties[cp] & Property_Dash; }
 
-bool is_hyphen(char32_t cp) {
-  return _properties[cp] & Property_Hyphen;
-}
+bool is_hyphen(char32_t cp) { return _properties[cp] & Property_Hyphen; }
 
 bool is_quotation_mark(char32_t cp) {
   return _properties[cp] & Property_Quotation_Mark;
@@ -306,9 +301,7 @@ bool is_other_math(char32_t cp) {
   return _properties[cp] & Property_Other_Math;
 }
 
-bool is_hex_digit(char32_t cp) {
-  return _properties[cp] & Property_Hex_Digit;
-}
+bool is_hex_digit(char32_t cp) { return _properties[cp] & Property_Hex_Digit; }
 
 bool is_ascii_hex_digit(char32_t cp) {
   return _properties[cp] & Property_ASCII_Hex_Digit;
@@ -322,13 +315,9 @@ bool is_ideographic(char32_t cp) {
   return _properties[cp] & Property_Ideographic;
 }
 
-bool is_diacritic(char32_t cp) {
-  return _properties[cp] & Property_Diacritic;
-}
+bool is_diacritic(char32_t cp) { return _properties[cp] & Property_Diacritic; }
 
-bool is_extender(char32_t cp) {
-  return _properties[cp] & Property_Extender;
-}
+bool is_extender(char32_t cp) { return _properties[cp] & Property_Extender; }
 
 bool is_other_lowercase(char32_t cp) {
   return _properties[cp] & Property_Other_Lowercase;
@@ -350,9 +339,7 @@ bool is_ids_binary_operator(char32_t cp) {
   return _properties[cp] & Property_IDS_Binary_Operator;
 }
 
-bool is_radical(char32_t cp) {
-  return _properties[cp] & Property_Radical;
-}
+bool is_radical(char32_t cp) { return _properties[cp] & Property_Radical; }
 
 bool is_unified_ideograph(char32_t cp) {
   return _properties[cp] & Property_Unified_Ideograph;
@@ -382,9 +369,7 @@ bool is_other_id_continue(char32_t cp) {
   return _properties[cp] & Property_Other_ID_Continue;
 }
 
-bool is_sterm(char32_t cp) {
-  return _properties[cp] & Property_STerm;
-}
+bool is_sterm(char32_t cp) { return _properties[cp] & Property_STerm; }
 
 bool is_variation_selector(char32_t cp) {
   return _properties[cp] & Property_Variation_Selector;
@@ -403,14 +388,10 @@ bool is_pattern_syntax(char32_t cp) {
 //-----------------------------------------------------------------------------
 
 const uint32_t DerivedProperty_Math = 0b00000000000000000000000000000001;
-const uint32_t DerivedProperty_Alphabetic =
-    0b00000000000000000000000000000010;
-const uint32_t DerivedProperty_Lowercase =
-    0b00000000000000000000000000000100;
-const uint32_t DerivedProperty_Uppercase =
-    0b00000000000000000000000000001000;
-const uint32_t DerivedProperty_Cased =
-    0b00000000000000000000000000010000;
+const uint32_t DerivedProperty_Alphabetic = 0b00000000000000000000000000000010;
+const uint32_t DerivedProperty_Lowercase = 0b00000000000000000000000000000100;
+const uint32_t DerivedProperty_Uppercase = 0b00000000000000000000000000001000;
+const uint32_t DerivedProperty_Cased = 0b00000000000000000000000000010000;
 const uint32_t DerivedProperty_Case_Ignorable =
     0b00000000000000000000000000100000;
 const uint32_t DerivedProperty_Changes_When_Lowercased =
@@ -423,12 +404,9 @@ const uint32_t DerivedProperty_Changes_When_Casefolded =
     0b00000000000000000000001000000000;
 const uint32_t DerivedProperty_Changes_When_Casemapped =
     0b00000000000000000000010000000000;
-const uint32_t DerivedProperty_ID_Start =
-    0b00000000000000000000100000000000;
-const uint32_t DerivedProperty_ID_Continue =
-    0b00000000000000000001000000000000;
-const uint32_t DerivedProperty_XID_Start =
-    0b00000000000000000010000000000000;
+const uint32_t DerivedProperty_ID_Start = 0b00000000000000000000100000000000;
+const uint32_t DerivedProperty_ID_Continue = 0b00000000000000000001000000000000;
+const uint32_t DerivedProperty_XID_Start = 0b00000000000000000010000000000000;
 const uint32_t DerivedProperty_XID_Continue =
     0b00000000000000000100000000000000;
 const uint32_t DerivedProperty_Default_Ignorable_Code_Point =
@@ -501,7 +479,8 @@ bool is_xid_continue(char32_t cp) {
 }
 
 bool is_default_ignorable_code_point(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Default_Ignorable_Code_Point;
+  return _derived_core_properties[cp] &
+         DerivedProperty_Default_Ignorable_Code_Point;
 }
 
 bool is_grapheme_extend(char32_t cp) {
@@ -587,7 +566,8 @@ static bool is_final_sigma(const char32_t *s32, size_t l, size_t i) {
 }
 
 static void full_case_mapping(const char32_t *s32, size_t l, size_t i,
-                       const char *lang, CaseMappingType type, std::u32string &out) {
+                              const char *lang, CaseMappingType type,
+                              std::u32string &out) {
   assert(i < l);
   auto cp = s32[i];
   auto count = _special_case_mappings.count(cp);
@@ -634,7 +614,7 @@ void uppercase_mapping(const char32_t *s32, size_t l, size_t i,
 }
 
 static void lowercase_mapping(const char32_t *s32, size_t l, size_t i,
-                       const char *lang, std::u32string &out) {
+                              const char *lang, std::u32string &out) {
   full_case_mapping(s32, l, i, lang, CaseMappingType::Lower, out);
 }
 
@@ -662,8 +642,10 @@ std::u32string to_lowercase(const char32_t *s32, size_t l, const char *lang) {
 }
 
 std::u32string to_titlecase(const char32_t *s32, size_t l, const char *lang) {
-  // R3 toTitlecase(X): Find the word boundaries in X according to Unicode Standard
-  // Annex #29, “Unicode Text Segmentation.” For each word boundary, find the first
+  // R3 toTitlecase(X): Find the word boundaries in X according to Unicode
+  // Standard
+  // Annex #29, “Unicode Text Segmentation.” For each word boundary, find the
+  // first
   // cased character F following the word boundary. If F exists, map F to
   // Titlecase_Mapping(F); then map all characters C between F and the following
   // word boundary to Lowercase_Mapping(C)
@@ -739,7 +721,7 @@ bool is_lowercase(const char32_t *s32, size_t l) {
 }
 
 //-----------------------------------------------------------------------------
-// Combination
+// Combining Character Sequence
 //-----------------------------------------------------------------------------
 
 bool is_graphic_character(char32_t cp) {
@@ -884,6 +866,10 @@ size_t extended_combining_character_sequence_count(const char32_t *s32,
   return count;
 }
 
+//-----------------------------------------------------------------------------
+// Grapheme Cluster Segmentation
+//-----------------------------------------------------------------------------
+
 bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
   // GB1: sot ÷
   if (i == 0) {
@@ -977,6 +963,363 @@ size_t grapheme_count(const char32_t *s32, size_t l) {
     i += grapheme_length(s32 + i, l - i);
   }
   return count;
+}
+
+//-----------------------------------------------------------------------------
+// Word Segmentation
+//-----------------------------------------------------------------------------
+
+inline bool AHLetter(WordBreak p) {
+  return p == WordBreak::ALetter || p == WordBreak::Hebrew_Letter;
+}
+
+inline bool MidNumLetQ(WordBreak p) {
+  return p == WordBreak::MidNumLet || p == WordBreak::Single_Quote;
+}
+
+static int previous_word_break_property_position(const char32_t *s32, int i) {
+  auto prop = WordBreak::Unassigned;
+  auto pos = i - 1;
+  while (pos >= 0) {
+    prop = _word_break_properties[s32[pos]];
+    if (prop != WordBreak::Extend && prop != WordBreak::Format) {
+      break;
+    }
+    pos--;
+  }
+  return pos;
+}
+
+static size_t next_word_break_property_position(const char32_t *s32, size_t l, size_t i) {
+  auto prop = WordBreak::Unassigned;
+  auto pos = i + 1;
+  while (pos < l) {
+    prop = _word_break_properties[s32[pos]];
+    if (prop != WordBreak::Extend && prop != WordBreak::Format) {
+      break;
+    }
+    pos++;
+  }
+  return pos;
+}
+
+bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
+  // WB1: sot ÷
+  if (i == 0) {
+    return true;
+  }
+
+  // WB2: ÷ eot
+  if (i == l) {
+    return true;
+  }
+
+  auto lp = _word_break_properties[s32[i - 1]];
+  auto rp = _word_break_properties[s32[i]];
+
+  // WB3: CR × LF
+  if ((lp == WordBreak::CR) && (rp == WordBreak::LF)) {
+    return false;
+  }
+
+  // WB3a: (Newline|CR|LF) ÷
+  if ((lp == WordBreak::Newline || lp == WordBreak::CR || lp == WordBreak::LF)) {
+    return true;
+  }
+
+  // WB3b: ÷ (Newline|CR|LF)
+  if ((rp == WordBreak::Newline || rp == WordBreak::CR || rp == WordBreak::LF)) {
+    return true;
+  }
+
+  // WB4: X (Extend | Format)* → X
+
+  // Ignore Format and Extend characters, except when they appear at the
+  // beginning of a region of text
+  if ((rp == WordBreak::Extend || rp == WordBreak::Format)) {
+    return false;
+  }
+
+  // Find left property
+  //int lpos;
+  //std::tie(lp, lpos) = previous_word_break_property(s32, i);
+  lp = WordBreak::Unassigned;
+  auto lpos = previous_word_break_property_position(s32, i);
+  if (lpos >= 0) {
+    lp = _word_break_properties[s32[lpos]];
+  }
+
+  // WB5: AHLetter × AHLetter
+  if (AHLetter(lp) && AHLetter(rp)) {
+    return false;
+  }
+
+  WordBreak rp1 = WordBreak::Unassigned;
+  auto rpos = next_word_break_property_position(s32, l, i);
+  if (rpos < l) {
+    rp1 = _word_break_properties[s32[rpos]];
+  }
+
+  // WB6: AHLetter × (MidLetter | MidNumLetQ) AHLetter
+  if ((AHLetter(lp)) &&
+      ((rp == WordBreak::MidLetter || MidNumLetQ(rp)) && AHLetter(rp1))) {
+    return false;
+  }
+
+  auto lp1 = WordBreak::Unassigned;
+  lpos = previous_word_break_property_position(s32, lpos);
+  if (lpos >= 0) {
+    lp1 = _word_break_properties[s32[lpos]];
+  }
+
+  // WB7: AHLetter (MidLetter | MidNumLetQ) × AHLetter
+  if ((AHLetter(lp1) && (lp == WordBreak::MidLetter || MidNumLetQ(lp))) &&
+      (AHLetter(rp))) {
+    return false;
+  }
+
+  // WB7a: Hebrew_Letter × Single_Quote
+  if ((lp == WordBreak::Hebrew_Letter) && (rp == WordBreak::Single_Quote)) {
+    return false;
+  }
+
+  // WB7b: Hebrew_Letter × Double_Quote Hebrew_Letter
+  if ((lp == WordBreak::Hebrew_Letter) &&
+      (rp == WordBreak::Double_Quote && rp1 == WordBreak::Hebrew_Letter)) {
+    return false;
+  }
+
+  // WB7c: Hebrew_Letter Double_Quote × Hebrew_Letter
+  if ((lp1 == WordBreak::Hebrew_Letter && lp == WordBreak::Double_Quote) &&
+      (rp == WordBreak::Hebrew_Letter)) {
+    return false;
+  }
+
+  // WB8: Numeric × Numeric
+  if ((lp == WordBreak::Numeric) &&
+      (rp == WordBreak::Numeric)) {
+    return false;
+  }
+
+  // WB9: AHLetter × Numeric
+  if ((AHLetter(lp)) && (rp == WordBreak::Numeric)) {
+    return false;
+  }
+
+  // WB10: Numeric × AHLetter
+  if ((lp == WordBreak::Numeric) && (AHLetter(rp))) {
+    return false;
+  }
+
+  // WB11: Numeric (MidNum | MidNumLetQ) × Numeric
+  if ((lp1 == WordBreak::Numeric && (lp == WordBreak::MidNum || MidNumLetQ(lp))) &&
+      (rp == WordBreak::Numeric)) {
+    return false;
+  }
+
+  // WB12: Numeric × (MidNum | MidNumLetQ) Numeric
+  if ((lp == WordBreak::Numeric) &&
+      ((rp == WordBreak::MidNum || MidNumLetQ(rp)) && rp1 == WordBreak::Numeric)) {
+    return false;
+  }
+
+  // WB13: Katakana × Katakana
+  if ((lp == WordBreak::Katakana) && (rp == WordBreak::Katakana)) {
+    return false;
+  }
+
+  // WB13a: (AHLetter | Numeric | Katakana | ExtendNumLet) × ExtendNumLet
+  if ((AHLetter(lp) || lp == WordBreak::Katakana || lp == WordBreak::Numeric || lp == WordBreak::Katakana || lp == WordBreak::ExtendNumLet) &&
+      (rp == WordBreak::ExtendNumLet)) {
+    return false;
+  }
+
+  // WB13b: ExtendNumLet × (AHLetter | Numeric | Katakana)
+  if ((lp == WordBreak::ExtendNumLet) &&
+      (AHLetter(rp) || rp == WordBreak::Numeric || rp == WordBreak::Katakana)) {
+    return false;
+  }
+
+  // WB13c: Regional_Indicator × Regional_Indicator
+  if ((lp == WordBreak::Regional_Indicator) &&
+      (rp == WordBreak::Regional_Indicator)) {
+    return false;
+  }
+
+  // WB14: Any ÷ Any
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+// Sentence Segmentation
+//-----------------------------------------------------------------------------
+
+inline bool ParaSep(SentenceBreak p) {
+  return p == SentenceBreak::Sep || p == SentenceBreak::CR || p == SentenceBreak::LF;
+}
+
+inline bool SATerm(SentenceBreak p) {
+  return p == SentenceBreak::STerm || p == SentenceBreak::ATerm;
+}
+
+static int previous_sentence_break_property_position(const char32_t *s32, int i) {
+  auto prop = SentenceBreak::Unassigned;
+  auto pos = i - 1;
+  while (pos >= 0) {
+    prop = _sentence_break_properties[s32[pos]];
+    if (prop != SentenceBreak::Extend && prop != SentenceBreak::Format) {
+      break;
+    }
+    pos--;
+  }
+  return pos;
+}
+
+static size_t next_sentence_break_property_position(const char32_t *s32, size_t l, size_t i) {
+  auto pos = i + 1;
+  while (pos < l) {
+    auto prop = _sentence_break_properties[s32[pos]];
+    if (prop != SentenceBreak::Extend && prop != SentenceBreak::Format) {
+      break;
+    }
+    pos++;
+  }
+  return pos;
+}
+
+bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
+  // SB1: sot ÷
+  if (i == 0) {
+    return true;
+  }
+
+  // SB2: ÷ eot
+  if (i == l) {
+    return true;
+  }
+
+  auto lp = _sentence_break_properties[s32[i - 1]];
+  auto rp = _sentence_break_properties[s32[i]];
+
+  // SB3: CR × LF
+  if ((lp == SentenceBreak::CR) && (rp == SentenceBreak::LF)) {
+    return false;
+  }
+
+  // SB4: ParaSep ÷
+  if (ParaSep(lp)) {
+    return true;
+  }
+
+  // SB5: X (Extend | Format)* → X
+
+  // Ignore Format and Extend characters, except when they appear at the
+  // beginning of a region of text
+  if ((rp == SentenceBreak::Extend || rp == SentenceBreak::Format)) {
+    return false;
+  }
+
+  // Find left property
+  lp = SentenceBreak::Unassigned;
+  auto lpos = previous_sentence_break_property_position(s32, i);
+  if (lpos >= 0) {
+    lp = _sentence_break_properties[s32[lpos]];
+  }
+
+  // SB6: ATerm × Numeric
+  if ((lp == SentenceBreak::ATerm) && (rp == SentenceBreak::Numeric)) {
+    return false;
+  }
+
+  auto lp1 = SentenceBreak::Unassigned;
+  if (lpos > 0) {
+    lpos = previous_sentence_break_property_position(s32, lpos);
+    if (lpos >= 0) {
+      lp1 = _sentence_break_properties[s32[lpos]];
+    }
+  }
+
+  // SB7: (Upper | Lower) ATerm × Upper
+  if (((lp1 == SentenceBreak::Upper || lp1 == SentenceBreak::Lower) && (lp == SentenceBreak::ATerm)) &&
+      (rp == SentenceBreak::Upper)) {
+    return false;
+  }
+
+  SentenceBreak lp2 = SentenceBreak::Unassigned;
+  {
+    lp2 = SentenceBreak::Unassigned;
+    auto pos = previous_sentence_break_property_position(s32, i);
+    while (pos >= 0) {
+      lp2 = _sentence_break_properties[s32[pos]];
+      if (lp2 != SentenceBreak::Sp) {
+        break;
+      }
+      pos = previous_sentence_break_property_position(s32, pos);
+    }
+    while (pos >= 0) {
+      lp2 = _sentence_break_properties[s32[pos]];
+      if (lp2 != SentenceBreak::Close) {
+        break;
+      }
+      pos = previous_sentence_break_property_position(s32, pos);
+    }
+  }
+
+  SentenceBreak rp2 = SentenceBreak::Unassigned;
+  {
+    size_t pos = i;
+    while (pos < l) {
+      rp2 = _sentence_break_properties[s32[pos]];
+      if (ParaSep(rp2) || SATerm(rp2) ||
+          rp2 == SentenceBreak::OLetter ||
+          rp2 == SentenceBreak::Upper ||
+          rp2 == SentenceBreak::Lower) {
+        break;
+      }
+      pos = next_sentence_break_property_position(s32, l, pos);
+    }
+  }
+
+  // SB8: ATerm Close* Sp* × (¬(OLetter | Upper | Lower | ParaSep | SATerm))* Lower
+  if ((lp2 == SentenceBreak::ATerm) && (rp2 == SentenceBreak::Lower)) {
+    return false;
+  }
+
+  // SB8a: SATerm Close* Sp* × (SContinue | SATerm)
+  if ((SATerm(lp2)) && (rp == SentenceBreak::SContinue || SATerm(rp))) {
+    return false;
+  }
+
+  SentenceBreak lp3 = SentenceBreak::Unassigned;
+  {
+    auto pos = previous_sentence_break_property_position(s32, i);
+    while (pos >= 0) {
+      lp3 = _sentence_break_properties[s32[pos]];
+      if (lp3 != SentenceBreak::Close) {
+        break;
+      }
+      pos = previous_sentence_break_property_position(s32, pos);
+    }
+  }
+
+  // SB9: SATerm Close* × (Close | Sp | ParaSep)
+  if ((SATerm(lp3)) && (rp == SentenceBreak::Close || rp == SentenceBreak::Sp || ParaSep(rp))) {
+    return false;
+  }
+
+  // SB10: SATerm Close* Sp* × (Sp | ParaSep)
+  if ((SATerm(lp2)) && (rp == SentenceBreak::Sp || ParaSep(rp))) {
+    return false;
+  }
+
+  // SB11: SATerm Close* Sp* ParaSep? ÷
+  // NOTE: 'ParaSep?' has been handled in SB4.
+  if (SATerm(lp2)) {
+    return true;
+  }
+
+  // SB12: Any × Any
+  return false;
 }
 
 //-----------------------------------------------------------------------------

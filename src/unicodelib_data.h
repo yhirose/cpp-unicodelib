@@ -54,6 +54,7 @@ struct NormalizationProperties {
 };
 
 enum class GraphemeBreak {
+  Unassigned,
   CR,
   LF,
   Control,
@@ -66,7 +67,44 @@ enum class GraphemeBreak {
   T,
   LV,
   LVT,
-  Unassigned
+};
+
+enum class WordBreak {
+  Unassigned,
+  Double_Quote,
+  Single_Quote,
+  Hebrew_Letter,
+  CR,
+  LF,
+  Newline,
+  Extend,
+  Regional_Indicator,
+  Format,
+  Katakana,
+  ALetter,
+  MidLetter,
+  MidNum,
+  MidNumLet,
+  Numeric,
+  ExtendNumLet,
+};
+
+enum class SentenceBreak {
+  Unassigned,
+  CR,
+  LF,
+  Extend,
+  Sep,
+  Format,
+  Sp,
+  Lower,
+  Upper,
+  OLetter,
+  Numeric,
+  ATerm,
+  STerm,
+  Close,
+  SContinue,
 };
 
 extern const GeneralCategory _general_category_properties[];
@@ -86,6 +124,8 @@ extern const NormalizationProperties _normalization_properties[];
 extern const std::unordered_map<std::u32string, char32_t>
     _normalization_composition;
 extern const GraphemeBreak _grapheme_break_properties[];
+extern const WordBreak _word_break_properties[];
+extern const SentenceBreak _sentence_break_properties[];
 
 }  // namespace unicode
 

@@ -134,12 +134,14 @@ TEST_CASE("Simple case folding", "[case]") {
   REQUIRE(unicode::simple_case_folding(U'ǳ') == U'ǳ');
 }
 
-static std::u32string to_lowercase(const char32_t *s32, const char* lang = nullptr) {
+static std::u32string to_lowercase(const char32_t *s32,
+                                   const char *lang = nullptr) {
   std::u32string str = s32;
   return unicode::to_lowercase(str.data(), str.length(), lang);
 }
 
-static std::u32string to_uppercase(const char32_t *s32, const char* lang = nullptr) {
+static std::u32string to_uppercase(const char32_t *s32,
+                                   const char *lang = nullptr) {
   std::u32string str = s32;
   return unicode::to_uppercase(str.data(), str.length(), lang);
 }
@@ -193,7 +195,7 @@ TEST_CASE("Full case folding", "[case]") {
   REQUIRE(caseless_match(U"όσος", U"ΌΣΟΣ") == true);
 
   // French (ignore diacritics)
-  //REQUIRE(caseless_match(U"côte", U"côté") == true);
+  // REQUIRE(caseless_match(U"côte", U"côté") == true);
 }
 
 static bool is_uppercase(const char32_t *s32) {
@@ -214,10 +216,10 @@ TEST_CASE("case detection", "[case]") {
 }
 
 //-----------------------------------------------------------------------------
-// Combination
+// Text Segmentation
 //-----------------------------------------------------------------------------
 
-TEST_CASE("Combining character sequence", "[combination]") {
+TEST_CASE("Combining character sequence", "[segmentation]") {
   REQUIRE(unicode::is_graphic_character(U'あ'));
   REQUIRE(unicode::is_graphic_character(0x0001) == false);
   REQUIRE(unicode::is_base_character(U'A'));
@@ -256,12 +258,15 @@ TEST_CASE("Combining character sequence", "[combination]") {
               korean.data(), korean.length()) == 2);
 }
 
-TEST_CASE("Grapheme cluster segmentations", "[combination]") {
-  ifstream fs("../../UCD/auxiliary/GraphemeBreakTest.txt");
+template <typename T>
+void read_text_segmentation_test_file(const char *path, T callback) {
+  ifstream fs(path);
   REQUIRE(fs);
 
+  size_t ln = 0;
   std::string line;
   while (std::getline(fs, line)) {
+    ln++;
     if (line.empty() || line[0] == '#') {
       continue;
     }
@@ -288,14 +293,44 @@ TEST_CASE("Grapheme cluster segmentations", "[combination]") {
       expected_count += (is_boundary ? 1 : 0);
     }
 
-    for (auto i = 0u; i < boundary.size(); i++) {
-      REQUIRE(boundary[i] ==
-              unicode::is_grapheme_boundary(s32.data(), s32.length(), i));
-    }
-
-    size_t actual_count = unicode::grapheme_count(s32.data(), s32.length());
-    REQUIRE(expected_count == actual_count);
+    callback(s32, boundary, expected_count, ln);
   }
+}
+
+TEST_CASE("Grapheme cluster segmentation", "[segmentation]") {
+  auto path = "../../UCD/auxiliary/GraphemeBreakTest.txt";
+  read_text_segmentation_test_file(
+      path, [](const auto &s32, const auto &boundary, auto expected_count, auto ln) {
+        for (auto i = 0u; i < boundary.size(); i++) {
+          auto actual = unicode::is_grapheme_boundary(s32.data(), s32.length(), i);
+          REQUIRE(boundary[i] == actual);
+        }
+
+        size_t actual_count = unicode::grapheme_count(s32.data(), s32.length());
+        REQUIRE(expected_count == actual_count);
+      });
+}
+
+TEST_CASE("Word segmentation", "[segmentation]") {
+  auto path = "../../UCD/auxiliary/WordBreakTest.txt";
+  read_text_segmentation_test_file(
+      path, [](const auto &s32, const auto &boundary, auto expected_count, auto ln) {
+        for (auto i = 0u; i < boundary.size(); i++) {
+          auto actual = unicode::is_word_boundary(s32.data(), s32.length(), i);
+          REQUIRE(boundary[i] == actual);
+        }
+      });
+}
+
+TEST_CASE("Sentence segmentation", "[segmentation]") {
+  auto path = "../../UCD/auxiliary/SentenceBreakTest.txt";
+  read_text_segmentation_test_file(
+      path, [](const auto &s32, const auto &boundary, auto expected_count, auto ln) {
+        for (auto i = 0u; i < boundary.size(); i++) {
+          auto actual = unicode::is_sentence_boundary(s32.data(), s32.length(), i);
+          REQUIRE(boundary[i] == actual);
+        }
+      });
 }
 
 //-----------------------------------------------------------------------------

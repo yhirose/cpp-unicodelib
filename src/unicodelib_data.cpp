@@ -16,6 +16,8 @@ namespace unicode {
 #include "_normalization_properties.cpp"
 #include "_normalization_composition.cpp"
 #include "_grapheme_break_properties.cpp"
+#include "_word_break_properties.cpp"
+#include "_sentence_break_properties.cpp"
 
 } // namespace unicode
 

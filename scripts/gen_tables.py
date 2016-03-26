@@ -640,6 +640,64 @@ def getGraphemeBreakPropertyTable(ucd, out):
     fout.write("};\n")
 
 #------------------------------------------------------------------------------
+# getWordBreakPropertyTable
+#------------------------------------------------------------------------------
+
+def getWordBreakPropertyTable(ucd, out):
+    fin = open(ucd + '/auxiliary/WordBreakProperty.txt')
+    fout = open(out + '/_word_break_properties.cpp', 'w')
+
+    values = ['Unassigned'] * (MaxCode + 1)
+    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s+;\s+(\w+)\s+#.*")
+
+    for line in fin:
+        m = r.match(line)
+        if m:
+            codePoint = int(m.group(1), 16)
+            value = m.group(3)
+
+            if m.group(2):
+                codePointLast = int(m.group(2), 16)
+                for cp in range(codePoint, codePointLast + 1):
+                    values[cp] = value
+            else:
+                values[codePoint] = value
+
+    fout.write("const WordBreak _word_break_properties[] = {\n")
+    for val in values:
+        fout.write("WordBreak::%s,\n" % val)
+    fout.write("};\n")
+
+#------------------------------------------------------------------------------
+# getSentenceBreakPropertyTable
+#------------------------------------------------------------------------------
+
+def getSentenceBreakPropertyTable(ucd, out):
+    fin = open(ucd + '/auxiliary/SentenceBreakProperty.txt')
+    fout = open(out + '/_sentence_break_properties.cpp', 'w')
+
+    values = ['Unassigned'] * (MaxCode + 1)
+    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s+;\s+(\w+)\s+#.*")
+
+    for line in fin:
+        m = r.match(line)
+        if m:
+            codePoint = int(m.group(1), 16)
+            value = m.group(3)
+
+            if m.group(2):
+                codePointLast = int(m.group(2), 16)
+                for cp in range(codePoint, codePointLast + 1):
+                    values[cp] = value
+            else:
+                values[codePoint] = value
+
+    fout.write("const SentenceBreak _sentence_break_properties[] = {\n")
+    for val in values:
+        fout.write("SentenceBreak::%s,\n" % val)
+    fout.write("};\n")
+
+#------------------------------------------------------------------------------
 # Main
 #------------------------------------------------------------------------------
 
@@ -662,3 +720,5 @@ else:
     genNomalizationPropertyTable(ucd, out)
     genNomalizationCompositionTable(ucd, out)
     getGraphemeBreakPropertyTable(ucd, out)
+    getWordBreakPropertyTable(ucd, out)
+    getSentenceBreakPropertyTable(ucd, out)

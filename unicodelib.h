@@ -107,10 +107,6 @@ extern bool is_symbol(char32_t cp);
 extern bool is_separator(char32_t cp);
 extern bool is_other(char32_t cp);
 
-extern bool is_graphic_character(char32_t cp);
-extern bool is_base_character(char32_t cp);
-extern bool is_combining_character(char32_t cp);
-
 //-----------------------------------------------------------------------------
 // Property
 //-----------------------------------------------------------------------------
@@ -208,8 +204,12 @@ extern bool canonical_caseless_match(const char32_t *s1, size_t l1,
 */
 
 //-----------------------------------------------------------------------------
-// Combination
+// Text Segmentation
 //-----------------------------------------------------------------------------
+
+extern bool is_graphic_character(char32_t cp);
+extern bool is_base_character(char32_t cp);
+extern bool is_combining_character(char32_t cp);
 
 extern size_t combining_character_sequence_length(const char32_t *s32,
                                                   size_t l);
@@ -225,6 +225,10 @@ extern size_t extended_combining_character_sequence_count(const char32_t *s32,
 extern bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i);
 extern size_t grapheme_length(const char32_t *s32, size_t l);
 extern size_t grapheme_count(const char32_t *s32, size_t l);
+
+extern bool is_word_boundary(const char32_t *s32, size_t l, size_t i);
+
+extern bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i);
 
 //-----------------------------------------------------------------------------
 // Block
