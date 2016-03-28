@@ -405,8 +405,10 @@ TEST_CASE("Normalization", "[normalization]") {
 }
 
 //-----------------------------------------------------------------------------
-// UTF8 encode/decode
+// UTF8 encoding
 //-----------------------------------------------------------------------------
+
+namespace test_utf8 {
 
 std::string u8text = u8"日本語もOKです。";
 std::u32string u32text = U"日本語もOKです。";
@@ -416,11 +418,11 @@ std::string str2(u8"À");
 std::string str3(u8"あ");
 std::string str4(u8"𠀋");
 
-TEST_CASE("codepoint byte length in char32_t", "[utf8]") {
-  REQUIRE(utf8::codepoint_byte_length(U'a') == 1);
-  REQUIRE(utf8::codepoint_byte_length(U'À') == 2);
-  REQUIRE(utf8::codepoint_byte_length(U'あ') == 3);
-  REQUIRE(utf8::codepoint_byte_length(U'𠀋') == 4);
+TEST_CASE("codepoint length in char32_t", "[utf8]") {
+  REQUIRE(utf8::codepoint_length(U'a') == 1);
+  REQUIRE(utf8::codepoint_length(U'À') == 2);
+  REQUIRE(utf8::codepoint_length(U'あ') == 3);
+  REQUIRE(utf8::codepoint_length(U'𠀋') == 4);
 }
 
 TEST_CASE("encode 1", "[utf8]") {
@@ -445,12 +447,11 @@ TEST_CASE("encode 3", "[utf8]") {
   REQUIRE(utf8::encode(u32text) == u8"日本語もOKです。");
 }
 
-TEST_CASE("codepoint byte length in utf8", "[utf8]") {
-  REQUIRE(utf8::codepoint_byte_length(str1) == 1);
-  REQUIRE(utf8::codepoint_byte_length(str1) == 1);
-  REQUIRE(utf8::codepoint_byte_length(str2) == 2);
-  REQUIRE(utf8::codepoint_byte_length(str3) == 3);
-  REQUIRE(utf8::codepoint_byte_length(str4) == 4);
+TEST_CASE("codepoint length in utf8", "[utf8]") {
+  REQUIRE(utf8::codepoint_length(str1) == 1);
+  REQUIRE(utf8::codepoint_length(str2) == 2);
+  REQUIRE(utf8::codepoint_length(str3) == 3);
+  REQUIRE(utf8::codepoint_length(str4) == 4);
 }
 
 TEST_CASE("codepoint_count", "[utf8]") {
@@ -480,5 +481,87 @@ TEST_CASE("decode 3", "[utf8]") {
   REQUIRE(utf8::decode(u8text) == u32text);
   REQUIRE(utf8::decode(u8text) == u32text);
 }
+
+} // namespace test_utf8
+
+//-----------------------------------------------------------------------------
+// UTF16 encoding
+//-----------------------------------------------------------------------------
+
+namespace test_utf16 {
+
+std::u16string u16text = u"日本語もOKです。";
+std::u32string u32text = U"日本語もOKです。";
+
+std::u16string str1(u"a");
+std::u16string str2(u"À");
+std::u16string str3(u"あ");
+std::u16string str4(u"𠀋");
+
+TEST_CASE("utf16 codepoint length in char32_t", "[utf16]") {
+  REQUIRE(utf16::codepoint_length(U'a') == 1);
+  REQUIRE(utf16::codepoint_length(U'À') == 1);
+  REQUIRE(utf16::codepoint_length(U'あ') == 1);
+  REQUIRE(utf16::codepoint_length(U'𠀋') == 2);
+}
+
+TEST_CASE("utf16 encode 1", "[utf16]") {
+  std::u16string out1, out2, out3, out4;
+  REQUIRE(utf16::encode_codepoint(U'a', out1) == 1);
+  REQUIRE(utf16::encode_codepoint(U'À', out2) == 1);
+  REQUIRE(utf16::encode_codepoint(U'あ', out3) == 1);
+  REQUIRE(utf16::encode_codepoint(U'𠀋', out4) == 2);
+  REQUIRE(out1 == u"a");
+  REQUIRE(out2 == u"À");
+  REQUIRE(out3 == u"あ");
+  REQUIRE(out4 == u"𠀋");
+}
+
+TEST_CASE("utf16 encode 2", "[utf16]") {
+  std::u16string out;
+  utf16::encode(u32text, out);
+  REQUIRE(out == u"日本語もOKです。");
+}
+
+TEST_CASE("utf16 encode 3", "[utf16]") {
+  REQUIRE(utf16::encode(u32text) == u"日本語もOKです。");
+}
+
+TEST_CASE("codepoint length in utf16", "[utf16]") {
+  REQUIRE(utf16::codepoint_length(str1) == 1);
+  REQUIRE(utf16::codepoint_length(str2) == 1);
+  REQUIRE(utf16::codepoint_length(str3) == 1);
+  REQUIRE(utf16::codepoint_length(str4) == 2);
+}
+
+TEST_CASE("utf16 codepoint_count", "[utf16]") {
+  REQUIRE(utf16::codepoint_count(u16text) == 9);
+}
+
+TEST_CASE("utf16 decode 1", "[utf16]") {
+  char32_t out, out1, out2, out3, out4;
+  REQUIRE(utf16::decode_codepoint(str1, out) == 1);
+  REQUIRE(utf16::decode_codepoint(str1, out1) == 1);
+  REQUIRE(utf16::decode_codepoint(str2, out2) == 1);
+  REQUIRE(utf16::decode_codepoint(str3, out3) == 1);
+  REQUIRE(utf16::decode_codepoint(str4, out4) == 2);
+}
+
+TEST_CASE("utf16 decode 2", "[utf16]") {
+  std::u32string out1;
+  utf16::decode(u16text, out1);
+  REQUIRE(out1 == u32text);
+
+  std::u32string out2;
+  utf16::decode(u16text, out2);
+  REQUIRE(out2 == u32text);
+}
+
+TEST_CASE("utf16 decode 3", "[utf16]") {
+  REQUIRE(utf16::decode(u16text) == u32text);
+  REQUIRE(utf16::decode(u16text) == u32text);
+}
+
+} // namespace test_utf16
 
 // vim: et ts=2 sw=2 cin cino=\:0 ff=unix

@@ -1,7 +1,7 @@
 cpp-unicodelib
 ==============
 
-C++11 Unicode library.
+C++11 Unicode library. (Unicode 8.0.0)
 
 API
 ---
@@ -165,13 +165,15 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i);
 bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i);
 ```
 
-### UTF8 Encode/Decode
+### Encoding
+
+#### UTF8 Encoding
 
 ```cpp
 namespace utf8 {
 
-size_t codepoint_byte_length(char32_t uc);
-size_t codepoint_byte_length(const char* s8, size_t l);
+size_t codepoint_length(char32_t uc);
+size_t codepoint_length(const char* s8, size_t l);
 size_t codepoint_count(const char* s8, size_t l);
 
 size_t encode_codepoint(char32_t uc, std::string& out);
@@ -179,6 +181,24 @@ void encode(const char32_t* s32, size_t l, std::string& out);
 
 size_t decode_codepoint(const char* s8, size_t l, char32_t& out);
 void decode(const char* s8, size_t l, std::u32string& out);
+
+}
+```
+
+#### UTF16 Encoding
+
+```cpp
+namespace utf16 {
+
+size_t codepoint_length(char32_t uc);
+size_t codepoint_length(const char16_t* s16, size_t l);
+size_t codepoint_count(const char16_t* s16, size_t l);
+
+size_t encode_codepoint(char32_t uc, std::u16string& out);
+void encode(const char32_t* s32, size_t l, std::u16string& out);
+
+size_t decode_codepoint(const char16_t* s16, size_t l, char32_t& out);
+void decode(const char16_t* s16, size_t l, std::u32string& out);
 
 }
 ```
