@@ -8,6 +8,7 @@ namespace unicode {
 #include "_derived_core_properties.cpp"
 #include "_simple_case_mappings.cpp"
 #include "_special_case_mappings.cpp"
+#include "_special_case_mappings_default.cpp"
 #include "_case_foldings.cpp"
 #include "_block_properties.cpp"
 #include "_script_properties.cpp"

@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
-#include <iostream>
 #include "unicodelib_data.h"
 
 namespace unicode {
@@ -596,22 +595,32 @@ static void full_case_mapping(const char32_t *s32, size_t l, size_t i,
             }
             break;
           case SpecialCasingContext::After_Soft_Dotted:
+            // TODO:
             break;
           case SpecialCasingContext::More_Above:
+            // TODO:
             break;
           case SpecialCasingContext::Before_Dot:
           case SpecialCasingContext::Not_Before_Dot:
+            // TODO:
             break;
           case SpecialCasingContext::After_I:
+            // TODO:
             break;
           default:
+            // NOTREACHED
             break;
         }
       }
     }
   }
 
-  out += simple_case_mapping(s32[i], type);
+  auto it = _special_case_mappings_default.find(cp);
+  if (it != _special_case_mappings_default.end()) {
+    out += it->second.case_mapping_codes(type);
+  } else {
+    out += simple_case_mapping(s32[i], type);
+  }
 }
 
 void uppercase_mapping(const char32_t *s32, size_t l, size_t i,
@@ -1075,7 +1084,8 @@ inline bool MidNumLetQ(WordBreak p) {
   return p == WordBreak::MidNumLet || p == WordBreak::Single_Quote;
 }
 
-static int previous_word_break_property_position(const char32_t *s32, size_t i) {
+static int previous_word_break_property_position(const char32_t *s32,
+                                                 size_t i) {
   auto prop = WordBreak::Unassigned;
   auto pos = (int)i - 1;
   while (pos >= 0) {

@@ -174,6 +174,7 @@ def getSimpleCaseMappingTable(ucd, out):
 def getSpecialCaseMappingTable(ucd, out):
     fin = open(ucd + '/SpecialCasing.txt')
     fout = open(out + '/_special_case_mappings.cpp', 'w')
+    foutDefault = open(out + '/_special_case_mappings_default.cpp', 'w')
 
     r = re.compile(r"(?!#)(.+?); #")
 
@@ -196,23 +197,31 @@ def getSpecialCaseMappingTable(ucd, out):
                 title = [int(x, 16) for x in to_array(flds[2])]
                 upper = [int(x, 16) for x in to_array(flds[3])]
 
+                hasContext = False
                 language = 'nullptr'
                 context = 'Unassigned'
                 if len(flds) == 5:
+                    hasContext = True
                     for x in to_array(flds[4]):
                         if is_language(x):
                             language = '"%s"' % x
                         else:
                             context = x
 
-                yield cp, lower, title, upper, language, context
+                yield cp, lower, title, upper, language, context, hasContext
 
     fout.write("const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings = {\n")
-    for cp, lower, title, upper, language, context in items():
-        fout.write('{ 0x%08X, { %s, %s, %s, %s, SpecialCasingContext::%s } },\n'
+    foutDefault.write("const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings_default = {\n")
+    for cp, lower, title, upper, language, context, hasContext in items():
+        if hasContext:
+            f = fout
+        else:
+            f = foutDefault
+        f.write('{ 0x%08X, { %s, %s, %s, %s, SpecialCasingContext::%s } },\n'
                 % (cp, to_unicode_literal(lower), to_unicode_literal(title),
                     to_unicode_literal(upper), language, context))
     fout.write("};\n")
+    foutDefault.write("};\n")
 
 #------------------------------------------------------------------------------
 # getCaseFoldingTable

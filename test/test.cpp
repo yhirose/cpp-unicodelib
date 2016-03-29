@@ -146,6 +146,9 @@ TEST_CASE("Full case mapping", "[case]") {
   REQUIRE(to_uppercase(U"χαοσς") == U"ΧΑΟΣΣ");
   REQUIRE(to_uppercase(U"χαος σ") == U"ΧΑΟΣ Σ");
 
+  // German
+  REQUIRE(to_uppercase(U"Maße") == U"MASSE");
+
   // Title case
   REQUIRE(to_titlecase(U"hello WORLD. A, a.") == U"Hello World. A, A.");
   REQUIRE(to_titlecase(U"ΧΑΟΣ χαος Σ σ") == U"Χαος Χαος Σ Σ");

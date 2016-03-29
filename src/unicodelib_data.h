@@ -114,6 +114,8 @@ extern const std::unordered_map<char32_t, const char32_t *>
     _simple_case_mappings;
 extern const std::unordered_multimap<char32_t, SpecialCasing>
     _special_case_mappings;
+extern const std::unordered_multimap<char32_t, SpecialCasing>
+    _special_case_mappings_default;
 extern const std::unordered_map<char32_t, CaseFolding> _case_foldings;
 extern const Block _block_properties[];
 extern const Script _script_properties[];
