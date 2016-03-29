@@ -1,4 +1,5 @@
 #include "unicodelib.h"
+
 #include <algorithm>
 #include <cassert>
 #include <cstring>
@@ -17,10 +18,15 @@ namespace hangul {
 //-----------------------------------------------------------------------------
 
 // Common Constants
-const char32_t SBase = 0xAC00, LBase = 0x1100, VBase = 0x1161, TBase = 0x11A7,
-               LCount = 19, VCount = 21, TCount = 28,
-               NCount = VCount * TCount,  // 588
-    SCount = LCount * NCount;             // 11172
+const char32_t SBase = 0xAC00;
+const char32_t LBase = 0x1100;
+const char32_t VBase = 0x1161;
+const char32_t TBase = 0x11A7;
+const size_t LCount = 19;
+const size_t VCount = 21;
+const size_t TCount = 28;
+const size_t NCount = VCount * TCount;  // 588
+const size_t SCount = LCount * NCount;  // 11172
 
 static bool is_precomposed_syllable(char32_t cp) {
   return SBase <= cp && cp < SBase + SCount;
@@ -51,10 +57,10 @@ static bool is_decomposed_syllable(const char32_t *source, size_t len) {
 }
 
 static void decompose_hangul(char32_t cp, std::u32string &out) {
-  auto SIndex = cp - SBase;
-  auto L = LBase + SIndex / NCount;
-  auto V = VBase + (SIndex % NCount) / TCount;
-  auto T = TBase + SIndex % TCount;
+  int SIndex = cp - SBase;
+  char32_t L = LBase + SIndex / NCount;
+  char32_t V = VBase + (SIndex % NCount) / TCount;
+  char32_t T = TBase + SIndex % TCount;
   out += L;
   out += V;
   if (T != TBase) {
@@ -73,9 +79,9 @@ static size_t compose_hangul(const char32_t *source, size_t len,
 
     // 1. check to see if two current characters are L and V
     int LIndex = last - LBase;
-    if (0 <= LIndex && LIndex < LCount) {
+    if (0 <= LIndex && LIndex < (int)LCount) {
       int VIndex = ch - VBase;
-      if (0 <= VIndex && VIndex < VCount) {
+      if (0 <= VIndex && VIndex < (int)VCount) {
         // make syllable of form LV
         last = (char32_t)(SBase + (LIndex * VCount + VIndex) * TCount);
         out.back() = last;  // reset last
@@ -85,9 +91,9 @@ static size_t compose_hangul(const char32_t *source, size_t len,
 
     // 2. check to see if two current characters are LV and T
     int SIndex = last - SBase;
-    if (0 <= SIndex && SIndex < SCount && (SIndex % TCount) == 0) {
+    if (0 <= SIndex && SIndex < (int)SCount && (SIndex % TCount) == 0) {
       int TIndex = ch - TBase;
-      if (0 <= TIndex && TIndex <= TCount) {
+      if (0 <= TIndex && TIndex <= (int)TCount) {
         // make syllable of form LVT
         last += TIndex;
         out.back() = last;  // reset last
@@ -524,7 +530,6 @@ char32_t simple_titlecase_mapping(char32_t cp) {
 char32_t simple_case_folding(char32_t cp) {
   auto it = _case_foldings.find(cp);
   if (it != _case_foldings.end()) {
-    auto cp = it->first;
     const auto &cf = it->second;
     if (cf.S) {
       return cf.S;
@@ -546,7 +551,7 @@ static bool is_final_sigma(const char32_t *s32, size_t l, size_t i) {
   //  characters and then a cased letter
 
   //  Before C: \p{cased} (\p{case-ignorable})*
-  int pos = i - 1;
+  auto pos = (int)i - 1;
   while (pos >= 0 && is_case_ignorable(s32[pos])) {
     pos--;
   }
@@ -555,11 +560,11 @@ static bool is_final_sigma(const char32_t *s32, size_t l, size_t i) {
   }
 
   //  After C: !((\p{case-ignorable})* \p{cased})
-  pos = i + 1;
-  while (pos < l && is_case_ignorable(s32[pos])) {
+  pos = (int)i + 1;
+  while (pos < (int)l && is_case_ignorable(s32[pos])) {
     pos++;
   }
-  if (pos < l && is_cased(s32[pos])) {
+  if (pos < (int)l && is_cased(s32[pos])) {
     return false;
   }
 
@@ -680,7 +685,6 @@ static void case_folding(
     std::u32string &out) {
   auto it = _case_foldings.find(cp);
   if (it != _case_foldings.end()) {
-    auto cp = it->first;
     const auto &cf = it->second;
     if (special_case_for_uppercase_I_and_dotted_uppercase_I && cf.T) {
       out += cf.T;
@@ -1071,9 +1075,9 @@ inline bool MidNumLetQ(WordBreak p) {
   return p == WordBreak::MidNumLet || p == WordBreak::Single_Quote;
 }
 
-static int previous_word_break_property_position(const char32_t *s32, int i) {
+static int previous_word_break_property_position(const char32_t *s32, size_t i) {
   auto prop = WordBreak::Unassigned;
-  auto pos = i - 1;
+  auto pos = (int)i - 1;
   while (pos >= 0) {
     prop = _word_break_properties[s32[pos]];
     if (prop != WordBreak::Extend && prop != WordBreak::Format) {
@@ -1138,8 +1142,6 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   }
 
   // Find left property
-  // int lpos;
-  // std::tie(lp, lpos) = previous_word_break_property(s32, i);
   lp = WordBreak::Unassigned;
   auto lpos = previous_word_break_property_position(s32, i);
   if (lpos >= 0) {
@@ -1263,9 +1265,9 @@ inline bool SATerm(SentenceBreak p) {
 }
 
 static int previous_sentence_break_property_position(const char32_t *s32,
-                                                     int i) {
+                                                     size_t i) {
   auto prop = SentenceBreak::Unassigned;
-  auto pos = i - 1;
+  auto pos = (int)i - 1;
   while (pos >= 0) {
     prop = _sentence_break_properties[s32[pos]];
     if (prop != SentenceBreak::Extend && prop != SentenceBreak::Format) {

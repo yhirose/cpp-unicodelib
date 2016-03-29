@@ -552,7 +552,7 @@ def genNomalizationPropertyTable(ucd, out):
             codes = 'U"%s"' % ''.join(["\\U%08X" % x for x in codes])
         else:
             codes = 'nullptr'
-        fout.write("%d, %s, %s,\n" % (cls, compat, codes))
+        fout.write("{ %d, %s, %s },\n" % (cls, compat, codes))
     fout.write("};\n")
 
 #------------------------------------------------------------------------------
