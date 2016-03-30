@@ -37,6 +37,8 @@ struct SpecialCasing {
     case CaseMappingType::Title:
       return title;
     }
+    // NOTREACHED
+    return nullptr;
   }
 };
 

@@ -280,113 +280,113 @@ const uint32_t Property_Pattern_White_Space =
 const uint32_t Property_Pattern_Syntax = 0b01000000000000000000000000000000;
 
 bool is_white_space(char32_t cp) {
-  return _properties[cp] & Property_White_Space;
+  return (_properties[cp] & Property_White_Space) != 0;
 }
 
 bool is_bidi_control(char32_t cp) {
-  return _properties[cp] & Property_Bidi_Control;
+  return (_properties[cp] & Property_Bidi_Control) != 0;
 }
 
 bool is_join_control(char32_t cp) {
-  return _properties[cp] & Property_Join_Control;
+  return (_properties[cp] & Property_Join_Control) != 0;
 }
 
-bool is_dash(char32_t cp) { return _properties[cp] & Property_Dash; }
+bool is_dash(char32_t cp) { return (_properties[cp] & Property_Dash) != 0; }
 
-bool is_hyphen(char32_t cp) { return _properties[cp] & Property_Hyphen; }
+bool is_hyphen(char32_t cp) { return (_properties[cp] & Property_Hyphen) != 0; }
 
 bool is_quotation_mark(char32_t cp) {
-  return _properties[cp] & Property_Quotation_Mark;
+  return (_properties[cp] & Property_Quotation_Mark) != 0;
 }
 
 bool is_terminal_punctuation(char32_t cp) {
-  return _properties[cp] & Property_Terminal_Punctuation;
+  return (_properties[cp] & Property_Terminal_Punctuation) != 0;
 }
 
 bool is_other_math(char32_t cp) {
-  return _properties[cp] & Property_Other_Math;
+  return (_properties[cp] & Property_Other_Math) != 0;
 }
 
-bool is_hex_digit(char32_t cp) { return _properties[cp] & Property_Hex_Digit; }
+bool is_hex_digit(char32_t cp) { return (_properties[cp] & Property_Hex_Digit) != 0; }
 
 bool is_ascii_hex_digit(char32_t cp) {
-  return _properties[cp] & Property_ASCII_Hex_Digit;
+  return (_properties[cp] & Property_ASCII_Hex_Digit) != 0;
 }
 
 bool is_other_alphabetic(char32_t cp) {
-  return _properties[cp] & Property_Other_Alphabetic;
+  return (_properties[cp] & Property_Other_Alphabetic) != 0;
 }
 
 bool is_ideographic(char32_t cp) {
-  return _properties[cp] & Property_Ideographic;
+  return (_properties[cp] & Property_Ideographic) != 0;
 }
 
-bool is_diacritic(char32_t cp) { return _properties[cp] & Property_Diacritic; }
+bool is_diacritic(char32_t cp) { return (_properties[cp] & Property_Diacritic) != 0; }
 
-bool is_extender(char32_t cp) { return _properties[cp] & Property_Extender; }
+bool is_extender(char32_t cp) { return (_properties[cp] & Property_Extender) != 0; }
 
 bool is_other_lowercase(char32_t cp) {
-  return _properties[cp] & Property_Other_Lowercase;
+  return (_properties[cp] & Property_Other_Lowercase) != 0;
 }
 
 bool is_other_uppercase(char32_t cp) {
-  return _properties[cp] & Property_Other_Uppercase;
+  return (_properties[cp] & Property_Other_Uppercase) != 0;
 }
 
 bool is_noncharacter_code_point(char32_t cp) {
-  return _properties[cp] & Property_Noncharacter_Code_Point;
+  return (_properties[cp] & Property_Noncharacter_Code_Point) != 0;
 }
 
 bool is_other_grapheme_extend(char32_t cp) {
-  return _properties[cp] & Property_Other_Grapheme_Extend;
+  return (_properties[cp] & Property_Other_Grapheme_Extend) != 0;
 }
 
 bool is_ids_binary_operator(char32_t cp) {
-  return _properties[cp] & Property_IDS_Binary_Operator;
+  return (_properties[cp] & Property_IDS_Binary_Operator) != 0;
 }
 
-bool is_radical(char32_t cp) { return _properties[cp] & Property_Radical; }
+bool is_radical(char32_t cp) { return (_properties[cp] & Property_Radical) != 0; }
 
 bool is_unified_ideograph(char32_t cp) {
-  return _properties[cp] & Property_Unified_Ideograph;
+  return (_properties[cp] & Property_Unified_Ideograph) != 0;
 }
 
 bool is_other_default_ignorable_code_point(char32_t cp) {
-  return _properties[cp] & Property_Other_Default_Ignorable_Code_Point;
+  return (_properties[cp] & Property_Other_Default_Ignorable_Code_Point) != 0;
 }
 
 bool is_deprecated(char32_t cp) {
-  return _properties[cp] & Property_Deprecated;
+  return (_properties[cp] & Property_Deprecated) != 0;
 }
 
 bool is_soft_dotted(char32_t cp) {
-  return _properties[cp] & Property_Soft_Dotted;
+  return (_properties[cp] & Property_Soft_Dotted) != 0;
 }
 
 bool is_logical_order_exception(char32_t cp) {
-  return _properties[cp] & Property_Logical_Order_Exception;
+  return (_properties[cp] & Property_Logical_Order_Exception) != 0;
 }
 
 bool is_other_id_start(char32_t cp) {
-  return _properties[cp] & Property_Other_ID_Start;
+  return (_properties[cp] & Property_Other_ID_Start) != 0;
 }
 
 bool is_other_id_continue(char32_t cp) {
-  return _properties[cp] & Property_Other_ID_Continue;
+  return (_properties[cp] & Property_Other_ID_Continue) != 0;
 }
 
-bool is_sterm(char32_t cp) { return _properties[cp] & Property_STerm; }
+bool is_sterm(char32_t cp) { return (_properties[cp] & Property_STerm) != 0; }
 
 bool is_variation_selector(char32_t cp) {
-  return _properties[cp] & Property_Variation_Selector;
+  return (_properties[cp] & Property_Variation_Selector) != 0;
 }
 
 bool is_pattern_white_space(char32_t cp) {
-  return _properties[cp] & Property_Pattern_White_Space;
+  return (_properties[cp] & Property_Pattern_White_Space) != 0;
 }
 
 bool is_pattern_syntax(char32_t cp) {
-  return _properties[cp] & Property_Pattern_Syntax;
+  return (_properties[cp] & Property_Pattern_Syntax) != 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -425,80 +425,80 @@ const uint32_t DerivedProperty_Grapheme_Link =
     0b00000000000001000000000000000000;
 
 bool is_math(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Math;
+  return (_derived_core_properties[cp] & DerivedProperty_Math) != 0;
 }
 
 bool is_alphabetic(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Alphabetic;
+  return (_derived_core_properties[cp] & DerivedProperty_Alphabetic) != 0;
 }
 
 bool is_lowercase(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Lowercase;
+  return (_derived_core_properties[cp] & DerivedProperty_Lowercase) != 0;
 }
 
 bool is_uppercase(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Uppercase;
+  return (_derived_core_properties[cp] & DerivedProperty_Uppercase) != 0;
 }
 
 bool is_cased(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Cased;
+  return (_derived_core_properties[cp] & DerivedProperty_Cased) != 0;
 }
 
 bool is_case_ignorable(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Case_Ignorable;
+  return (_derived_core_properties[cp] & DerivedProperty_Case_Ignorable) != 0;
 }
 
 bool is_changes_when_lowercased(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Changes_When_Lowercased;
+  return (_derived_core_properties[cp] & DerivedProperty_Changes_When_Lowercased) != 0;
 }
 
 bool is_changes_when_uppercased(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Changes_When_Uppercased;
+  return (_derived_core_properties[cp] & DerivedProperty_Changes_When_Uppercased) != 0;
 }
 
 bool is_changes_when_titlecased(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Changes_When_Titlecased;
+  return (_derived_core_properties[cp] & DerivedProperty_Changes_When_Titlecased) != 0;
 }
 
 bool is_changes_when_casefolded(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Changes_When_Casefolded;
+  return (_derived_core_properties[cp] & DerivedProperty_Changes_When_Casefolded) != 0;
 }
 
 bool is_changes_when_casemapped(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Changes_When_Casemapped;
+  return (_derived_core_properties[cp] & DerivedProperty_Changes_When_Casemapped) != 0;
 }
 
 bool is_id_start(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_ID_Start;
+  return (_derived_core_properties[cp] & DerivedProperty_ID_Start) != 0;
 }
 
 bool is_id_continue(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_ID_Continue;
+  return (_derived_core_properties[cp] & DerivedProperty_ID_Continue) != 0;
 }
 
 bool is_xid_start(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_XID_Start;
+  return (_derived_core_properties[cp] & DerivedProperty_XID_Start) != 0;
 }
 
 bool is_xid_continue(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_XID_Continue;
+  return (_derived_core_properties[cp] & DerivedProperty_XID_Continue) != 0;
 }
 
 bool is_default_ignorable_code_point(char32_t cp) {
-  return _derived_core_properties[cp] &
-         DerivedProperty_Default_Ignorable_Code_Point;
+  return (_derived_core_properties[cp] &
+         DerivedProperty_Default_Ignorable_Code_Point) != 0;
 }
 
 bool is_grapheme_extend(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Grapheme_Extend;
+  return (_derived_core_properties[cp] & DerivedProperty_Grapheme_Extend) != 0;
 }
 
 bool is_grapheme_base(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Grapheme_Base;
+  return (_derived_core_properties[cp] & DerivedProperty_Grapheme_Base) != 0;
 }
 
 bool is_grapheme_link(char32_t cp) {
-  return _derived_core_properties[cp] & DerivedProperty_Grapheme_Link;
+  return (_derived_core_properties[cp] & DerivedProperty_Grapheme_Link) != 0;
 }
 
 //-----------------------------------------------------------------------------
