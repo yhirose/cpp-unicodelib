@@ -1,4 +1,3 @@
-#include "unicodelib.h"
 #include "unicodelib_data.h"
 
 namespace unicode {
