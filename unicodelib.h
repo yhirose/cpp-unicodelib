@@ -80,119 +80,119 @@ enum class GeneralCategory {
   Unassigned = Cn,
 };
 
-extern GeneralCategory general_category(char32_t cp);
+GeneralCategory general_category(char32_t cp);
 
-extern bool is_cased_letter_category(GeneralCategory gc);
-extern bool is_letter_category(GeneralCategory gc);
-extern bool is_mark_category(GeneralCategory gc);
-extern bool is_number_category(GeneralCategory gc);
-extern bool is_punctuation_category(GeneralCategory gc);
-extern bool is_symbol_category(GeneralCategory gc);
-extern bool is_separator_category(GeneralCategory gc);
-extern bool is_other_category(GeneralCategory gc);
+bool is_cased_letter_category(GeneralCategory gc);
+bool is_letter_category(GeneralCategory gc);
+bool is_mark_category(GeneralCategory gc);
+bool is_number_category(GeneralCategory gc);
+bool is_punctuation_category(GeneralCategory gc);
+bool is_symbol_category(GeneralCategory gc);
+bool is_separator_category(GeneralCategory gc);
+bool is_other_category(GeneralCategory gc);
 
-extern bool is_cased_letter(char32_t cp);
-extern bool is_letter(char32_t cp);
-extern bool is_mark(char32_t cp);
-extern bool is_number(char32_t cp);
-extern bool is_punctuation(char32_t cp);
-extern bool is_symbol(char32_t cp);
-extern bool is_separator(char32_t cp);
-extern bool is_other(char32_t cp);
+bool is_cased_letter(char32_t cp);
+bool is_letter(char32_t cp);
+bool is_mark(char32_t cp);
+bool is_number(char32_t cp);
+bool is_punctuation(char32_t cp);
+bool is_symbol(char32_t cp);
+bool is_separator(char32_t cp);
+bool is_other(char32_t cp);
 
 //-----------------------------------------------------------------------------
 // Property
 //-----------------------------------------------------------------------------
 
-extern bool is_white_space(char32_t cp);
-extern bool is_bidi_control(char32_t cp);
-extern bool is_join_control(char32_t cp);
-extern bool is_dash(char32_t cp);
-extern bool is_hyphen(char32_t cp);
-extern bool is_quotation_mark(char32_t cp);
-extern bool is_terminal_punctuation(char32_t cp);
-extern bool is_other_math(char32_t cp);
-extern bool is_hex_digit(char32_t cp);
-extern bool is_ascii_hex_digit(char32_t cp);
-extern bool is_other_alphabetic(char32_t cp);
-extern bool is_ideographic(char32_t cp);
-extern bool is_diacritic(char32_t cp);
-extern bool is_extender(char32_t cp);
-extern bool is_other_lowercase(char32_t cp);
-extern bool is_other_uppercase(char32_t cp);
-extern bool is_noncharacter_code_point(char32_t cp);
-extern bool is_other_grapheme_extend(char32_t cp);
-extern bool is_ids_binary_operator(char32_t cp);
-extern bool is_radical(char32_t cp);
-extern bool is_unified_ideograph(char32_t cp);
-extern bool is_other_default_ignorable_code_point(char32_t cp);
-extern bool is_deprecated(char32_t cp);
-extern bool is_soft_dotted(char32_t cp);
-extern bool is_logical_order_exception(char32_t cp);
-extern bool is_other_id_start(char32_t cp);
-extern bool is_other_id_continue(char32_t cp);
-extern bool is_sterm(char32_t cp);
-extern bool is_variation_selector(char32_t cp);
-extern bool is_pattern_white_space(char32_t cp);
-extern bool is_pattern_syntax(char32_t cp);
+bool is_white_space(char32_t cp);
+bool is_bidi_control(char32_t cp);
+bool is_join_control(char32_t cp);
+bool is_dash(char32_t cp);
+bool is_hyphen(char32_t cp);
+bool is_quotation_mark(char32_t cp);
+bool is_terminal_punctuation(char32_t cp);
+bool is_other_math(char32_t cp);
+bool is_hex_digit(char32_t cp);
+bool is_ascii_hex_digit(char32_t cp);
+bool is_other_alphabetic(char32_t cp);
+bool is_ideographic(char32_t cp);
+bool is_diacritic(char32_t cp);
+bool is_extender(char32_t cp);
+bool is_other_lowercase(char32_t cp);
+bool is_other_uppercase(char32_t cp);
+bool is_noncharacter_code_point(char32_t cp);
+bool is_other_grapheme_extend(char32_t cp);
+bool is_ids_binary_operator(char32_t cp);
+bool is_radical(char32_t cp);
+bool is_unified_ideograph(char32_t cp);
+bool is_other_default_ignorable_code_point(char32_t cp);
+bool is_deprecated(char32_t cp);
+bool is_soft_dotted(char32_t cp);
+bool is_logical_order_exception(char32_t cp);
+bool is_other_id_start(char32_t cp);
+bool is_other_id_continue(char32_t cp);
+bool is_sterm(char32_t cp);
+bool is_variation_selector(char32_t cp);
+bool is_pattern_white_space(char32_t cp);
+bool is_pattern_syntax(char32_t cp);
 
 //-----------------------------------------------------------------------------
 // Derived Property
 //-----------------------------------------------------------------------------
 
-extern bool is_math(char32_t cp);
-extern bool is_alphabetic(char32_t cp);
-extern bool is_lowercase(char32_t cp);
-extern bool is_uppercase(char32_t cp);
-extern bool is_cased(char32_t cp);
-extern bool is_case_ignorable(char32_t cp);
-extern bool is_changes_when_lowercased(char32_t cp);
-extern bool is_changes_when_uppercased(char32_t cp);
-extern bool is_changes_when_titlecased(char32_t cp);
-extern bool is_changes_when_casefolded(char32_t cp);
-extern bool is_changes_when_casemapped(char32_t cp);
-extern bool is_id_start(char32_t cp);
-extern bool is_id_continue(char32_t cp);
-extern bool is_xid_start(char32_t cp);
-extern bool is_xid_continue(char32_t cp);
-extern bool is_default_ignorable_code_point(char32_t cp);
-extern bool is_grapheme_extend(char32_t cp);
-extern bool is_grapheme_base(char32_t cp);
-extern bool is_grapheme_link(char32_t cp);
+bool is_math(char32_t cp);
+bool is_alphabetic(char32_t cp);
+bool is_lowercase(char32_t cp);
+bool is_uppercase(char32_t cp);
+bool is_cased(char32_t cp);
+bool is_case_ignorable(char32_t cp);
+bool is_changes_when_lowercased(char32_t cp);
+bool is_changes_when_uppercased(char32_t cp);
+bool is_changes_when_titlecased(char32_t cp);
+bool is_changes_when_casefolded(char32_t cp);
+bool is_changes_when_casemapped(char32_t cp);
+bool is_id_start(char32_t cp);
+bool is_id_continue(char32_t cp);
+bool is_xid_start(char32_t cp);
+bool is_xid_continue(char32_t cp);
+bool is_default_ignorable_code_point(char32_t cp);
+bool is_grapheme_extend(char32_t cp);
+bool is_grapheme_base(char32_t cp);
+bool is_grapheme_link(char32_t cp);
 
 //-----------------------------------------------------------------------------
 // Case
 //-----------------------------------------------------------------------------
 
-extern char32_t simple_uppercase_mapping(char32_t cp);
-extern char32_t simple_lowercase_mapping(char32_t cp);
-extern char32_t simple_titlecase_mapping(char32_t cp);
-extern char32_t simple_case_folding(char32_t cp);
+char32_t simple_uppercase_mapping(char32_t cp);
+char32_t simple_lowercase_mapping(char32_t cp);
+char32_t simple_titlecase_mapping(char32_t cp);
+char32_t simple_case_folding(char32_t cp);
 
-extern std::u32string to_uppercase(const char32_t *s32, size_t l,
-                                   const char *lang = nullptr);
-extern std::u32string to_lowercase(const char32_t *s32, size_t l,
-                                   const char *lang = nullptr);
-extern std::u32string to_titlecase(const char32_t *s32, size_t l,
-                                   const char *lang = nullptr);
-extern std::u32string to_case_fold(
+std::u32string to_uppercase(const char32_t *s32, size_t l,
+                            const char *lang = nullptr);
+std::u32string to_lowercase(const char32_t *s32, size_t l,
+                            const char *lang = nullptr);
+std::u32string to_titlecase(const char32_t *s32, size_t l,
+                            const char *lang = nullptr);
+std::u32string to_case_fold(
     const char32_t *s32, size_t l,
     bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
 
-extern bool is_uppercase(const char32_t *s32, size_t l);
-extern bool is_lowercase(const char32_t *s32, size_t l);
-extern bool is_titlecase(const char32_t *s32, size_t l);
-extern bool is_case_fold(const char32_t *s32, size_t l);
+bool is_uppercase(const char32_t *s32, size_t l);
+bool is_lowercase(const char32_t *s32, size_t l);
+bool is_titlecase(const char32_t *s32, size_t l);
+bool is_case_fold(const char32_t *s32, size_t l);
 
-extern bool caseless_match(
+bool caseless_match(
     const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
     bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
 
-extern bool canonical_caseless_match(
+bool canonical_caseless_match(
     const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
     bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
 
-extern bool compatibility_caseless_match(
+bool compatibility_caseless_match(
     const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
     bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
 
@@ -200,28 +200,27 @@ extern bool compatibility_caseless_match(
 // Text Segmentation
 //-----------------------------------------------------------------------------
 
-extern bool is_graphic_character(char32_t cp);
-extern bool is_base_character(char32_t cp);
-extern bool is_combining_character(char32_t cp);
+bool is_graphic_character(char32_t cp);
+bool is_base_character(char32_t cp);
+bool is_combining_character(char32_t cp);
 
-extern size_t combining_character_sequence_length(const char32_t *s32,
-                                                  size_t l);
-extern size_t combining_character_sequence_count(const char32_t *s32, size_t l);
+size_t combining_character_sequence_length(const char32_t *s32, size_t l);
+size_t combining_character_sequence_count(const char32_t *s32, size_t l);
 
-extern size_t extended_combining_character_sequence_length(const char32_t *s32,
-                                                           size_t l);
-extern size_t extended_combining_character_sequence_count(const char32_t *s32,
-                                                          size_t l);
+size_t extended_combining_character_sequence_length(const char32_t *s32,
+                                                    size_t l);
+size_t extended_combining_character_sequence_count(const char32_t *s32,
+                                                   size_t l);
 
 // The following functions support 'extended' grapheme cluster, not 'legacy'
 // graphme cluster.
-extern bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i);
-extern size_t grapheme_length(const char32_t *s32, size_t l);
-extern size_t grapheme_count(const char32_t *s32, size_t l);
+bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i);
+size_t grapheme_length(const char32_t *s32, size_t l);
+size_t grapheme_count(const char32_t *s32, size_t l);
 
-extern bool is_word_boundary(const char32_t *s32, size_t l, size_t i);
+bool is_word_boundary(const char32_t *s32, size_t l, size_t i);
 
-extern bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i);
+bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i);
 
 //-----------------------------------------------------------------------------
 // Block
@@ -495,7 +494,7 @@ enum class Block {
   SupplementaryPrivateUseAreaB,
 };
 
-extern Block block(char32_t cp);
+Block block(char32_t cp);
 
 //-----------------------------------------------------------------------------
 // Script
@@ -636,17 +635,17 @@ enum class Script {
   SignWriting,
 };
 
-extern Script script(char32_t cp);
-extern bool is_script(Script sc, char32_t cp);
+Script script(char32_t cp);
+bool is_script(Script sc, char32_t cp);
 
 //-----------------------------------------------------------------------------
 // Normalization
 //-----------------------------------------------------------------------------
 
-extern std::u32string to_nfc(const char32_t *s32, size_t l);
-extern std::u32string to_nfd(const char32_t *s32, size_t l);
-extern std::u32string to_nfkc(const char32_t *s32, size_t l);
-extern std::u32string to_nfkd(const char32_t *s32, size_t l);
+std::u32string to_nfc(const char32_t *s32, size_t l);
+std::u32string to_nfd(const char32_t *s32, size_t l);
+std::u32string to_nfkc(const char32_t *s32, size_t l);
+std::u32string to_nfkd(const char32_t *s32, size_t l);
 
 //-----------------------------------------------------------------------------
 // UTF8 encoding
@@ -654,15 +653,15 @@ extern std::u32string to_nfkd(const char32_t *s32, size_t l);
 
 namespace utf8 {
 
-extern size_t codepoint_length(char32_t cp);
-extern size_t codepoint_length(const char *s8, size_t l);
-extern size_t codepoint_count(const char *s8, size_t l);
+size_t codepoint_length(char32_t cp);
+size_t codepoint_length(const char *s8, size_t l);
+size_t codepoint_count(const char *s8, size_t l);
 
-extern size_t encode_codepoint(char32_t cp, std::string &out);
-extern void encode(const char32_t *s32, size_t l, std::string &out);
+size_t encode_codepoint(char32_t cp, std::string &out);
+void encode(const char32_t *s32, size_t l, std::string &out);
 
-extern size_t decode_codepoint(const char *s8, size_t l, char32_t &out);
-extern void decode(const char *s8, size_t l, std::u32string &out);
+size_t decode_codepoint(const char *s8, size_t l, char32_t &out);
+void decode(const char *s8, size_t l, std::u32string &out);
 
 }  // namespace utf8
 
@@ -672,15 +671,15 @@ extern void decode(const char *s8, size_t l, std::u32string &out);
 
 namespace utf16 {
 
-extern size_t codepoint_length(char32_t cp);
-extern size_t codepoint_length(const char16_t *s16, size_t l);
-extern size_t codepoint_count(const char16_t *s16, size_t l);
+size_t codepoint_length(char32_t cp);
+size_t codepoint_length(const char16_t *s16, size_t l);
+size_t codepoint_count(const char16_t *s16, size_t l);
 
-extern size_t encode_codepoint(char32_t cp, std::u16string &out);
-extern void encode(const char32_t *s32, size_t l, std::u16string &out);
+size_t encode_codepoint(char32_t cp, std::u16string &out);
+void encode(const char32_t *s32, size_t l, std::u16string &out);
 
-extern size_t decode_codepoint(const char16_t *s16, size_t l, char32_t &out);
-extern void decode(const char16_t *s16, size_t l, std::u32string &out);
+size_t decode_codepoint(const char16_t *s16, size_t l, char32_t &out);
+void decode(const char16_t *s16, size_t l, std::u32string &out);
 
 }  // namespace utf16
 
