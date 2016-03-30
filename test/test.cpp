@@ -567,4 +567,20 @@ TEST_CASE("utf16 decode 3", "[utf16]") {
 
 } // namespace test_utf16
 
+//-----------------------------------------------------------------------------
+// Conversion between encodings
+//-----------------------------------------------------------------------------
+
+namespace test_encodeings {
+
+TEST_CASE("Conversion text", "[encodings]") {
+  std::string u8text = u8"日本語もOKです。";
+  std::u16string u16text = u"日本語もOKです。";
+
+  REQUIRE(to_utf16(u8text) == u16text);
+  REQUIRE(to_utf8(u16text) == u8text);
+}
+
+} // namespace test_encodeings
+
 // vim: et ts=2 sw=2 cin cino=\:0 ff=unix

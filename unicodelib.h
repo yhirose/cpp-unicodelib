@@ -1015,7 +1015,23 @@ inline std::u32string decode(const char16_t *s16) {
   return decode(s16, std::char_traits<char16_t>::length(s16));
 }
 
-}  // namespace utf8
+}  // namespace utf16
+
+inline std::u16string to_utf16(const char *s8, size_t l) {
+  return utf16::encode(utf8::decode(s8, l));
+}
+
+inline std::string to_utf8(const char16_t *s16, size_t l) {
+  return utf8::encode(utf16::decode(s16, l));
+}
+
+inline std::u16string to_utf16(const std::string &s8) {
+  return to_utf16(s8.data(), s8.length());
+}
+
+inline std::string to_utf8(const std::u16string &s16) {
+  return to_utf8(s16.data(), s16.length());
+}
 
 }  // namespace unicode
 
