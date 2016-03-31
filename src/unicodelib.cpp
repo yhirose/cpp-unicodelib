@@ -5,6 +5,8 @@
 #include <cstring>
 #include "unicodelib_data.h"
 
+extern void *enabler;
+
 namespace unicode {
 
 const char32_t ZERO_WIDTH_JOINER = 0x200D;
@@ -1895,6 +1897,110 @@ void decode(const char16_t *s16, size_t l, std::u32string &out) {
 }
 
 }  // namespace utf16
+
+//-----------------------------------------------------------------------------
+// std::wstring conversion
+//-----------------------------------------------------------------------------
+
+template <typename T = wchar_t,
+          typename std::enable_if<sizeof(T) == 2>::type *& = enabler>
+inline std::wstring to_wstring_core(const char *s8, size_t l) {
+  auto s16 = utf16::encode(utf8::decode(s8, l));
+  return std::wstring((const wchar_t *)s16.data(), s16.length());
+}
+
+template <typename T = wchar_t,
+          typename std::enable_if<sizeof(T) == 4>::type *& = enabler>
+inline std::wstring to_wstring_core(const char *s8, size_t l) {
+  auto s32 = utf8::decode(s8, l);
+  return std::wstring((const wchar_t *)s32.data(), s32.length());
+}
+
+std::wstring to_wstring(const char *s8, size_t l) {
+  return to_wstring_core(s8, l);
+}
+
+template <typename T = wchar_t,
+          typename std::enable_if<sizeof(T) == 2>::type *& = enabler>
+inline std::wstring to_wstring_core(const char16_t *s16, size_t l) {
+  return std::wstring((const wchar_t *)s16, l);
+}
+
+template <typename T = wchar_t,
+          typename std::enable_if<sizeof(T) == 4>::type *& = enabler>
+inline std::wstring to_wstring_core(const char16_t *s16, size_t l) {
+  auto s32 = utf16::decode(s16, l);
+  return std::wstring((const wchar_t *)s32.data(), s32.length());
+}
+
+std::wstring to_wstring(const char16_t *s16, size_t l) {
+  return to_wstring_core(s16, l);
+}
+
+template <typename T = wchar_t,
+          typename std::enable_if<sizeof(T) == 2>::type *& = enabler>
+inline std::wstring to_wstring_core(const char32_t *s32, size_t l) {
+  auto s16 = utf16::encode(s32, l);
+  return std::wstring((const wchar_t *)s16.data(), s16.length());
+}
+
+template <typename T = wchar_t,
+          typename std::enable_if<sizeof(T) == 4>::type *& = enabler>
+inline std::wstring to_wstring_core(const char32_t *s32, size_t l) {
+  return std::wstring((const wchar_t *)s32, l);
+}
+
+std::wstring to_wstring(const char32_t *s32, size_t l) {
+  return to_wstring_core(s32, l);
+}
+
+template <typename T = wchar_t,
+          typename std::enable_if<sizeof(T) == 2>::type *& = enabler>
+inline std::string to_utf8_core(const wchar_t *sw, size_t l) {
+  return utf8::encode(utf16::decode((const char16_t *)sw, l));
+}
+
+template <typename T = wchar_t,
+          typename std::enable_if<sizeof(T) == 4>::type *& = enabler>
+inline std::string to_utf8_core(const wchar_t *sw, size_t l) {
+  return utf8::encode((const char32_t *)sw, l);
+}
+
+std::string to_utf8(const wchar_t *sw, size_t l) {
+  return to_utf8_core(sw, l);
+}
+
+template <typename T = wchar_t,
+          typename std::enable_if<sizeof(T) == 2>::type *& = enabler>
+inline std::u16string to_utf16_core(const wchar_t *sw, size_t l) {
+  return std::u16string((const char16_t *)sw, l);
+}
+
+template <typename T = wchar_t,
+          typename std::enable_if<sizeof(T) == 4>::type *& = enabler>
+inline std::u16string to_utf16_core(const wchar_t *sw, size_t l) {
+  return utf16::encode((const char32_t *)sw, l);
+}
+
+std::u16string to_utf16(const wchar_t *sw, size_t l) {
+  return to_utf16_core(sw, l);
+}
+
+template <typename T = wchar_t,
+          typename std::enable_if<sizeof(T) == 2>::type *& = enabler>
+inline std::u32string to_utf32_core(const wchar_t *sw, size_t l) {
+  return utf16::decode((const char16_t *)sw, l);
+}
+
+template <typename T = wchar_t,
+          typename std::enable_if<sizeof(T) == 4>::type *& = enabler>
+inline std::u32string to_utf32_core(const wchar_t *sw, size_t l) {
+  return std::u32string((const char32_t *)sw, l);
+}
+
+std::u32string to_utf32(const wchar_t *sw, size_t l) {
+  return to_utf32_core(sw, l);
+}
 
 }  // namespace unicode
 

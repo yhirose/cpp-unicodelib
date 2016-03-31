@@ -203,6 +203,17 @@ void decode(const char16_t* s16, size_t l, std::u32string& out);
 }
 ```
 
+#### std::wstring Conversion
+
+```cpp
+std::wstring to_wstring(const char *s8, size_t l);
+std::wstring to_wstring(const char *s16, size_t l);
+std::wstring to_wstring(const char32_t *s32, size_t l);
+std::string to_utf8(const wchar_t *sw, size_t l);
+std::u16string to_utf16(const wchar_t *sw, size_t l);
+std::u32string to_utf32(const wchar_t *sw, size_t l);
+```
+
 Tested compilers
 ----------------
 

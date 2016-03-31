@@ -684,6 +684,18 @@ void decode(const char16_t *s16, size_t l, std::u32string &out);
 }  // namespace utf16
 
 //-----------------------------------------------------------------------------
+// std::wstring conversion
+//-----------------------------------------------------------------------------
+
+std::wstring to_wstring(const char *s8, size_t l);
+std::wstring to_wstring(const char16_t *s16, size_t l);
+std::wstring to_wstring(const char32_t *s32, size_t l);
+
+std::string to_utf8(const wchar_t *sw, size_t l);
+std::u16string to_utf16(const wchar_t *sw, size_t l);
+std::u32string to_utf32(const wchar_t *sw, size_t l);
+
+//-----------------------------------------------------------------------------
 // Inline Wrapper functions
 //-----------------------------------------------------------------------------
 
@@ -1030,6 +1042,30 @@ inline std::u16string to_utf16(const std::string &s8) {
 
 inline std::string to_utf8(const std::u16string &s16) {
   return to_utf8(s16.data(), s16.length());
+}
+
+inline std::wstring to_wstring(const std::string &s8) {
+  return to_wstring(s8.data(), s8.length());
+}
+
+inline std::wstring to_wstring(const std::u16string &s16) {
+  return to_wstring(s16.data(), s16.length());
+}
+
+inline std::wstring to_wstring(const std::u32string &s32) {
+  return to_wstring(s32.data(), s32.length());
+}
+
+inline std::string to_utf8(const std::wstring &sw) {
+  return to_utf8(sw.data(), sw.length());
+}
+
+inline std::u16string to_utf16(const std::wstring &sw) {
+  return to_utf16(sw.data(), sw.length());
+}
+
+inline std::u32string to_utf32(const std::wstring &sw) {
+  return to_utf32(sw.data(), sw.length());
 }
 
 }  // namespace unicode

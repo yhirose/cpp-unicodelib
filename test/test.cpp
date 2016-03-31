@@ -576,9 +576,18 @@ namespace test_encodeings {
 TEST_CASE("Conversion text", "[encodings]") {
   std::string u8text = u8"日本語もOKです。";
   std::u16string u16text = u"日本語もOKです。";
+  std::u32string u32text = U"日本語もOKです。";
+  std::wstring wtext = L"日本語もOKです。";
 
   REQUIRE(to_utf16(u8text) == u16text);
   REQUIRE(to_utf8(u16text) == u8text);
+
+  REQUIRE(to_wstring(u8text) == wtext);
+  REQUIRE(to_wstring(u16text) == wtext);
+  REQUIRE(to_wstring(u32text) == wtext);
+  REQUIRE(to_utf8(wtext) == u8text);
+  REQUIRE(to_utf16(wtext) == u16text);
+  REQUIRE(to_utf32(wtext) == u32text);
 }
 
 } // namespace test_encodeings
