@@ -515,6 +515,14 @@ bool is_grapheme_link(char32_t cp) {
 }
 
 //-----------------------------------------------------------------------------
+// Other Property
+//-----------------------------------------------------------------------------
+
+int combining_class(char32_t cp) {
+  return _normalization_properties[cp].combining_class;
+}
+
+//-----------------------------------------------------------------------------
 // Case
 //-----------------------------------------------------------------------------
 
@@ -557,12 +565,12 @@ static bool is_language_qualified(const char *user_lang,
 }
 
 static bool is_final_sigma(const char32_t *s32, size_t l, size_t i) {
-  //  C is preceded by a sequence consisting of a cased letter and
-  //  then zero or more case-ignorable characters, and C is not
-  //  followed by a sequence consisting of zero or more case-ignorable
-  //  characters and then a cased letter
+  // C is preceded by a sequence consisting of a cased letter and
+  // then zero or more case-ignorable characters, and C is not
+  // followed by a sequence consisting of zero or more case-ignorable
+  // characters and then a cased letter
 
-  //  Before C: \p{cased} (\p{case-ignorable})*
+  // Before C: \p{cased} (\p{case-ignorable})*
   auto pos = (int)i - 1;
   while (pos >= 0 && is_case_ignorable(s32[pos])) {
     pos--;
@@ -571,7 +579,7 @@ static bool is_final_sigma(const char32_t *s32, size_t l, size_t i) {
     return false;
   }
 
-  //  After C: !((\p{case-ignorable})* \p{cased})
+  // After C: !((\p{case-ignorable})* \p{cased})
   pos = (int)i + 1;
   while (pos < (int)l && is_case_ignorable(s32[pos])) {
     pos++;
@@ -583,9 +591,102 @@ static bool is_final_sigma(const char32_t *s32, size_t l, size_t i) {
   return true;
 }
 
+inline bool has_class_230_or_0(char32_t cp) {
+  auto cls = combining_class(cp);
+  return cls == 230 || cls == 0;
+}
+
+static bool is_after_soft_dotted(const char32_t *s32, size_t l, size_t i) {
+  // There is a Soft_Dotted character before C, with no intervening character of
+  // combining class 0 or 230 (Above).
+
+  // Before C: [\p{Soft_Dotted}] ([^\p{ccc=230} \p{ccc=0}])*
+  auto pos = (int)i - 1;
+  while (pos >= 0 && !has_class_230_or_0(s32[pos])) {
+    pos--;
+  }
+  if (pos < 0 || !is_soft_dotted(s32[pos])) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool is_more_above(const char32_t *s32, size_t l, size_t i) {
+  // C is followed by a character of combining class 230 (Above) with no
+  // intervening character of combining class 0 or 230 (Above).
+
+  // After C: [^\p{ccc=230}\p{ccc=0}]* [\p{ccc=230}]
+  auto pos = (int)i + 1;
+  while (pos < (int)l && !has_class_230_or_0(s32[pos])) {
+    pos++;
+  }
+  if (pos < (int)l && combining_class(s32[pos]) != 230) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool is_before_dot(const char32_t *s32, size_t l, size_t i) {
+  // C is followed by combining dot above (U+0307). Any sequence of characters
+  // with a combining class that is neither 0 nor 230 may intervene between the
+  // current character and the combining dot above.
+
+  // After C: ([^\p{ccc=230} \p{ccc=0}])* [\u0307]
+  auto pos = (int)i + 1;
+  while (pos < (int)l && !has_class_230_or_0(s32[pos])) {
+    pos++;
+  }
+  if (pos < (int)l && s32[pos] != 0x0307) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool is_after_i(const char32_t *s32, size_t l, size_t i) {
+  // There is an uppercase I before C, and there is no intervening combining
+  // character class 230 (Above) or 0.
+
+  // Before C: [I] ([^\p{ccc=230} \p{ccc=0}])*
+  auto pos = (int)i - 1;
+  while (pos >= 0 && !has_class_230_or_0(s32[pos])) {
+    pos--;
+  }
+  if (pos < 0 || s32[pos] != U'I') {
+    return false;
+  }
+
+  return true;
+}
+
 static void full_case_mapping(const char32_t *s32, size_t l, size_t i,
                               const char *lang, CaseMappingType type,
                               std::u32string &out) {
+  // D135 A character C is defined to be cased if and only if C has the Lowercase or Uppercase
+  // property or has a General_Category value of Titlecase_Letter.
+  // • The Uppercase and Lowercase property values are specified in the data file
+  // DerivedCoreProperties.txt in the Unicode Character Database. The derived
+  // property Cased is also listed in DerivedCoreProperties.txt.
+  //
+  // D136 A character C is defined to be case-ignorable if C has the value MidLetter (ML), MidNumLet
+  // (MB), or Single_Quote (SQ) for the Word_Break property or its
+  // General_Category is one of Nonspacing_Mark (Mn), Enclosing_Mark (Me), Format
+  // (Cf), Modifier_Letter (Lm), or Modifier_Symbol (Sk).
+  // • The Word_Break property is defined in the data file WordBreakProperty.txt in
+  // the Unicode Character Database.
+  // • The derived property Case_Ignorable is listed in the data file DerivedCoreProperties.txt
+  // in the Unicode Character Database.
+  // • The Case_Ignorable property is defined for use in the context specifications of
+  // Table 3-14. It is a narrow-use property, and is not intended for use in other contexts.
+  // The more broadly applicable string casing function, isCased(X), is
+  // defined in D143.
+  // 
+  // D137 Case-ignorable sequence: A sequence of zero or more case-ignorable characters.
+  //
+  // D138 A character C is in a particular casing context for context-dependent matching if and
+  // only if it matches the corresponding specification in Table 3-14.
   assert(i < l);
   auto cp = s32[i];
   auto count = _special_case_mappings.count(cp);
@@ -594,35 +695,36 @@ static void full_case_mapping(const char32_t *s32, size_t l, size_t i,
     for (auto it = r.first; it != r.second; ++it) {
       const auto &sc = it->second;
       if (is_language_qualified(lang, sc.language)) {
+        bool handle = false;
         switch (sc.context) {
           case SpecialCasingContext::Final_Sigma:
-            if (is_final_sigma(s32, l, i)) {
-              out += sc.case_mapping_codes(type);
-              return;
-            }
+            handle = is_final_sigma(s32, l, i);
             break;
           case SpecialCasingContext::Not_Final_Sigma:
-            if (!is_final_sigma(s32, l, i)) {
-              out += sc.case_mapping_codes(type);
-              return;
-            }
+            handle = !is_final_sigma(s32, l, i);
             break;
           case SpecialCasingContext::After_Soft_Dotted:
-            // TODO:
+            handle = is_after_soft_dotted(s32, l, i);
             break;
           case SpecialCasingContext::More_Above:
-            // TODO:
+            handle = is_more_above(s32, l, i);
             break;
           case SpecialCasingContext::Before_Dot:
+            handle = is_before_dot(s32, l, i);
+            break;
           case SpecialCasingContext::Not_Before_Dot:
-            // TODO:
+            handle = !is_before_dot(s32, l, i);
             break;
           case SpecialCasingContext::After_I:
-            // TODO:
+            handle = is_after_i(s32, l, i);
             break;
           default:
             // NOTREACHED
             break;
+        }
+        if (handle) {
+          out += sc.case_mapping_codes(type);
+          return;
         }
       }
     }
@@ -1522,9 +1624,7 @@ static std::u32string decompose(const char32_t *s32, size_t l,
       for (size_t j = i; j > 0; j--) {
         auto prev = out[j - 1];
         auto curr = out[j];
-        const auto &prop_prev = _normalization_properties[prev];
-        const auto &prop_curr = _normalization_properties[curr];
-        if (prop_prev.combining_class <= prop_curr.combining_class) {
+        if (combining_class(prev) <= combining_class(curr)) {
           break;
         }
         std::swap(out[j - 1], out[j]);
