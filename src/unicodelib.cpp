@@ -5,8 +5,6 @@
 #include <cstring>
 #include "unicodelib_data.h"
 
-extern void *enabler;
-
 namespace unicode {
 
 const char32_t ZERO_WIDTH_JOINER = 0x200D;
@@ -309,7 +307,9 @@ bool is_other_math(char32_t cp) {
   return (_properties[cp] & Property_Other_Math) != 0;
 }
 
-bool is_hex_digit(char32_t cp) { return (_properties[cp] & Property_Hex_Digit) != 0; }
+bool is_hex_digit(char32_t cp) {
+  return (_properties[cp] & Property_Hex_Digit) != 0;
+}
 
 bool is_ascii_hex_digit(char32_t cp) {
   return (_properties[cp] & Property_ASCII_Hex_Digit) != 0;
@@ -323,9 +323,13 @@ bool is_ideographic(char32_t cp) {
   return (_properties[cp] & Property_Ideographic) != 0;
 }
 
-bool is_diacritic(char32_t cp) { return (_properties[cp] & Property_Diacritic) != 0; }
+bool is_diacritic(char32_t cp) {
+  return (_properties[cp] & Property_Diacritic) != 0;
+}
 
-bool is_extender(char32_t cp) { return (_properties[cp] & Property_Extender) != 0; }
+bool is_extender(char32_t cp) {
+  return (_properties[cp] & Property_Extender) != 0;
+}
 
 bool is_other_lowercase(char32_t cp) {
   return (_properties[cp] & Property_Other_Lowercase) != 0;
@@ -347,7 +351,9 @@ bool is_ids_binary_operator(char32_t cp) {
   return (_properties[cp] & Property_IDS_Binary_Operator) != 0;
 }
 
-bool is_radical(char32_t cp) { return (_properties[cp] & Property_Radical) != 0; }
+bool is_radical(char32_t cp) {
+  return (_properties[cp] & Property_Radical) != 0;
+}
 
 bool is_unified_ideograph(char32_t cp) {
   return (_properties[cp] & Property_Unified_Ideograph) != 0;
@@ -451,23 +457,28 @@ bool is_case_ignorable(char32_t cp) {
 }
 
 bool is_changes_when_lowercased(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_Changes_When_Lowercased) != 0;
+  return (_derived_core_properties[cp] &
+          DerivedProperty_Changes_When_Lowercased) != 0;
 }
 
 bool is_changes_when_uppercased(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_Changes_When_Uppercased) != 0;
+  return (_derived_core_properties[cp] &
+          DerivedProperty_Changes_When_Uppercased) != 0;
 }
 
 bool is_changes_when_titlecased(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_Changes_When_Titlecased) != 0;
+  return (_derived_core_properties[cp] &
+          DerivedProperty_Changes_When_Titlecased) != 0;
 }
 
 bool is_changes_when_casefolded(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_Changes_When_Casefolded) != 0;
+  return (_derived_core_properties[cp] &
+          DerivedProperty_Changes_When_Casefolded) != 0;
 }
 
 bool is_changes_when_casemapped(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_Changes_When_Casemapped) != 0;
+  return (_derived_core_properties[cp] &
+          DerivedProperty_Changes_When_Casemapped) != 0;
 }
 
 bool is_id_start(char32_t cp) {
@@ -488,7 +499,7 @@ bool is_xid_continue(char32_t cp) {
 
 bool is_default_ignorable_code_point(char32_t cp) {
   return (_derived_core_properties[cp] &
-         DerivedProperty_Default_Ignorable_Code_Point) != 0;
+          DerivedProperty_Default_Ignorable_Code_Point) != 0;
 }
 
 bool is_grapheme_extend(char32_t cp) {
@@ -1902,16 +1913,18 @@ void decode(const char16_t *s16, size_t l, std::u32string &out) {
 // std::wstring conversion
 //-----------------------------------------------------------------------------
 
-template <typename T = wchar_t,
-          typename std::enable_if<sizeof(T) == 2>::type *& = enabler>
-inline std::wstring to_wstring_core(const char *s8, size_t l) {
+template <typename T = wchar_t>
+inline std::wstring to_wstring_core(
+    const char *s8, size_t l,
+    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
   auto s16 = utf16::encode(utf8::decode(s8, l));
   return std::wstring((const wchar_t *)s16.data(), s16.length());
 }
 
-template <typename T = wchar_t,
-          typename std::enable_if<sizeof(T) == 4>::type *& = enabler>
-inline std::wstring to_wstring_core(const char *s8, size_t l) {
+template <typename T = wchar_t>
+inline std::wstring to_wstring_core(
+    const char *s8, size_t l,
+    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
   auto s32 = utf8::decode(s8, l);
   return std::wstring((const wchar_t *)s32.data(), s32.length());
 }
@@ -1920,15 +1933,17 @@ std::wstring to_wstring(const char *s8, size_t l) {
   return to_wstring_core(s8, l);
 }
 
-template <typename T = wchar_t,
-          typename std::enable_if<sizeof(T) == 2>::type *& = enabler>
-inline std::wstring to_wstring_core(const char16_t *s16, size_t l) {
+template <typename T = wchar_t>
+inline std::wstring to_wstring_core(
+    const char16_t *s16, size_t l,
+    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
   return std::wstring((const wchar_t *)s16, l);
 }
 
-template <typename T = wchar_t,
-          typename std::enable_if<sizeof(T) == 4>::type *& = enabler>
-inline std::wstring to_wstring_core(const char16_t *s16, size_t l) {
+template <typename T = wchar_t>
+inline std::wstring to_wstring_core(
+    const char16_t *s16, size_t l,
+    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
   auto s32 = utf16::decode(s16, l);
   return std::wstring((const wchar_t *)s32.data(), s32.length());
 }
@@ -1937,16 +1952,18 @@ std::wstring to_wstring(const char16_t *s16, size_t l) {
   return to_wstring_core(s16, l);
 }
 
-template <typename T = wchar_t,
-          typename std::enable_if<sizeof(T) == 2>::type *& = enabler>
-inline std::wstring to_wstring_core(const char32_t *s32, size_t l) {
+template <typename T = wchar_t>
+inline std::wstring to_wstring_core(
+    const char32_t *s32, size_t l,
+    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
   auto s16 = utf16::encode(s32, l);
   return std::wstring((const wchar_t *)s16.data(), s16.length());
 }
 
-template <typename T = wchar_t,
-          typename std::enable_if<sizeof(T) == 4>::type *& = enabler>
-inline std::wstring to_wstring_core(const char32_t *s32, size_t l) {
+template <typename T = wchar_t>
+inline std::wstring to_wstring_core(
+    const char32_t *s32, size_t l,
+    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
   return std::wstring((const wchar_t *)s32, l);
 }
 
@@ -1954,31 +1971,33 @@ std::wstring to_wstring(const char32_t *s32, size_t l) {
   return to_wstring_core(s32, l);
 }
 
-template <typename T = wchar_t,
-          typename std::enable_if<sizeof(T) == 2>::type *& = enabler>
-inline std::string to_utf8_core(const wchar_t *sw, size_t l) {
+template <typename T = wchar_t>
+inline std::string to_utf8_core(
+    const wchar_t *sw, size_t l,
+    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
   return utf8::encode(utf16::decode((const char16_t *)sw, l));
 }
 
-template <typename T = wchar_t,
-          typename std::enable_if<sizeof(T) == 4>::type *& = enabler>
-inline std::string to_utf8_core(const wchar_t *sw, size_t l) {
+template <typename T = wchar_t>
+inline std::string to_utf8_core(
+    const wchar_t *sw, size_t l,
+    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
   return utf8::encode((const char32_t *)sw, l);
 }
 
-std::string to_utf8(const wchar_t *sw, size_t l) {
-  return to_utf8_core(sw, l);
-}
+std::string to_utf8(const wchar_t *sw, size_t l) { return to_utf8_core(sw, l); }
 
-template <typename T = wchar_t,
-          typename std::enable_if<sizeof(T) == 2>::type *& = enabler>
-inline std::u16string to_utf16_core(const wchar_t *sw, size_t l) {
+template <typename T = wchar_t>
+inline std::u16string to_utf16_core(
+    const wchar_t *sw, size_t l,
+    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
   return std::u16string((const char16_t *)sw, l);
 }
 
-template <typename T = wchar_t,
-          typename std::enable_if<sizeof(T) == 4>::type *& = enabler>
-inline std::u16string to_utf16_core(const wchar_t *sw, size_t l) {
+template <typename T = wchar_t>
+inline std::u16string to_utf16_core(
+    const wchar_t *sw, size_t l,
+    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
   return utf16::encode((const char32_t *)sw, l);
 }
 
@@ -1986,15 +2005,17 @@ std::u16string to_utf16(const wchar_t *sw, size_t l) {
   return to_utf16_core(sw, l);
 }
 
-template <typename T = wchar_t,
-          typename std::enable_if<sizeof(T) == 2>::type *& = enabler>
-inline std::u32string to_utf32_core(const wchar_t *sw, size_t l) {
+template <typename T = wchar_t>
+inline std::u32string to_utf32_core(
+    const wchar_t *sw, size_t l,
+    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
   return utf16::decode((const char16_t *)sw, l);
 }
 
-template <typename T = wchar_t,
-          typename std::enable_if<sizeof(T) == 4>::type *& = enabler>
-inline std::u32string to_utf32_core(const wchar_t *sw, size_t l) {
+template <typename T = wchar_t>
+inline std::u32string to_utf32_core(
+    const wchar_t *sw, size_t l,
+    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
   return std::u32string((const char32_t *)sw, l);
 }
 
