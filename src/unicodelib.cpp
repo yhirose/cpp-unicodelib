@@ -261,23 +261,20 @@ const uint32_t Property_Noncharacter_Code_Point =
     0b00000000000000010000000000000000;
 const uint32_t Property_Other_Grapheme_Extend =
     0b00000000000000100000000000000000;
-const uint32_t Property_IDS_Binary_Operator =
-    0b00000000000001000000000000000000;
-const uint32_t Property_Radical = 0b00000000000010000000000000000000;
-const uint32_t Property_Unified_Ideograph = 0b00000000000100000000000000000000;
-const uint32_t Property_Other_Default_Ignorable_Code_Point =
-    0b00000000001000000000000000000000;
-const uint32_t Property_Deprecated = 0b00000000010000000000000000000000;
-const uint32_t Property_Soft_Dotted = 0b00000000100000000000000000000000;
-const uint32_t Property_Logical_Order_Exception =
-    0b00000001000000000000000000000000;
-const uint32_t Property_Other_ID_Start = 0b00000010000000000000000000000000;
-const uint32_t Property_Other_ID_Continue = 0b00000100000000000000000000000000;
-const uint32_t Property_STerm = 0b00001000000000000000000000000000;
-const uint32_t Property_Variation_Selector = 0b00010000000000000000000000000000;
-const uint32_t Property_Pattern_White_Space =
-    0b00100000000000000000000000000000;
-const uint32_t Property_Pattern_Syntax = 0b01000000000000000000000000000000;
+const uint32_t Property_IDS_Binary_Operator                = 0b00000000000001000000000000000000;
+const uint32_t Property_IDS_Trinary_Operator               = 0b00000000000010000000000000000000;
+const uint32_t Property_Radical                            = 0b00000000000100000000000000000000;
+const uint32_t Property_Unified_Ideograph                  = 0b00000000001000000000000000000000;
+const uint32_t Property_Other_Default_Ignorable_Code_Point = 0b00000000010000000000000000000000;
+const uint32_t Property_Deprecated                         = 0b00000000100000000000000000000000;
+const uint32_t Property_Soft_Dotted                        = 0b00000001000000000000000000000000;
+const uint32_t Property_Logical_Order_Exception            = 0b00000010000000000000000000000000;
+const uint32_t Property_Other_ID_Start                     = 0b00000100000000000000000000000000;
+const uint32_t Property_Other_ID_Continue                  = 0b00001000000000000000000000000000;
+const uint32_t Property_STerm                              = 0b00010000000000000000000000000000;
+const uint32_t Property_Variation_Selector                 = 0b00100000000000000000000000000000;
+const uint32_t Property_Pattern_White_Space                = 0b01000000000000000000000000000000;
+const uint32_t Property_Pattern_Syntax                     = 0b10000000000000000000000000000000;
 
 bool is_white_space(char32_t cp) {
   return (_properties[cp] & Property_White_Space) != 0;
