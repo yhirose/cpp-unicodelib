@@ -240,41 +240,47 @@ bool is_other(char32_t cp) { return is_other_category(general_category(cp)); }
 // Property
 //-----------------------------------------------------------------------------
 
-const uint32_t Property_White_Space = 0b00000000000000000000000000000001;
-const uint32_t Property_Bidi_Control = 0b00000000000000000000000000000010;
-const uint32_t Property_Join_Control = 0b00000000000000000000000000000100;
-const uint32_t Property_Dash = 0b00000000000000000000000000001000;
-const uint32_t Property_Hyphen = 0b00000000000000000000000000010000;
-const uint32_t Property_Quotation_Mark = 0b00000000000000000000000000100000;
-const uint32_t Property_Terminal_Punctuation =
+const uint64_t Property_White_Space = 0b00000000000000000000000000000001;
+const uint64_t Property_Bidi_Control = 0b00000000000000000000000000000010;
+const uint64_t Property_Join_Control = 0b00000000000000000000000000000100;
+const uint64_t Property_Dash = 0b00000000000000000000000000001000;
+const uint64_t Property_Hyphen = 0b00000000000000000000000000010000;
+const uint64_t Property_Quotation_Mark = 0b00000000000000000000000000100000;
+const uint64_t Property_Terminal_Punctuation =
     0b00000000000000000000000001000000;
-const uint32_t Property_Other_Math = 0b00000000000000000000000010000000;
-const uint32_t Property_Hex_Digit = 0b00000000000000000000000100000000;
-const uint32_t Property_ASCII_Hex_Digit = 0b00000000000000000000001000000000;
-const uint32_t Property_Other_Alphabetic = 0b00000000000000000000010000000000;
-const uint32_t Property_Ideographic = 0b00000000000000000000100000000000;
-const uint32_t Property_Diacritic = 0b00000000000000000001000000000000;
-const uint32_t Property_Extender = 0b00000000000000000010000000000000;
-const uint32_t Property_Other_Lowercase = 0b00000000000000000100000000000000;
-const uint32_t Property_Other_Uppercase = 0b00000000000000001000000000000000;
-const uint32_t Property_Noncharacter_Code_Point =
+const uint64_t Property_Other_Math = 0b00000000000000000000000010000000;
+const uint64_t Property_Hex_Digit = 0b00000000000000000000000100000000;
+const uint64_t Property_ASCII_Hex_Digit = 0b00000000000000000000001000000000;
+const uint64_t Property_Other_Alphabetic = 0b00000000000000000000010000000000;
+const uint64_t Property_Ideographic = 0b00000000000000000000100000000000;
+const uint64_t Property_Diacritic = 0b00000000000000000001000000000000;
+const uint64_t Property_Extender = 0b00000000000000000010000000000000;
+const uint64_t Property_Other_Lowercase = 0b00000000000000000100000000000000;
+const uint64_t Property_Other_Uppercase = 0b00000000000000001000000000000000;
+const uint64_t Property_Noncharacter_Code_Point =
     0b00000000000000010000000000000000;
-const uint32_t Property_Other_Grapheme_Extend =
+const uint64_t Property_Other_Grapheme_Extend =
     0b00000000000000100000000000000000;
-const uint32_t Property_IDS_Binary_Operator                = 0b00000000000001000000000000000000;
-const uint32_t Property_IDS_Trinary_Operator               = 0b00000000000010000000000000000000;
-const uint32_t Property_Radical                            = 0b00000000000100000000000000000000;
-const uint32_t Property_Unified_Ideograph                  = 0b00000000001000000000000000000000;
-const uint32_t Property_Other_Default_Ignorable_Code_Point = 0b00000000010000000000000000000000;
-const uint32_t Property_Deprecated                         = 0b00000000100000000000000000000000;
-const uint32_t Property_Soft_Dotted                        = 0b00000001000000000000000000000000;
-const uint32_t Property_Logical_Order_Exception            = 0b00000010000000000000000000000000;
-const uint32_t Property_Other_ID_Start                     = 0b00000100000000000000000000000000;
-const uint32_t Property_Other_ID_Continue                  = 0b00001000000000000000000000000000;
-const uint32_t Property_STerm                              = 0b00010000000000000000000000000000;
-const uint32_t Property_Variation_Selector                 = 0b00100000000000000000000000000000;
-const uint32_t Property_Pattern_White_Space                = 0b01000000000000000000000000000000;
-const uint32_t Property_Pattern_Syntax                     = 0b10000000000000000000000000000000;
+const uint64_t Property_IDS_Binary_Operator =
+    0b00000000000001000000000000000000;
+const uint64_t Property_IDS_Trinary_Operator =
+    0b00000000000010000000000000000000;
+const uint64_t Property_Radical = 0b00000000000100000000000000000000;
+const uint64_t Property_Unified_Ideograph = 0b00000000001000000000000000000000;
+const uint64_t Property_Other_Default_Ignorable_Code_Point =
+    0b00000000010000000000000000000000;
+const uint64_t Property_Deprecated = 0b00000000100000000000000000000000;
+const uint64_t Property_Soft_Dotted = 0b00000001000000000000000000000000;
+const uint64_t Property_Logical_Order_Exception =
+    0b00000010000000000000000000000000;
+const uint64_t Property_Other_ID_Start = 0b00000100000000000000000000000000;
+const uint64_t Property_Other_ID_Continue = 0b00001000000000000000000000000000;
+const uint64_t Property_Sentence_Terminal = 0b00010000000000000000000000000000;
+const uint64_t Property_Variation_Selector = 0b00100000000000000000000000000000;
+const uint64_t Property_Pattern_White_Space =
+    0b01000000000000000000000000000000;
+const uint64_t Property_Pattern_Syntax = 0b10000000000000000000000000000000;
+const uint64_t Property_Prepended_Concatenation_Mark = 0b100000000000000000000000000000000;
 
 bool is_white_space(char32_t cp) {
   return (_properties[cp] & Property_White_Space) != 0;
@@ -380,7 +386,9 @@ bool is_other_id_continue(char32_t cp) {
   return (_properties[cp] & Property_Other_ID_Continue) != 0;
 }
 
-bool is_sterm(char32_t cp) { return (_properties[cp] & Property_STerm) != 0; }
+bool is_sentence_terminal(char32_t cp) {
+  return (_properties[cp] & Property_Sentence_Terminal) != 0;
+}
 
 bool is_variation_selector(char32_t cp) {
   return (_properties[cp] & Property_Variation_Selector) != 0;
@@ -392,6 +400,10 @@ bool is_pattern_white_space(char32_t cp) {
 
 bool is_pattern_syntax(char32_t cp) {
   return (_properties[cp] & Property_Pattern_Syntax) != 0;
+}
+
+bool is_prepended_concatenation_mark(char32_t cp) {
+  return (_properties[cp] & Property_Prepended_Concatenation_Mark) != 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -1090,6 +1102,11 @@ size_t extended_combining_character_sequence_count(const char32_t *s32,
 //-----------------------------------------------------------------------------
 
 bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
+
+  //---------------------------------------------------------------------------
+  // Break at the start and end of text, unless the text empty.
+  //---------------------------------------------------------------------------
+
   // GB1: sot ÷
   if (i == 0) {
     return true;
@@ -1102,6 +1119,11 @@ bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
 
   auto lp = _grapheme_break_properties[s32[i - 1]];
   auto rp = _grapheme_break_properties[s32[i]];
+
+  //---------------------------------------------------------------------------
+  // Do not break between a CR and LF. Otherwise, break before and after
+  // controls.
+  //---------------------------------------------------------------------------
 
   // GB3: CR × LF
   if ((lp == GraphemeBreak::CR) && (rp == GraphemeBreak::LF)) {
@@ -1119,6 +1141,10 @@ bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
        rp == GraphemeBreak::LF)) {
     return true;
   }
+
+  //---------------------------------------------------------------------------
+  // Do not break Hangul syllable sequences.
+  //---------------------------------------------------------------------------
 
   // GB6: L × (L|V|LV|LVT)
   if ((lp == GraphemeBreak::L) &&
@@ -1139,16 +1165,19 @@ bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
     return false;
   }
 
-  // GB8a: Regional_Indicator × Regional_Indicator
-  if ((lp == GraphemeBreak::Regional_Indicator) &&
-      (rp == GraphemeBreak::Regional_Indicator)) {
+  //---------------------------------------------------------------------------
+  // Do not break before extending characters or ZWJ.
+  //---------------------------------------------------------------------------
+
+  // GB9: × Extend
+  if (rp == GraphemeBreak::Extend || rp == GraphemeBreak::ZWJ) {
     return false;
   }
 
-  // GB9: × Extend
-  if (rp == GraphemeBreak::Extend) {
-    return false;
-  }
+  //---------------------------------------------------------------------------
+  // Only for extended grapheme clusters:
+  // Do not break before SpacingMakrs, or after Prepend characters.
+  //---------------------------------------------------------------------------
 
   // GB9a: × SpacingMark
   if (rp == GraphemeBreak::SpacingMark) {
@@ -1160,7 +1189,61 @@ bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
     return false;
   }
 
-  // GB10: Any ÷ Any
+  //---------------------------------------------------------------------------
+  // Do not break within emoji modifier sequences or emoji zwj sewuences.
+  //---------------------------------------------------------------------------
+
+  // GB10: (E_Base|EBG) Extend* x E_Modifier
+  {
+    auto pos = (int)i - 1;
+    while (pos >= 0 && _grapheme_break_properties[s32[pos]] == GraphemeBreak::Extend) {
+      pos--;
+    }
+    if (pos >= 0) {
+      auto lp2 = _grapheme_break_properties[s32[pos]];
+      if (lp2 == GraphemeBreak::E_Base || lp2 == GraphemeBreak::E_Base_GAZ) {
+        if (rp == GraphemeBreak::E_Modifier) {
+          return false;
+        }
+      }
+    }
+  }
+
+  // GB11: ZWJ x (Glue_After_Zwj|EBG)
+  if (lp == GraphemeBreak::ZWJ &&
+      (rp == GraphemeBreak::Glue_After_Zwj || rp == GraphemeBreak::E_Base_GAZ)) {
+    return false;
+  }
+
+  //---------------------------------------------------------------------------
+  // Do not break within emoji flag sequences. That is, do not break between
+  // regional indicator (RI) symbols if there is an odd number of RI
+  // characters before the break point.
+  //---------------------------------------------------------------------------
+
+  // GB12: ^ (RI RI)* RI x RI
+  // GB13: [^RI] (RI RI)* RI x RI
+  {
+    if (lp == GraphemeBreak::Regional_Indicator && rp == GraphemeBreak::Regional_Indicator) {
+      auto pos = (int)i - 2;
+      while (pos >= 1 &&
+        _grapheme_break_properties[s32[pos]] == GraphemeBreak::Regional_Indicator &&
+        _grapheme_break_properties[s32[pos - 1]] == GraphemeBreak::Regional_Indicator) {
+        pos -= 2;
+      }
+      if (pos < 0) {
+        return false;
+      } if (_grapheme_break_properties[s32[pos]] != GraphemeBreak::Regional_Indicator) {
+        return false;
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  // Othewise, break everywhere.
+  //---------------------------------------------------------------------------
+
+  // GB999: Any ÷ Any
   return true;
 }
 
@@ -1202,7 +1285,7 @@ static int previous_word_break_property_position(const char32_t *s32,
   auto pos = (int)i - 1;
   while (pos >= 0) {
     prop = _word_break_properties[s32[pos]];
-    if (prop != WordBreak::Extend && prop != WordBreak::Format) {
+    if (prop != WordBreak::Extend && prop != WordBreak::Format && prop != WordBreak::ZWJ) {
       break;
     }
     pos--;
@@ -1216,7 +1299,7 @@ static size_t next_word_break_property_position(const char32_t *s32, size_t l,
   auto pos = i + 1;
   while (pos < l) {
     prop = _word_break_properties[s32[pos]];
-    if (prop != WordBreak::Extend && prop != WordBreak::Format) {
+    if (prop != WordBreak::Extend && prop != WordBreak::Format && prop != WordBreak::ZWJ) {
       break;
     }
     pos++;
@@ -1225,6 +1308,11 @@ static size_t next_word_break_property_position(const char32_t *s32, size_t l,
 }
 
 bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
+
+  //---------------------------------------------------------------------------
+  // Break at the start and end of text, unless the text is empty
+  //---------------------------------------------------------------------------
+
   // WB1: sot ÷
   if (i == 0) {
     return true;
@@ -1238,10 +1326,18 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   auto lp = _word_break_properties[s32[i - 1]];
   auto rp = _word_break_properties[s32[i]];
 
+  //---------------------------------------------------------------------------
+  // Do not break within CRLF
+  //---------------------------------------------------------------------------
+
   // WB3: CR × LF
   if ((lp == WordBreak::CR) && (rp == WordBreak::LF)) {
     return false;
   }
+
+  //---------------------------------------------------------------------------
+  // Otherwise break before and after Newlines (including CR and LF)
+  //---------------------------------------------------------------------------
 
   // WB3a: (Newline|CR|LF) ÷
   if ((lp == WordBreak::Newline || lp == WordBreak::CR ||
@@ -1255,11 +1351,24 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
     return true;
   }
 
-  // WB4: X (Extend | Format)* → X
+  //---------------------------------------------------------------------------
+  // Do not break within emoji zwj sequences.
+  //---------------------------------------------------------------------------
 
-  // Ignore Format and Extend characters, except when they appear at the
-  // beginning of a region of text
-  if ((rp == WordBreak::Extend || rp == WordBreak::Format)) {
+  // WB3c: ZWJ x (Glue_After_Zwj|EBG)
+  if (lp == WordBreak::ZWJ &&
+      (rp == WordBreak::Glue_After_Zwj || rp == WordBreak::E_Base_GAZ)) {
+    return false;
+  }
+
+  //---------------------------------------------------------------------------
+  // Ignore Format and Extend characters, except after sot, CR, LF, and
+  // Newline. (See Section 6.2, Replacing Ignore Rules.) This also has the
+  // effect of: Any × (Format | Extend | ZWJ)
+  //---------------------------------------------------------------------------
+
+  // WB4: X (Extend|Format|ZWJ)* → X
+  if ((rp == WordBreak::Extend || rp == WordBreak::Format || rp == WordBreak::ZWJ)) {
     return false;
   }
 
@@ -1270,12 +1379,20 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
     lp = _word_break_properties[s32[lpos]];
   }
 
+  //---------------------------------------------------------------------------
+  // Do not break between most letters.
+  //---------------------------------------------------------------------------
+
   // WB5: AHLetter × AHLetter
   if (AHLetter(lp) && AHLetter(rp)) {
     return false;
   }
 
-  WordBreak rp1 = WordBreak::Unassigned;
+  //---------------------------------------------------------------------------
+  // Do not break across certain punctuation.
+  //---------------------------------------------------------------------------
+
+  auto rp1 = WordBreak::Unassigned;
   auto rpos = next_word_break_property_position(s32, l, i);
   if (rpos < l) {
     rp1 = _word_break_properties[s32[rpos]];
@@ -1316,6 +1433,11 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
     return false;
   }
 
+  //---------------------------------------------------------------------------
+  // Do not break within sequences of digits, or digits adjacent to letters
+  // ("3a", or "A3").
+  //---------------------------------------------------------------------------
+
   // WB8: Numeric × Numeric
   if ((lp == WordBreak::Numeric) && (rp == WordBreak::Numeric)) {
     return false;
@@ -1331,6 +1453,10 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
     return false;
   }
 
+  //---------------------------------------------------------------------------
+  // Do not break within sequences, such as "3.2" or "3,456.789"
+  //---------------------------------------------------------------------------
+
   // WB11: Numeric (MidNum | MidNumLetQ) × Numeric
   if ((lp1 == WordBreak::Numeric &&
        (lp == WordBreak::MidNum || MidNumLetQ(lp))) &&
@@ -1345,10 +1471,18 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
     return false;
   }
 
+  //---------------------------------------------------------------------------
+  // Do not break between Katakana.
+  //---------------------------------------------------------------------------
+
   // WB13: Katakana × Katakana
   if ((lp == WordBreak::Katakana) && (rp == WordBreak::Katakana)) {
     return false;
   }
+
+  //---------------------------------------------------------------------------
+  // Do not break from extenders.
+  //---------------------------------------------------------------------------
 
   // WB13a: (AHLetter | Numeric | Katakana | ExtendNumLet) × ExtendNumLet
   if ((AHLetter(lp) || lp == WordBreak::Katakana || lp == WordBreak::Numeric ||
@@ -1363,11 +1497,45 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
     return false;
   }
 
-  // WB13c: Regional_Indicator × Regional_Indicator
-  if ((lp == WordBreak::Regional_Indicator) &&
-      (rp == WordBreak::Regional_Indicator)) {
+  //---------------------------------------------------------------------------
+  // Do not break within emoji modifier sequences.
+  //---------------------------------------------------------------------------
+
+  // WB14: (E_Base|EGB) x E_Modifier
+  if ((lp == WordBreak::E_Base || lp == WordBreak::E_Base_GAZ) &&
+      (rp == WordBreak::E_Modifier)) {
     return false;
   }
+
+  //---------------------------------------------------------------------------
+  // Do not break within emoji flag sequences. That is, do not break between
+  // regional indicator (RI) symbols if there is an odd number of RI
+  // characters before the break point.
+  //---------------------------------------------------------------------------
+
+  // WB15: ^ (RI RI)* RI x RI
+  // WB16: [^RI] (RI RI)* RI x RI
+  {
+    if (lp == WordBreak::Regional_Indicator && rp == WordBreak::Regional_Indicator) {
+      auto lpos = previous_word_break_property_position(s32, i);
+
+      while (true) {
+        lpos = previous_word_break_property_position(s32, lpos);
+        if (lpos < 0 || _word_break_properties[s32[lpos]] != WordBreak::Regional_Indicator) {
+          return false;
+        }
+
+        lpos = previous_word_break_property_position(s32, lpos);
+        if (lpos < 0 || _word_break_properties[s32[lpos]] != WordBreak::Regional_Indicator) {
+          break;
+        }
+      }
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  // Othewise, break everywhere.
+  //---------------------------------------------------------------------------
 
   // WB14: Any ÷ Any
   return true;
@@ -1414,6 +1582,11 @@ static size_t next_sentence_break_property_position(const char32_t *s32,
 }
 
 bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
+
+  //---------------------------------------------------------------------------
+  // Break at the start and end of text, unless the text is empty.
+  //---------------------------------------------------------------------------
+
   // SB1: sot ÷
   if (i == 0) {
     return true;
@@ -1424,6 +1597,10 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
     return true;
   }
 
+  //---------------------------------------------------------------------------
+  // Do not break within CRLF.
+  //---------------------------------------------------------------------------
+
   auto lp = _sentence_break_properties[s32[i - 1]];
   auto rp = _sentence_break_properties[s32[i]];
 
@@ -1432,15 +1609,22 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
     return false;
   }
 
+  //---------------------------------------------------------------------------
+  // Break after paragraph separators.
+  //---------------------------------------------------------------------------
+
   // SB4: ParaSep ÷
   if (ParaSep(lp)) {
     return true;
   }
 
-  // SB5: X (Extend | Format)* → X
+  //---------------------------------------------------------------------------
+  // Ignore Format and Extend characters, except after sot, ParaSep, and
+  // within CRLF. (See Section 6.2, Replacing Ignore Rules.) This also has the
+  // effect of: Any × (Format | Extend)
+  //---------------------------------------------------------------------------
 
-  // Ignore Format and Extend characters, except when they appear at the
-  // beginning of a region of text
+  // SB5: X (Extend | Format)* → X
   if ((rp == SentenceBreak::Extend || rp == SentenceBreak::Format)) {
     return false;
   }
@@ -1451,6 +1635,10 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
   if (lpos >= 0) {
     lp = _sentence_break_properties[s32[lpos]];
   }
+
+  //---------------------------------------------------------------------------
+  // Do not break after full stop in certain contexts.
+  //---------------------------------------------------------------------------
 
   // SB6: ATerm × Numeric
   if ((lp == SentenceBreak::ATerm) && (rp == SentenceBreak::Numeric)) {
@@ -1472,7 +1660,7 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
     return false;
   }
 
-  SentenceBreak lp2 = SentenceBreak::Unassigned;
+  auto lp2 = SentenceBreak::Unassigned;
   {
     lp2 = SentenceBreak::Unassigned;
     auto pos = previous_sentence_break_property_position(s32, i);
@@ -1492,7 +1680,7 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
     }
   }
 
-  SentenceBreak rp2 = SentenceBreak::Unassigned;
+  auto rp2 = SentenceBreak::Unassigned;
   {
     size_t pos = i;
     while (pos < l) {
@@ -1516,7 +1704,7 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
     return false;
   }
 
-  SentenceBreak lp3 = SentenceBreak::Unassigned;
+  auto lp3 = SentenceBreak::Unassigned;
   {
     auto pos = previous_sentence_break_property_position(s32, i);
     while (pos >= 0) {
@@ -1527,6 +1715,11 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
       pos = previous_sentence_break_property_position(s32, pos);
     }
   }
+
+  //---------------------------------------------------------------------------
+  // Break after sentence terminators, but include closing punctuation,
+  // trailing spaces, and any paragraph separator.
+  //---------------------------------------------------------------------------
 
   // SB9: SATerm Close* × (Close | Sp | ParaSep)
   if ((SATerm(lp3)) &&
@@ -1545,7 +1738,11 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
     return true;
   }
 
-  // SB12: Any × Any
+  //---------------------------------------------------------------------------
+  // Otherwise, do not break.
+  //---------------------------------------------------------------------------
+
+  // SB998: Any × Any
   return false;
 }
 

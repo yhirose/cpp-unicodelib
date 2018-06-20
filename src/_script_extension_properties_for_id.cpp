@@ -31,6 +31,10 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Georgian, 
 },
 {
+    Script::Bengali, 
+    Script::Devanagari, 
+},
+{
     Script::Bopomofo, 
     Script::Han, 
 },
@@ -71,6 +75,10 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Tamil, 
 },
 {
+    Script::Georgian, 
+    Script::Latin, 
+},
+{
     Script::Grantha, 
     Script::Tamil, 
 },
@@ -106,6 +114,11 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Tai_Le, 
 },
 {
+    Script::Cypriot, 
+    Script::Linear_A, 
+    Script::Linear_B, 
+},
+{
     Script::Devanagari, 
     Script::Grantha, 
     Script::Latin, 
@@ -132,13 +145,6 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Tagalog, 
 },
 {
-    Script::Arabic, 
-    Script::Mandaic, 
-    Script::Manichaean, 
-    Script::Psalter_Pahlavi, 
-    Script::Syriac, 
-},
-{
     Script::Bopomofo, 
     Script::Hangul, 
     Script::Han, 
@@ -153,6 +159,14 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Telugu, 
 },
 {
+    Script::Adlam, 
+    Script::Arabic, 
+    Script::Mandaic, 
+    Script::Manichaean, 
+    Script::Psalter_Pahlavi, 
+    Script::Syriac, 
+},
+{
     Script::Bopomofo, 
     Script::Hangul, 
     Script::Han, 
@@ -164,6 +178,18 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Devanagari, 
     Script::Gujarati, 
     Script::Gurmukhi, 
+    Script::Kaithi, 
+    Script::Mahajani, 
+    Script::Modi, 
+    Script::Khudawadi, 
+    Script::Takri, 
+    Script::Tirhuta, 
+},
+{
+    Script::Devanagari, 
+    Script::Gujarati, 
+    Script::Gurmukhi, 
+    Script::Kannada, 
     Script::Kaithi, 
     Script::Mahajani, 
     Script::Modi, 

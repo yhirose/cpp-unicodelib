@@ -131,10 +131,11 @@ bool is_soft_dotted(char32_t cp);
 bool is_logical_order_exception(char32_t cp);
 bool is_other_id_start(char32_t cp);
 bool is_other_id_continue(char32_t cp);
-bool is_sterm(char32_t cp);
+bool is_sentence_terminal(char32_t cp);
 bool is_variation_selector(char32_t cp);
 bool is_pattern_white_space(char32_t cp);
 bool is_pattern_syntax(char32_t cp);
+bool is_prepended_concatenation_mark(char32_t cp);
 
 //-----------------------------------------------------------------------------
 // Derived Property
@@ -227,7 +228,7 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i);
 //-----------------------------------------------------------------------------
 
 // This is generated from 'Blocks.txt' in Unicode database.
-// `python scripts/gen_blocks.py < UCD/Blocks.txt`
+// `python scripts/gen_property_values.py < UCD/Blocks.txt`
 enum class Block {
   Unassigned,
   BasicLatin,
@@ -291,6 +292,7 @@ enum class Block {
   Batak,
   Lepcha,
   OlChiki,
+  CyrillicExtendedC,
   SundaneseSupplement,
   VedicExtensions,
   PhoneticExtensions,
@@ -407,6 +409,7 @@ enum class Block {
   Deseret,
   Shavian,
   Osmanya,
+  Osage,
   Elbasan,
   CaucasianAlbanian,
   LinearA,
@@ -441,13 +444,17 @@ enum class Block {
   Multani,
   Khudawadi,
   Grantha,
+  Newa,
   Tirhuta,
   Siddham,
   Modi,
+  MongolianSupplement,
   Takri,
   Ahom,
   WarangCiti,
   PauCinHau,
+  Bhaiksuki,
+  Marchen,
   Cuneiform,
   CuneiformNumbersAndPunctuation,
   EarlyDynasticCuneiform,
@@ -458,6 +465,9 @@ enum class Block {
   BassaVah,
   PahawhHmong,
   Miao,
+  IdeographicSymbolsAndPunctuation,
+  Tangut,
+  TangutComponents,
   KanaSupplement,
   Duployan,
   ShorthandFormatControls,
@@ -468,7 +478,9 @@ enum class Block {
   CountingRodNumerals,
   MathematicalAlphanumericSymbols,
   SuttonSignWriting,
+  GlagoliticSupplement,
   MendeKikakui,
+  Adlam,
   ArabicMathematicalAlphabeticSymbols,
   MahjongTiles,
   DominoTiles,
@@ -500,6 +512,8 @@ Block block(char32_t cp);
 // Script
 //-----------------------------------------------------------------------------
 
+// This is generated from 'Scripts.txt' in Unicode database.
+// `python scripts/gen_property_values.py < UCD/Scripts.txt`
 enum class Script {
   Unassigned,
   Common,
@@ -633,6 +647,12 @@ enum class Script {
   Multani,
   Old_Hungarian,
   SignWriting,
+  Adlam,
+  Bhaiksuki,
+  Marchen,
+  Newa,
+  Osage,
+  Tangut,
 };
 
 Script script(char32_t cp);

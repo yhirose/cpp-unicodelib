@@ -86,9 +86,9 @@ def getPropertyTable(ucd, out):
             else:
                 values[codePoint] += (1 << val)
 
-    fout.write("const uint32_t _properties[] = {\n")
+    fout.write("const uint64_t _properties[] = {\n")
     for val in values:
-        fout.write("0x%08X,\n" % val)
+        fout.write("0x%016X,\n" % val)
     fout.write("};\n")
 
 #------------------------------------------------------------------------------
@@ -356,7 +356,9 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
     fin = open(ucd + '/ScriptExtensions.txt')
     fout = open(out + '/_script_extension_properties_for_id.cpp', 'w')
 
+    # This list is from 'PropertyValueAliases.txt' in Unicode database.
     dic = {
+        'Adlm': 'Adlam',
         'Aghb': 'Caucasian_Albanian',
         'Ahom': 'Ahom',
         'Arab': 'Arabic',
@@ -368,6 +370,7 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
         'Bass': 'Bassa_Vah',
         'Batk': 'Batak',
         'Beng': 'Bengali',
+        'Bhks': 'Bhaiksuki',
         'Bopo': 'Bopomofo',
         'Brah': 'Brahmi',
         'Brai': 'Braille',
@@ -426,6 +429,7 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
         'Mahj': 'Mahajani',
         'Mand': 'Mandaic',
         'Mani': 'Manichaean',
+        'Marc': 'Marchen',
         'Mend': 'Mende_Kikakui',
         'Merc': 'Meroitic_Cursive',
         'Mero': 'Meroitic_Hieroglyphs',
@@ -438,11 +442,13 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
         'Mymr': 'Myanmar',
         'Narb': 'Old_North_Arabian',
         'Nbat': 'Nabataean',
+        'Newa': 'Newa',
         'Nkoo': 'Nko',
         'Ogam': 'Ogham',
         'Olck': 'Ol_Chiki',
         'Orkh': 'Old_Turkic',
         'Orya': 'Oriya',
+        'Osge': 'Osage',
         'Osma': 'Osmanya',
         'Palm': 'Palmyrene',
         'Pauc': 'Pau_Cin_Hau',
@@ -473,6 +479,7 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
         'Tale': 'Tai_Le',
         'Talu': 'New_Tai_Lue',
         'Taml': 'Tamil',
+        'Tang': 'Tangut',
         'Tavt': 'Tai_Viet',
         'Telu': 'Telugu',
         'Tfng': 'Tifinagh',

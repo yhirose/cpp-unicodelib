@@ -55,22 +55,31 @@ struct NormalizationProperties {
   const char32_t *codes;
 };
 
+// This is generated from 'GraphemeBreakProperty.txt' in Unicode database.
+// `python scripts/gen_property_values.py < UCD/auxiliary/GraphemeBreakProperty.txt`
 enum class GraphemeBreak {
   Unassigned,
+  Prepend,
   CR,
   LF,
   Control,
   Extend,
   Regional_Indicator,
   SpacingMark,
-  Prepend,
   L,
   V,
   T,
   LV,
   LVT,
+  E_Base,
+  E_Modifier,
+  ZWJ,
+  Glue_After_Zwj,
+  E_Base_GAZ,
 };
 
+// This is generated from 'WordBreakProperty.txt' in Unicode database.
+// `python scripts/gen_property_values.py < UCD/auxiliary/WordBreakProperty.txt`
 enum class WordBreak {
   Unassigned,
   Double_Quote,
@@ -89,8 +98,15 @@ enum class WordBreak {
   MidNumLet,
   Numeric,
   ExtendNumLet,
+  E_Base,
+  E_Modifier,
+  ZWJ,
+  Glue_After_Zwj,
+  E_Base_GAZ,
 };
 
+// This is generated from 'SentenceBreakProperty.txt' in Unicode database.
+// `python scripts/gen_property_values.py < UCD/auxiliary/SentenceBreakProperty.txt`
 enum class SentenceBreak {
   Unassigned,
   CR,
@@ -110,7 +126,7 @@ enum class SentenceBreak {
 };
 
 extern const GeneralCategory _general_category_properties[];
-extern const uint32_t _properties[];
+extern const uint64_t _properties[];
 extern const uint32_t _derived_core_properties[];
 extern const std::unordered_map<char32_t, const char32_t *>
     _simple_case_mappings;
