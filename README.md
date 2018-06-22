@@ -1,7 +1,7 @@
 cpp-unicodelib
 ==============
 
-C++11 Unicode library. (Unicode 8.0.0)
+C++11 Unicode library. (Unicode 11.0)
 
 API
 ---
@@ -214,12 +214,7 @@ std::u16string to_utf16(const wchar_t *sw, size_t l);
 std::u32string to_utf32(const wchar_t *sw, size_t l);
 ```
 
-Tested compilers
-----------------
-
-  * Clang 3.5
-
 License
 -------
 
-MIT license (© 2016 Yuji Hirose)
+MIT license (© 2018 Yuji Hirose)
