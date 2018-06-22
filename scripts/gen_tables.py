@@ -68,7 +68,7 @@ def getPropertyTable(ucd, out):
 
     values = [0] * (MaxCode + 1)
     names = {}
-    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s+;\s+(\w+)\s+#.*")
+    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)\s*#.*")
 
     for line in fin:
         m = r.match(line)
@@ -101,7 +101,7 @@ def getDerivedCorePropertyTable(ucd, out):
 
     values = [0] * (MaxCode + 1)
     names = {}
-    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s+;\s+(\w+)\s+#.*")
+    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)\s*#.*")
 
     for line in fin:
         m = r.match(line)
@@ -359,6 +359,7 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
     # This list is from 'PropertyValueAliases.txt' in Unicode database.
     dic = {
         'Adlm': 'Adlam',
+        'Adlm': 'Adlam',
         'Aghb': 'Caucasian_Albanian',
         'Ahom': 'Ahom',
         'Arab': 'Arabic',
@@ -385,6 +386,7 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
         'Cprt': 'Cypriot',
         'Cyrl': 'Cyrillic',
         'Deva': 'Devanagari',
+        'Dogr': 'Dogra',
         'Dsrt': 'Deseret',
         'Dupl': 'Duployan',
         'Egyp': 'Egyptian_Hieroglyphs',
@@ -392,6 +394,8 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
         'Ethi': 'Ethiopic',
         'Geor': 'Georgian',
         'Glag': 'Glagolitic',
+        'Gong': 'Gunjala_Gondi',
+        'Gonm': 'Masaram_Gondi',
         'Goth': 'Gothic',
         'Gran': 'Grantha',
         'Grek': 'Greek',
@@ -427,9 +431,11 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
         'Lyci': 'Lycian',
         'Lydi': 'Lydian',
         'Mahj': 'Mahajani',
+        'Maka': 'Makasar',
         'Mand': 'Mandaic',
         'Mani': 'Manichaean',
         'Marc': 'Marchen',
+        'Medf': 'Medefaidrin',
         'Mend': 'Mende_Kikakui',
         'Merc': 'Meroitic_Cursive',
         'Mero': 'Meroitic_Hieroglyphs',
@@ -444,6 +450,7 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
         'Nbat': 'Nabataean',
         'Newa': 'Newa',
         'Nkoo': 'Nko',
+        'Nshu': 'Nushu',
         'Ogam': 'Ogham',
         'Olck': 'Ol_Chiki',
         'Orkh': 'Old_Turkic',
@@ -460,6 +467,7 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
         'Plrd': 'Miao',
         'Prti': 'Inscriptional_Parthian',
         'Rjng': 'Rejang',
+        'Rohg': 'Hanifi_Rohingya',
         'Runr': 'Runic',
         'Samr': 'Samaritan',
         'Sarb': 'Old_South_Arabian',
@@ -470,7 +478,10 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
         'Sidd': 'Siddham',
         'Sind': 'Khudawadi',
         'Sinh': 'Sinhala',
+        'Sogd': 'Sogdian',
+        'Sogo': 'Old_Sogdian',
         'Sora': 'Sora_Sompeng',
+        'Soyo': 'Soyombo',
         'Sund': 'Sundanese',
         'Sylo': 'Syloti_Nagri',
         'Syrc': 'Syriac',
@@ -494,6 +505,7 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
         'Xpeo': 'Old_Persian',
         'Xsux': 'Cuneiform',
         'Yiii': 'Yi',
+        'Zanb': 'Zanabazar_Square',
         'Zinh': 'Inherited',
         'Zyyy': 'Common',
         'Zzzz': 'Unknown',
@@ -635,7 +647,7 @@ def getGraphemeBreakPropertyTable(ucd, out):
     fout = open(out + '/_grapheme_break_properties.cpp', 'w')
 
     values = ['Unassigned'] * (MaxCode + 1)
-    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s+;\s+(\w+)\s+#.*")
+    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)\s*#.*")
 
     for line in fin:
         m = r.match(line)
@@ -664,7 +676,7 @@ def getWordBreakPropertyTable(ucd, out):
     fout = open(out + '/_word_break_properties.cpp', 'w')
 
     values = ['Unassigned'] * (MaxCode + 1)
-    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s+;\s+(\w+)\s+#.*")
+    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)\s*#.*")
 
     for line in fin:
         m = r.match(line)
@@ -693,7 +705,7 @@ def getSentenceBreakPropertyTable(ucd, out):
     fout = open(out + '/_sentence_break_properties.cpp', 'w')
 
     values = ['Unassigned'] * (MaxCode + 1)
-    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s+;\s+(\w+)\s+#.*")
+    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)\s*#.*")
 
     for line in fin:
         m = r.match(line)
@@ -714,6 +726,35 @@ def getSentenceBreakPropertyTable(ucd, out):
     fout.write("};\n")
 
 #------------------------------------------------------------------------------
+# getEmojiPropertyTable
+#------------------------------------------------------------------------------
+
+def getEmojiPropertyTable(ucd, out):
+    fin = open(ucd + '/emoji/emoji-data.txt')
+    fout = open(out + '/_emoji_properties.cpp', 'w')
+
+    values = ['Unassigned'] * (MaxCode + 1)
+    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)\s*#.*")
+
+    for line in fin:
+        m = r.match(line)
+        if m:
+            codePoint = int(m.group(1), 16)
+            value = m.group(3)
+
+            if m.group(2):
+                codePointLast = int(m.group(2), 16)
+                for cp in range(codePoint, codePointLast + 1):
+                    values[cp] = value
+            else:
+                values[codePoint] = value
+
+    fout.write("const Emoji _emoji_properties[] = {\n")
+    for val in values:
+        fout.write("Emoji::%s,\n" % val)
+    fout.write("};\n")
+
+#------------------------------------------------------------------------------
 # Main
 #------------------------------------------------------------------------------
 
@@ -723,18 +764,19 @@ else:
     ucd = sys.argv[1]
     out = sys.argv[2]
 
-    genGeneralCategoryPropertyTable(ucd, out)
-    getPropertyTable(ucd, out)
-    getDerivedCorePropertyTable(ucd, out)
-    getSimpleCaseMappingTable(ucd, out)
-    getSpecialCaseMappingTable(ucd, out)
-    getCaseFoldingTable(ucd, out)
-    genBlockPropertyTable(ucd, out)
-    genScriptPropertyTable(ucd, out)
-    genScriptExtensionIdTable(ucd, out)
-    genScriptExtensionPropertyForIdTable(ucd, out)
-    genNomalizationPropertyTable(ucd, out)
-    genNomalizationCompositionTable(ucd, out)
-    getGraphemeBreakPropertyTable(ucd, out)
-    getWordBreakPropertyTable(ucd, out)
-    getSentenceBreakPropertyTable(ucd, out)
+    # genGeneralCategoryPropertyTable(ucd, out)
+    # getPropertyTable(ucd, out)
+    # getDerivedCorePropertyTable(ucd, out)
+    # getSimpleCaseMappingTable(ucd, out)
+    # getSpecialCaseMappingTable(ucd, out)
+    # getCaseFoldingTable(ucd, out)
+    # genBlockPropertyTable(ucd, out)
+    # genScriptPropertyTable(ucd, out)
+    # genScriptExtensionIdTable(ucd, out)
+    # genScriptExtensionPropertyForIdTable(ucd, out)
+    # genNomalizationPropertyTable(ucd, out)
+    # genNomalizationCompositionTable(ucd, out)
+    # getGraphemeBreakPropertyTable(ucd, out)
+    # getWordBreakPropertyTable(ucd, out)
+    # getSentenceBreakPropertyTable(ucd, out)
+    getEmojiPropertyTable(ucd, out)

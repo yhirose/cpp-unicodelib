@@ -71,11 +71,7 @@ enum class GraphemeBreak {
   T,
   LV,
   LVT,
-  E_Base,
-  E_Modifier,
   ZWJ,
-  Glue_After_Zwj,
-  E_Base_GAZ,
 };
 
 // This is generated from 'WordBreakProperty.txt' in Unicode database.
@@ -98,11 +94,8 @@ enum class WordBreak {
   MidNumLet,
   Numeric,
   ExtendNumLet,
-  E_Base,
-  E_Modifier,
   ZWJ,
-  Glue_After_Zwj,
-  E_Base_GAZ,
+  WSegSpace,
 };
 
 // This is generated from 'SentenceBreakProperty.txt' in Unicode database.
@@ -123,6 +116,18 @@ enum class SentenceBreak {
   STerm,
   Close,
   SContinue,
+};
+
+// This is generated from 'emoji-data.txt' in Unicode database.
+// `python scripts/gen_property_values.py < UCD/emoji/emoji-data.txt`
+enum class Emoji {
+  Unassigned,
+  Emoji,
+  Emoji_Presentation,
+  Emoji_Modifier,
+  Emoji_Modifier_Base,
+  Emoji_Component,
+  Extended_Pictographic,
 };
 
 extern const GeneralCategory _general_category_properties[];
@@ -146,6 +151,7 @@ extern const std::unordered_map<std::u32string, char32_t>
 extern const GraphemeBreak _grapheme_break_properties[];
 extern const WordBreak _word_break_properties[];
 extern const SentenceBreak _sentence_break_properties[];
+extern const Emoji _emoji_properties[];
 
 }  // namespace unicode
 

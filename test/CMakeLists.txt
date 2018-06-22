@@ -20,4 +20,5 @@ add_executable(
     ../src/data_simple_case_mappings.cpp
     ../src/data_special_case_mappings.cpp
     ../src/data_special_case_mappings_default.cpp
-    ../src/data_word_break_properties.cpp)
+    ../src/data_word_break_properties.cpp
+    ../src/data_emoji_properties.cpp)

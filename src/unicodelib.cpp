@@ -691,7 +691,7 @@ static void full_case_mapping(const char32_t *s32, size_t l, size_t i,
   // Table 3-14. It is a narrow-use property, and is not intended for use in other contexts.
   // The more broadly applicable string casing function, isCased(X), is
   // defined in D143.
-  // 
+  //
   // D137 Case-ignorable sequence: A sequence of zero or more case-ignorable characters.
   //
   // D138 A character C is in a particular casing context for context-dependent matching if and
@@ -968,7 +968,7 @@ bool is_graphic_character(char32_t cp) {
 
 bool is_base_character(char32_t cp) {
   // D51 Base character: Any graphic character except for those with the General
-  // Category of  Combining Mark (M).
+  // Category of Combining Mark (M).
   auto gc = general_category(cp);
   switch (gc) {
     case GeneralCategory::Zs:
@@ -1175,7 +1175,7 @@ bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
   }
 
   //---------------------------------------------------------------------------
-  // Only for extended grapheme clusters:
+  // The GB9a and GB9b rules only apply to extended grapheme clusters:
   // Do not break before SpacingMakrs, or after Prepend characters.
   //---------------------------------------------------------------------------
 
@@ -1193,26 +1193,22 @@ bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
   // Do not break within emoji modifier sequences or emoji zwj sewuences.
   //---------------------------------------------------------------------------
 
-  // GB10: (E_Base|EBG) Extend* x E_Modifier
+  // GB11: \p{Extended_Pictographic} Extend* ZWJ x \p{Extended_Pictographic}
   {
-    auto pos = (int)i - 1;
-    while (pos >= 0 && _grapheme_break_properties[s32[pos]] == GraphemeBreak::Extend) {
-      pos--;
-    }
-    if (pos >= 0) {
-      auto lp2 = _grapheme_break_properties[s32[pos]];
-      if (lp2 == GraphemeBreak::E_Base || lp2 == GraphemeBreak::E_Base_GAZ) {
-        if (rp == GraphemeBreak::E_Modifier) {
+    auto rpEmoji = _emoji_properties[s32[i]];
+
+    if (lp == GraphemeBreak::ZWJ && rpEmoji == Emoji::Extended_Pictographic) {
+      auto pos = (int)i - 2;
+      while (pos >= 0 && _grapheme_break_properties[s32[pos]] == GraphemeBreak::Extend) {
+        pos--;
+      }
+      if (pos >= 0) {
+        auto lpEmoji = _emoji_properties[s32[pos]];
+        if (lpEmoji == Emoji::Extended_Pictographic) {
           return false;
         }
       }
     }
-  }
-
-  // GB11: ZWJ x (Glue_After_Zwj|EBG)
-  if (lp == GraphemeBreak::ZWJ &&
-      (rp == GraphemeBreak::Glue_After_Zwj || rp == GraphemeBreak::E_Base_GAZ)) {
-    return false;
   }
 
   //---------------------------------------------------------------------------
@@ -1223,19 +1219,17 @@ bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
 
   // GB12: ^ (RI RI)* RI x RI
   // GB13: [^RI] (RI RI)* RI x RI
-  {
-    if (lp == GraphemeBreak::Regional_Indicator && rp == GraphemeBreak::Regional_Indicator) {
-      auto pos = (int)i - 2;
-      while (pos >= 1 &&
-        _grapheme_break_properties[s32[pos]] == GraphemeBreak::Regional_Indicator &&
-        _grapheme_break_properties[s32[pos - 1]] == GraphemeBreak::Regional_Indicator) {
-        pos -= 2;
-      }
-      if (pos < 0) {
-        return false;
-      } if (_grapheme_break_properties[s32[pos]] != GraphemeBreak::Regional_Indicator) {
-        return false;
-      }
+  if (lp == GraphemeBreak::Regional_Indicator && rp == GraphemeBreak::Regional_Indicator) {
+    auto pos = (int)i - 2;
+    while (pos >= 1 &&
+      _grapheme_break_properties[s32[pos]] == GraphemeBreak::Regional_Indicator &&
+      _grapheme_break_properties[s32[pos - 1]] == GraphemeBreak::Regional_Indicator) {
+      pos -= 2;
+    }
+    if (pos < 0) {
+      return false;
+    } if (_grapheme_break_properties[s32[pos]] != GraphemeBreak::Regional_Indicator) {
+      return false;
     }
   }
 
@@ -1355,9 +1349,21 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   // Do not break within emoji zwj sequences.
   //---------------------------------------------------------------------------
 
-  // WB3c: ZWJ x (Glue_After_Zwj|EBG)
-  if (lp == WordBreak::ZWJ &&
-      (rp == WordBreak::Glue_After_Zwj || rp == WordBreak::E_Base_GAZ)) {
+  // WB3c: ZWJ x \p{Extended_Pictographic}
+  {
+    auto rpEmoji = _emoji_properties[s32[i]];
+
+    if (lp == WordBreak::ZWJ && rpEmoji == Emoji::Extended_Pictographic) {
+      return false;
+    }
+  }
+
+  //---------------------------------------------------------------------------
+  // Keep horizontal whitespace together.
+  //---------------------------------------------------------------------------
+
+  // WB3d: WSegSpace x WSegSpace
+  if (lp == WordBreak::WSegSpace && rp == WordBreak::WSegSpace) {
     return false;
   }
 
@@ -1494,16 +1500,6 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   // WB13b: ExtendNumLet × (AHLetter | Numeric | Katakana)
   if ((lp == WordBreak::ExtendNumLet) &&
       (AHLetter(rp) || rp == WordBreak::Numeric || rp == WordBreak::Katakana)) {
-    return false;
-  }
-
-  //---------------------------------------------------------------------------
-  // Do not break within emoji modifier sequences.
-  //---------------------------------------------------------------------------
-
-  // WB14: (E_Base|EGB) x E_Modifier
-  if ((lp == WordBreak::E_Base || lp == WordBreak::E_Base_GAZ) &&
-      (rp == WordBreak::E_Modifier)) {
     return false;
   }
 

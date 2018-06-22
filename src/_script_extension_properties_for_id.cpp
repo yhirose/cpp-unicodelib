@@ -1,5 +1,8 @@
 const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
 {
+    Script::Bengali, 
+},
+{
     Script::Devanagari, 
 },
 {
@@ -17,6 +20,10 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
 {
     Script::Arabic, 
     Script::Coptic, 
+},
+{
+    Script::Arabic, 
+    Script::Hanifi_Rohingya, 
 },
 {
     Script::Arabic, 
@@ -61,10 +68,6 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
 {
     Script::Devanagari, 
     Script::Grantha, 
-},
-{
-    Script::Devanagari, 
-    Script::Kannada, 
 },
 {
     Script::Devanagari, 
@@ -121,12 +124,12 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
 {
     Script::Devanagari, 
     Script::Grantha, 
-    Script::Latin, 
+    Script::Kannada, 
 },
 {
     Script::Devanagari, 
-    Script::Kaithi, 
-    Script::Mahajani, 
+    Script::Grantha, 
+    Script::Latin, 
 },
 {
     Script::Han, 
@@ -139,10 +142,28 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Myanmar, 
 },
 {
+    Script::Arabic, 
+    Script::Hanifi_Rohingya, 
+    Script::Syriac, 
+    Script::Thaana, 
+},
+{
+    Script::Bengali, 
+    Script::Devanagari, 
+    Script::Grantha, 
+    Script::Kannada, 
+},
+{
     Script::Buhid, 
     Script::Hanunoo, 
     Script::Tagbanwa, 
     Script::Tagalog, 
+},
+{
+    Script::Devanagari, 
+    Script::Dogra, 
+    Script::Kaithi, 
+    Script::Mahajani, 
 },
 {
     Script::Bopomofo, 
@@ -150,21 +171,6 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Han, 
     Script::Hiragana, 
     Script::Katakana, 
-},
-{
-    Script::Devanagari, 
-    Script::Kannada, 
-    Script::Malayalam, 
-    Script::Tamil, 
-    Script::Telugu, 
-},
-{
-    Script::Adlam, 
-    Script::Arabic, 
-    Script::Mandaic, 
-    Script::Manichaean, 
-    Script::Psalter_Pahlavi, 
-    Script::Syriac, 
 },
 {
     Script::Bopomofo, 
@@ -176,20 +182,28 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
 },
 {
     Script::Devanagari, 
-    Script::Gujarati, 
-    Script::Gurmukhi, 
-    Script::Kaithi, 
-    Script::Mahajani, 
-    Script::Modi, 
-    Script::Khudawadi, 
-    Script::Takri, 
-    Script::Tirhuta, 
+    Script::Kannada, 
+    Script::Malayalam, 
+    Script::Oriya, 
+    Script::Tamil, 
+    Script::Telugu, 
+},
+{
+    Script::Adlam, 
+    Script::Arabic, 
+    Script::Mandaic, 
+    Script::Manichaean, 
+    Script::Psalter_Pahlavi, 
+    Script::Hanifi_Rohingya, 
+    Script::Sogdian, 
+    Script::Syriac, 
 },
 {
     Script::Devanagari, 
+    Script::Dogra, 
     Script::Gujarati, 
     Script::Gurmukhi, 
-    Script::Kannada, 
+    Script::Khojki, 
     Script::Kaithi, 
     Script::Mahajani, 
     Script::Modi, 
@@ -209,6 +223,21 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Oriya, 
     Script::Tamil, 
     Script::Telugu, 
+    Script::Tirhuta, 
+},
+{
+    Script::Devanagari, 
+    Script::Dogra, 
+    Script::Gujarati, 
+    Script::Gurmukhi, 
+    Script::Khojki, 
+    Script::Kannada, 
+    Script::Kaithi, 
+    Script::Mahajani, 
+    Script::Modi, 
+    Script::Khudawadi, 
+    Script::Takri, 
+    Script::Tirhuta, 
 },
 {
     Script::Bengali, 
@@ -223,10 +252,28 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Sharada, 
     Script::Tamil, 
     Script::Telugu, 
+    Script::Tirhuta, 
+},
+{
+    Script::Devanagari, 
+    Script::Dogra, 
+    Script::Gujarati, 
+    Script::Gurmukhi, 
+    Script::Khojki, 
+    Script::Kannada, 
+    Script::Kaithi, 
+    Script::Mahajani, 
+    Script::Malayalam, 
+    Script::Modi, 
+    Script::Khudawadi, 
+    Script::Takri, 
+    Script::Tirhuta, 
 },
 {
     Script::Bengali, 
     Script::Devanagari, 
+    Script::Dogra, 
+    Script::Gunjala_Gondi, 
     Script::Grantha, 
     Script::Gujarati, 
     Script::Gurmukhi, 
@@ -245,6 +292,8 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
 {
     Script::Bengali, 
     Script::Devanagari, 
+    Script::Dogra, 
+    Script::Gunjala_Gondi, 
     Script::Grantha, 
     Script::Gujarati, 
     Script::Gurmukhi, 
