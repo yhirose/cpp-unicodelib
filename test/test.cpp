@@ -463,12 +463,16 @@ TEST_CASE("codepoint_count", "[utf8]") {
 }
 
 TEST_CASE("decode 1", "[utf8]") {
-  char32_t out, out1, out2, out3, out4;
-  REQUIRE(utf8::decode_codepoint(str1, out) == 1);
+  char32_t out1, out2, out3, out4;
   REQUIRE(utf8::decode_codepoint(str1, out1) == 1);
   REQUIRE(utf8::decode_codepoint(str2, out2) == 2);
   REQUIRE(utf8::decode_codepoint(str3, out3) == 3);
   REQUIRE(utf8::decode_codepoint(str4, out4) == 4);
+
+  REQUIRE(utf8::decode_codepoint(str1) == 0x0061);
+  REQUIRE(utf8::decode_codepoint(str2) == 0x00C0);
+  REQUIRE(utf8::decode_codepoint(str3) == 0x3042);
+  REQUIRE(utf8::decode_codepoint(str4) == 0x2000B);
 }
 
 TEST_CASE("decode 2", "[utf8]") {
@@ -543,12 +547,16 @@ TEST_CASE("utf16 codepoint_count", "[utf16]") {
 }
 
 TEST_CASE("utf16 decode 1", "[utf16]") {
-  char32_t out, out1, out2, out3, out4;
-  REQUIRE(utf16::decode_codepoint(str1, out) == 1);
+  char32_t out1, out2, out3, out4;
   REQUIRE(utf16::decode_codepoint(str1, out1) == 1);
   REQUIRE(utf16::decode_codepoint(str2, out2) == 1);
   REQUIRE(utf16::decode_codepoint(str3, out3) == 1);
   REQUIRE(utf16::decode_codepoint(str4, out4) == 2);
+
+  REQUIRE(utf16::decode_codepoint(str1) == 0x0061);
+  REQUIRE(utf16::decode_codepoint(str2) == 0x00C0);
+  REQUIRE(utf16::decode_codepoint(str3) == 0x3042);
+  REQUIRE(utf16::decode_codepoint(str4) == 0x2000B);
 }
 
 TEST_CASE("utf16 decode 2", "[utf16]") {

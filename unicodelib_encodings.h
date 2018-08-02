@@ -41,6 +41,9 @@
 
   }  // namespace utf16
 
+  std::string to_utf8(const char16_t *s16, size_t l);
+  std::u16string to_utf16(const char *s8, size_t l);
+
   std::wstring to_wstring(const char *s8, size_t l);
   std::wstring to_wstring(const char16_t *s16, size_t l);
   std::wstring to_wstring(const char32_t *s32, size_t l);
@@ -181,9 +184,7 @@ inline bool decode_codepoint(const char *s8, size_t l, size_t &bytes,
 
 inline size_t decode_codepoint(const char *s8, size_t l, char32_t &out) {
   size_t bytes;
-  if (decode_codepoint(s8, l, bytes, out)) {
-    return bytes;
-  }
+  if (decode_codepoint(s8, l, bytes, out)) { return bytes; }
   return 0;
 }
 
@@ -210,7 +211,7 @@ inline void decode(const char *s8, size_t l, std::u32string &out) {
            });
 }
 
-}  // namespace utf8
+} // namespace utf8
 
 //-----------------------------------------------------------------------------
 // UTF16 encoding
@@ -223,9 +224,7 @@ inline bool is_surrogate_pair(const char16_t *s16, size_t l) {
     auto first = s16[0];
     if (0xD800 <= first && first < 0xDC00) {
       auto second = s16[1];
-      if (0xDC00 <= second && second < 0xE000) {
-        return true;
-      }
+      if (0xDC00 <= second && second < 0xE000) { return true; }
     }
   }
   return false;
@@ -235,9 +234,7 @@ inline size_t codepoint_length(char32_t cp) { return cp <= 0xFFFF ? 1 : 2; }
 
 inline size_t codepoint_length(const char16_t *s16, size_t l) {
   if (l > 0) {
-    if (is_surrogate_pair(s16, l)) {
-      return 2;
-    }
+    if (is_surrogate_pair(s16, l)) { return 2; }
     return 1;
   }
   return 0;
@@ -313,9 +310,7 @@ inline bool decode_codepoint(const char16_t *s16, size_t l, size_t &length,
 
 inline size_t decode_codepoint(const char16_t *s16, size_t l, char32_t &out) {
   size_t length;
-  if (decode_codepoint(s16, l, length, out)) {
-    return length;
-  }
+  if (decode_codepoint(s16, l, length, out)) { return length; }
   return 0;
 }
 
@@ -325,9 +320,7 @@ inline void for_each(const char16_t *s16, size_t l, T callback) {
   size_t i = 0;
   while (i < l) {
     auto beg = i++;
-    if (is_surrogate_pair(&s16[beg], l - beg)) {
-      i++;
-    }
+    if (is_surrogate_pair(&s16[beg], l - beg)) { i++; }
     callback(s16, l, beg, i, id++);
   }
 }
@@ -342,7 +335,7 @@ inline void decode(const char16_t *s16, size_t l, std::u32string &out) {
            });
 }
 
-}  // namespace utf16
+} // namespace utf16
 
 //-----------------------------------------------------------------------------
 // Inline Wrapper functions
@@ -402,6 +395,20 @@ inline size_t decode_codepoint(const char *s8, char32_t &cp) {
   return decode_codepoint(s8, std::char_traits<char>::length(s8), cp);
 }
 
+inline char32_t decode_codepoint(const char *s8, size_t l) {
+  char32_t out = 0;
+  decode_codepoint(s8, l, out);
+  return out;
+}
+
+inline char32_t decode_codepoint(const std::string &s8) {
+  return decode_codepoint(s8.data(), s8.length());
+}
+
+inline char32_t decode_codepoint(const char *s8) {
+  return decode_codepoint(s8, std::char_traits<char>::length(s8));
+}
+
 inline void decode(const std::string &s8, std::u32string &out) {
   decode(s8.data(), s8.length(), out);
 }
@@ -424,7 +431,7 @@ inline std::u32string decode(const char *s8) {
   return decode(s8, std::char_traits<char>::length(s8));
 }
 
-}  // namespace utf8
+} // namespace utf8
 
 namespace utf16 {
 
@@ -480,6 +487,20 @@ inline size_t decode_codepoint(const char16_t *s16, char32_t &cp) {
   return decode_codepoint(s16, std::char_traits<char16_t>::length(s16), cp);
 }
 
+inline char32_t decode_codepoint(const char16_t *s16, size_t l) {
+  char32_t out = 0;
+  decode_codepoint(s16, l, out);
+  return out;
+}
+
+inline char32_t decode_codepoint(const std::u16string &s16) {
+  return decode_codepoint(s16.data(), s16.length());
+}
+
+inline char32_t decode_codepoint(const char16_t *s16) {
+  return decode_codepoint(s16, std::char_traits<char16_t>::length(s16));
+}
+
 inline void decode(const std::u16string &s16, std::u32string &out) {
   decode(s16.data(), s16.length(), out);
 }
@@ -502,167 +523,173 @@ inline std::u32string decode(const char16_t *s16) {
   return decode(s16, std::char_traits<char16_t>::length(s16));
 }
 
-}  // namespace utf16
+} // namespace utf16
 
 //-----------------------------------------------------------------------------
-// std::wstring conversion
+// utf8/utf16 conversion
 //-----------------------------------------------------------------------------
-
-template <typename T = wchar_t>
-inline std::wstring to_wstring_core(
-    const char *s8, size_t l,
-    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
-  auto s16 = utf16::encode(utf8::decode(s8, l));
-  return std::wstring((const wchar_t *)s16.data(), s16.length());
-}
-
-template <typename T = wchar_t>
-inline std::wstring to_wstring_core(
-    const char *s8, size_t l,
-    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
-  auto s32 = utf8::decode(s8, l);
-  return std::wstring((const wchar_t *)s32.data(), s32.length());
-}
-
-inline std::wstring to_wstring(const char *s8, size_t l) {
-  return to_wstring_core(s8, l);
-}
-
-template <typename T = wchar_t>
-inline std::wstring to_wstring_core(
-    const char16_t *s16, size_t l,
-    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
-  return std::wstring((const wchar_t *)s16, l);
-}
-
-template <typename T = wchar_t>
-inline std::wstring to_wstring_core(
-    const char16_t *s16, size_t l,
-    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
-  auto s32 = utf16::decode(s16, l);
-  return std::wstring((const wchar_t *)s32.data(), s32.length());
-}
-
-inline std::wstring to_wstring(const char16_t *s16, size_t l) {
-  return to_wstring_core(s16, l);
-}
-
-template <typename T = wchar_t>
-inline std::wstring to_wstring_core(
-    const char32_t *s32, size_t l,
-    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
-  auto s16 = utf16::encode(s32, l);
-  return std::wstring((const wchar_t *)s16.data(), s16.length());
-}
-
-template <typename T = wchar_t>
-inline std::wstring to_wstring_core(
-    const char32_t *s32, size_t l,
-    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
-  return std::wstring((const wchar_t *)s32, l);
-}
-
-inline std::wstring to_wstring(const char32_t *s32, size_t l) {
-  return to_wstring_core(s32, l);
-}
-
-template <typename T = wchar_t>
-inline std::string to_utf8_core(
-    const wchar_t *sw, size_t l,
-    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
-  return utf8::encode(utf16::decode((const char16_t *)sw, l));
-}
-
-template <typename T = wchar_t>
-inline std::string to_utf8_core(
-    const wchar_t *sw, size_t l,
-    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
-  return utf8::encode((const char32_t *)sw, l);
-}
-
-inline std::string to_utf8(const wchar_t *sw, size_t l) { return to_utf8_core(sw, l); }
-
-template <typename T = wchar_t>
-inline std::u16string to_utf16_core(
-    const wchar_t *sw, size_t l,
-    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
-  return std::u16string((const char16_t *)sw, l);
-}
-
-template <typename T = wchar_t>
-inline std::u16string to_utf16_core(
-    const wchar_t *sw, size_t l,
-    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
-  return utf16::encode((const char32_t *)sw, l);
-}
-
-inline std::u16string to_utf16(const wchar_t *sw, size_t l) {
-  return to_utf16_core(sw, l);
-}
-
-template <typename T = wchar_t>
-inline std::u32string to_utf32_core(
-    const wchar_t *sw, size_t l,
-    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
-  return utf16::decode((const char16_t *)sw, l);
-}
-
-template <typename T = wchar_t>
-inline std::u32string to_utf32_core(
-    const wchar_t *sw, size_t l,
-    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
-  return std::u32string((const char32_t *)sw, l);
-}
-
-inline std::u32string to_utf32(const wchar_t *sw, size_t l) {
-  return to_utf32_core(sw, l);
-}
-
-//-----------------------------------------------------------------------------
-// std::wstring conversion
-//-----------------------------------------------------------------------------
-
-inline std::u16string to_utf16(const char *s8, size_t l) {
-  return utf16::encode(utf8::decode(s8, l));
-}
 
 inline std::string to_utf8(const char16_t *s16, size_t l) {
   return utf8::encode(utf16::decode(s16, l));
-}
-
-inline std::u16string to_utf16(const std::string &s8) {
-  return to_utf16(s8.data(), s8.length());
 }
 
 inline std::string to_utf8(const std::u16string &s16) {
   return to_utf8(s16.data(), s16.length());
 }
 
+inline std::u16string to_utf16(const char *s8, size_t l) {
+  return utf16::encode(utf8::decode(s8, l));
+}
+
+inline std::u16string to_utf16(const std::string &s8) {
+  return to_utf16(s8.data(), s8.length());
+}
+
+//-----------------------------------------------------------------------------
+// std::wstring conversion
+//-----------------------------------------------------------------------------
+
+namespace detail {
+
+template <typename T = wchar_t>
+inline std::wstring
+to_wstring_core(const char *s8, size_t l,
+                typename std::enable_if<sizeof(T) == 2>::type * = 0) {
+  auto s16 = utf16::encode(utf8::decode(s8, l));
+  return std::wstring((const wchar_t *)s16.data(), s16.length());
+}
+
+template <typename T = wchar_t>
+inline std::wstring
+to_wstring_core(const char *s8, size_t l,
+                typename std::enable_if<sizeof(T) == 4>::type * = 0) {
+  auto s32 = utf8::decode(s8, l);
+  return std::wstring((const wchar_t *)s32.data(), s32.length());
+}
+
+template <typename T = wchar_t>
+inline std::wstring
+to_wstring_core(const char16_t *s16, size_t l,
+                typename std::enable_if<sizeof(T) == 2>::type * = 0) {
+  return std::wstring((const wchar_t *)s16, l);
+}
+
+template <typename T = wchar_t>
+inline std::wstring
+to_wstring_core(const char16_t *s16, size_t l,
+                typename std::enable_if<sizeof(T) == 4>::type * = 0) {
+  auto s32 = utf16::decode(s16, l);
+  return std::wstring((const wchar_t *)s32.data(), s32.length());
+}
+
+template <typename T = wchar_t>
+inline std::wstring
+to_wstring_core(const char32_t *s32, size_t l,
+                typename std::enable_if<sizeof(T) == 2>::type * = 0) {
+  auto s16 = utf16::encode(s32, l);
+  return std::wstring((const wchar_t *)s16.data(), s16.length());
+}
+
+template <typename T = wchar_t>
+inline std::wstring
+to_wstring_core(const char32_t *s32, size_t l,
+                typename std::enable_if<sizeof(T) == 4>::type * = 0) {
+  return std::wstring((const wchar_t *)s32, l);
+}
+
+template <typename T = wchar_t>
+inline std::string
+to_utf8_core(const wchar_t *sw, size_t l,
+             typename std::enable_if<sizeof(T) == 2>::type * = 0) {
+  return utf8::encode(utf16::decode((const char16_t *)sw, l));
+}
+
+template <typename T = wchar_t>
+inline std::string
+to_utf8_core(const wchar_t *sw, size_t l,
+             typename std::enable_if<sizeof(T) == 4>::type * = 0) {
+  return utf8::encode((const char32_t *)sw, l);
+}
+
+template <typename T = wchar_t>
+inline std::u16string
+to_utf16_core(const wchar_t *sw, size_t l,
+              typename std::enable_if<sizeof(T) == 2>::type * = 0) {
+  return std::u16string((const char16_t *)sw, l);
+}
+
+template <typename T = wchar_t>
+inline std::u16string
+to_utf16_core(const wchar_t *sw, size_t l,
+              typename std::enable_if<sizeof(T) == 4>::type * = 0) {
+  return utf16::encode((const char32_t *)sw, l);
+}
+
+template <typename T = wchar_t>
+inline std::u32string
+to_utf32_core(const wchar_t *sw, size_t l,
+              typename std::enable_if<sizeof(T) == 2>::type * = 0) {
+  return utf16::decode((const char16_t *)sw, l);
+}
+
+template <typename T = wchar_t>
+inline std::u32string
+to_utf32_core(const wchar_t *sw, size_t l,
+              typename std::enable_if<sizeof(T) == 4>::type * = 0) {
+  return std::u32string((const char32_t *)sw, l);
+}
+
+} // namespace detail
+
+inline std::wstring to_wstring(const char *s8, size_t l) {
+  return detail::to_wstring_core(s8, l);
+}
+
 inline std::wstring to_wstring(const std::string &s8) {
   return to_wstring(s8.data(), s8.length());
+}
+
+inline std::wstring to_wstring(const char16_t *s16, size_t l) {
+  return detail::to_wstring_core(s16, l);
 }
 
 inline std::wstring to_wstring(const std::u16string &s16) {
   return to_wstring(s16.data(), s16.length());
 }
 
+inline std::wstring to_wstring(const char32_t *s32, size_t l) {
+  return detail::to_wstring_core(s32, l);
+}
+
 inline std::wstring to_wstring(const std::u32string &s32) {
   return to_wstring(s32.data(), s32.length());
+}
+
+inline std::string to_utf8(const wchar_t *sw, size_t l) {
+  return detail::to_utf8_core(sw, l);
 }
 
 inline std::string to_utf8(const std::wstring &sw) {
   return to_utf8(sw.data(), sw.length());
 }
 
+inline std::u16string to_utf16(const wchar_t *sw, size_t l) {
+  return detail::to_utf16_core(sw, l);
+}
+
 inline std::u16string to_utf16(const std::wstring &sw) {
   return to_utf16(sw.data(), sw.length());
+}
+
+inline std::u32string to_utf32(const wchar_t *sw, size_t l) {
+  return detail::to_utf32_core(sw, l);
 }
 
 inline std::u32string to_utf32(const std::wstring &sw) {
   return to_utf32(sw.data(), sw.length());
 }
 
-}  // namespace unicode
+} // namespace unicode
 
 #endif
 
