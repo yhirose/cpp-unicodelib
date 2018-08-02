@@ -38,8 +38,8 @@ def genUnicodeSymbols(ucd):
     aliases = getNameAliases(ucd)
 
     print('''
-#ifndef _CPPUNICODELIB_UNICODENAMES_H_
-#define _CPPUNICODELIB_UNICODENAMES_H_
+#ifndef _CPPUNICODELIB_UNICODELIB_NAMES_H_
+#define _CPPUNICODELIB_UNICODELIB_NAMES_H_
 
 #include <cstdlib>
 

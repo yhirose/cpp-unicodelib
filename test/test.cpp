@@ -2,6 +2,7 @@
 #include "catch.hpp"
 
 #include <unicodelib.h>
+#include <unicodelib_encodings.h>
 #include <sstream>
 
 using namespace std;
