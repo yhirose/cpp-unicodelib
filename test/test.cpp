@@ -265,7 +265,7 @@ void read_text_segmentation_test_file(const char *path, T callback) {
     while (!ss.eof()) {
       int val;
       ss >> hex >> val;
-      s32 += (char32_t)val;
+      s32 += static_cast<char32_t>(val);
       ss >> ope;
       utf8::decode_codepoint(ope.data(), ope.length(), ope_cp);
       auto is_boundary = (ope_cp == U'÷');

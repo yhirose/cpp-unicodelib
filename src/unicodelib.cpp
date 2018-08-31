@@ -79,11 +79,12 @@ static size_t compose_hangul(const char32_t *source, size_t len,
 
     // 1. check to see if two current characters are L and V
     int LIndex = last - LBase;
-    if (0 <= LIndex && LIndex < (int)LCount) {
+    if (0 <= LIndex && LIndex < static_cast<int>(LCount)) {
       int VIndex = ch - VBase;
-      if (0 <= VIndex && VIndex < (int)VCount) {
+      if (0 <= VIndex && VIndex < static_cast<int>(VCount)) {
         // make syllable of form LV
-        last = (char32_t)(SBase + (LIndex * VCount + VIndex) * TCount);
+        last =
+            static_cast<char32_t>(SBase + (LIndex * VCount + VIndex) * TCount);
         out.back() = last;  // reset last
         continue;           // discard ch
       }
@@ -91,9 +92,10 @@ static size_t compose_hangul(const char32_t *source, size_t len,
 
     // 2. check to see if two current characters are LV and T
     int SIndex = last - SBase;
-    if (0 <= SIndex && SIndex < (int)SCount && (SIndex % TCount) == 0) {
+    if (0 <= SIndex && SIndex < static_cast<int>(SCount) &&
+        (SIndex % TCount) == 0) {
       int TIndex = ch - TBase;
-      if (0 <= TIndex && TIndex <= (int)TCount) {
+      if (0 <= TIndex && TIndex <= static_cast<int>(TCount)) {
         // make syllable of form LVT
         last += TIndex;
         out.back() = last;  // reset last
@@ -281,7 +283,8 @@ const uint64_t Property_Variation_Selector = 0b00100000000000000000000000000000;
 const uint64_t Property_Pattern_White_Space =
     0b01000000000000000000000000000000;
 const uint64_t Property_Pattern_Syntax = 0b10000000000000000000000000000000;
-const uint64_t Property_Prepended_Concatenation_Mark = 0b100000000000000000000000000000000;
+const uint64_t Property_Prepended_Concatenation_Mark =
+    0b100000000000000000000000000000000;
 
 bool is_white_space(char32_t cp) {
   return (_properties[cp] & Property_White_Space) != 0;
@@ -353,6 +356,10 @@ bool is_other_grapheme_extend(char32_t cp) {
 
 bool is_ids_binary_operator(char32_t cp) {
   return (_properties[cp] & Property_IDS_Binary_Operator) != 0;
+}
+
+bool is_ids_trinary_operator(char32_t cp) {
+  return (_properties[cp] & Property_IDS_Trinary_Operator) != 0;
 }
 
 bool is_radical(char32_t cp) {
@@ -540,7 +547,7 @@ static char32_t simple_case_mapping(char32_t cp, CaseMappingType type) {
   using namespace std;
   auto it = _simple_case_mappings.find(cp);
   if (it != _simple_case_mappings.end()) {
-    return it->second[(size_t)type];
+    return it->second[static_cast<size_t>(type)];
   }
   return cp;
 }
@@ -581,7 +588,9 @@ static bool is_final_sigma(const char32_t *s32, size_t l, size_t i) {
   // characters and then a cased letter
 
   // Before C: \p{cased} (\p{case-ignorable})*
-  auto pos = (int)i - 1;
+  auto il = static_cast<int>(l);
+  auto ii = static_cast<int>(i);
+  auto pos = ii - 1;
   while (pos >= 0 && is_case_ignorable(s32[pos])) {
     pos--;
   }
@@ -590,11 +599,11 @@ static bool is_final_sigma(const char32_t *s32, size_t l, size_t i) {
   }
 
   // After C: !((\p{case-ignorable})* \p{cased})
-  pos = (int)i + 1;
-  while (pos < (int)l && is_case_ignorable(s32[pos])) {
+  pos = ii + 1;
+  while (pos < il && is_case_ignorable(s32[pos])) {
     pos++;
   }
-  if (pos < (int)l && is_cased(s32[pos])) {
+  if (pos < il && is_cased(s32[pos])) {
     return false;
   }
 
@@ -611,7 +620,7 @@ static bool is_after_soft_dotted(const char32_t *s32, size_t l, size_t i) {
   // combining class 0 or 230 (Above).
 
   // Before C: [\p{Soft_Dotted}] ([^\p{ccc=230} \p{ccc=0}])*
-  auto pos = (int)i - 1;
+  auto pos = static_cast<int>(i) - 1;
   while (pos >= 0 && !has_class_230_or_0(s32[pos])) {
     pos--;
   }
@@ -627,11 +636,11 @@ static bool is_more_above(const char32_t *s32, size_t l, size_t i) {
   // intervening character of combining class 0 or 230 (Above).
 
   // After C: [^\p{ccc=230}\p{ccc=0}]* [\p{ccc=230}]
-  auto pos = (int)i + 1;
-  while (pos < (int)l && !has_class_230_or_0(s32[pos])) {
+  auto pos = static_cast<int>(i) - 1;
+  while (pos < static_cast<int>(l) && !has_class_230_or_0(s32[pos])) {
     pos++;
   }
-  if (pos < (int)l && combining_class(s32[pos]) != 230) {
+  if (pos < static_cast<int>(l) && combining_class(s32[pos]) != 230) {
     return false;
   }
 
@@ -644,11 +653,11 @@ static bool is_before_dot(const char32_t *s32, size_t l, size_t i) {
   // current character and the combining dot above.
 
   // After C: ([^\p{ccc=230} \p{ccc=0}])* [\u0307]
-  auto pos = (int)i + 1;
-  while (pos < (int)l && !has_class_230_or_0(s32[pos])) {
+  auto pos = static_cast<int>(i) + 1;
+  while (pos < static_cast<int>(l) && !has_class_230_or_0(s32[pos])) {
     pos++;
   }
-  if (pos < (int)l && s32[pos] != 0x0307) {
+  if (pos < static_cast<int>(l) && s32[pos] != 0x0307) {
     return false;
   }
 
@@ -660,7 +669,7 @@ static bool is_after_i(const char32_t *s32, size_t l, size_t i) {
   // character class 230 (Above) or 0.
 
   // Before C: [I] ([^\p{ccc=230} \p{ccc=0}])*
-  auto pos = (int)i - 1;
+  auto pos = static_cast<int>(i) - 1;
   while (pos >= 0 && !has_class_230_or_0(s32[pos])) {
     pos--;
   }
@@ -674,29 +683,32 @@ static bool is_after_i(const char32_t *s32, size_t l, size_t i) {
 static void full_case_mapping(const char32_t *s32, size_t l, size_t i,
                               const char *lang, CaseMappingType type,
                               std::u32string &out) {
-  // D135 A character C is defined to be cased if and only if C has the Lowercase or Uppercase
-  // property or has a General_Category value of Titlecase_Letter.
-  // • The Uppercase and Lowercase property values are specified in the data file
-  // DerivedCoreProperties.txt in the Unicode Character Database. The derived
-  // property Cased is also listed in DerivedCoreProperties.txt.
+  // D135 A character C is defined to be cased if and only if C has the
+  // Lowercase or Uppercase property or has a General_Category value of
+  // Titlecase_Letter. • The Uppercase and Lowercase property values are
+  // specified in the data file DerivedCoreProperties.txt in the Unicode
+  // Character Database. The derived property Cased is also listed in
+  // DerivedCoreProperties.txt.
   //
-  // D136 A character C is defined to be case-ignorable if C has the value MidLetter (ML), MidNumLet
-  // (MB), or Single_Quote (SQ) for the Word_Break property or its
-  // General_Category is one of Nonspacing_Mark (Mn), Enclosing_Mark (Me), Format
-  // (Cf), Modifier_Letter (Lm), or Modifier_Symbol (Sk).
-  // • The Word_Break property is defined in the data file WordBreakProperty.txt in
-  // the Unicode Character Database.
-  // • The derived property Case_Ignorable is listed in the data file DerivedCoreProperties.txt
-  // in the Unicode Character Database.
-  // • The Case_Ignorable property is defined for use in the context specifications of
-  // Table 3-14. It is a narrow-use property, and is not intended for use in other contexts.
-  // The more broadly applicable string casing function, isCased(X), is
-  // defined in D143.
+  // D136 A character C is defined to be case-ignorable if C has the value
+  // MidLetter (ML), MidNumLet (MB), or Single_Quote (SQ) for the Word_Break
+  // property or its General_Category is one of Nonspacing_Mark (Mn),
+  // Enclosing_Mark (Me), Format (Cf), Modifier_Letter (Lm), or Modifier_Symbol
+  // (Sk). • The Word_Break property is defined in the data file
+  // WordBreakProperty.txt in the Unicode Character Database. • The derived
+  // property Case_Ignorable is listed in the data file
+  // DerivedCoreProperties.txt in the Unicode Character Database. • The
+  // Case_Ignorable property is defined for use in the context specifications of
+  // Table 3-14. It is a narrow-use property, and is not intended for use in
+  // other contexts. The more broadly applicable string casing function,
+  // isCased(X), is defined in D143.
   //
-  // D137 Case-ignorable sequence: A sequence of zero or more case-ignorable characters.
+  // D137 Case-ignorable sequence: A sequence of zero or more case-ignorable
+  // characters.
   //
-  // D138 A character C is in a particular casing context for context-dependent matching if and
-  // only if it matches the corresponding specification in Table 3-14.
+  // D138 A character C is in a particular casing context for context-dependent
+  // matching if and only if it matches the corresponding specification in Table
+  // 3-14.
   assert(i < l);
   auto cp = s32[i];
   auto count = _special_case_mappings.count(cp);
@@ -1103,7 +1115,6 @@ size_t extended_combining_character_sequence_count(const char32_t *s32,
 //-----------------------------------------------------------------------------
 
 bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
-
   //---------------------------------------------------------------------------
   // Break at the start and end of text, unless the text empty.
   //---------------------------------------------------------------------------
@@ -1199,8 +1210,9 @@ bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
     auto rpEmoji = _emoji_properties[s32[i]];
 
     if (lp == GraphemeBreak::ZWJ && rpEmoji == Emoji::Extended_Pictographic) {
-      auto pos = (int)i - 2;
-      while (pos >= 0 && _grapheme_break_properties[s32[pos]] == GraphemeBreak::Extend) {
+      auto pos = static_cast<int>(i) - 2;
+      while (pos >= 0 &&
+             _grapheme_break_properties[s32[pos]] == GraphemeBreak::Extend) {
         pos--;
       }
       if (pos >= 0) {
@@ -1220,16 +1232,21 @@ bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
 
   // GB12: ^ (RI RI)* RI x RI
   // GB13: [^RI] (RI RI)* RI x RI
-  if (lp == GraphemeBreak::Regional_Indicator && rp == GraphemeBreak::Regional_Indicator) {
-    auto pos = (int)i - 2;
+  if (lp == GraphemeBreak::Regional_Indicator &&
+      rp == GraphemeBreak::Regional_Indicator) {
+    auto pos = static_cast<int>(i) - 2;
     while (pos >= 1 &&
-      _grapheme_break_properties[s32[pos]] == GraphemeBreak::Regional_Indicator &&
-      _grapheme_break_properties[s32[pos - 1]] == GraphemeBreak::Regional_Indicator) {
+           _grapheme_break_properties[s32[pos]] ==
+               GraphemeBreak::Regional_Indicator &&
+           _grapheme_break_properties[s32[pos - 1]] ==
+               GraphemeBreak::Regional_Indicator) {
       pos -= 2;
     }
     if (pos < 0) {
       return false;
-    } if (_grapheme_break_properties[s32[pos]] != GraphemeBreak::Regional_Indicator) {
+    }
+    if (_grapheme_break_properties[s32[pos]] !=
+        GraphemeBreak::Regional_Indicator) {
       return false;
     }
   }
@@ -1277,10 +1294,11 @@ inline bool MidNumLetQ(WordBreak p) {
 static int previous_word_break_property_position(const char32_t *s32,
                                                  size_t i) {
   auto prop = WordBreak::Unassigned;
-  auto pos = (int)i - 1;
+  auto pos = static_cast<int>(i) - 1;
   while (pos >= 0) {
     prop = _word_break_properties[s32[pos]];
-    if (prop != WordBreak::Extend && prop != WordBreak::Format && prop != WordBreak::ZWJ) {
+    if (prop != WordBreak::Extend && prop != WordBreak::Format &&
+        prop != WordBreak::ZWJ) {
       break;
     }
     pos--;
@@ -1294,7 +1312,8 @@ static size_t next_word_break_property_position(const char32_t *s32, size_t l,
   auto pos = i + 1;
   while (pos < l) {
     prop = _word_break_properties[s32[pos]];
-    if (prop != WordBreak::Extend && prop != WordBreak::Format && prop != WordBreak::ZWJ) {
+    if (prop != WordBreak::Extend && prop != WordBreak::Format &&
+        prop != WordBreak::ZWJ) {
       break;
     }
     pos++;
@@ -1303,7 +1322,6 @@ static size_t next_word_break_property_position(const char32_t *s32, size_t l,
 }
 
 bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
-
   //---------------------------------------------------------------------------
   // Break at the start and end of text, unless the text is empty
   //---------------------------------------------------------------------------
@@ -1375,7 +1393,8 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   //---------------------------------------------------------------------------
 
   // WB4: X (Extend|Format|ZWJ)* → X
-  if ((rp == WordBreak::Extend || rp == WordBreak::Format || rp == WordBreak::ZWJ)) {
+  if ((rp == WordBreak::Extend || rp == WordBreak::Format ||
+       rp == WordBreak::ZWJ)) {
     return false;
   }
 
@@ -1513,17 +1532,20 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   // WB15: ^ (RI RI)* RI x RI
   // WB16: [^RI] (RI RI)* RI x RI
   {
-    if (lp == WordBreak::Regional_Indicator && rp == WordBreak::Regional_Indicator) {
+    if (lp == WordBreak::Regional_Indicator &&
+        rp == WordBreak::Regional_Indicator) {
       auto lpos = previous_word_break_property_position(s32, i);
 
       while (true) {
         lpos = previous_word_break_property_position(s32, lpos);
-        if (lpos < 0 || _word_break_properties[s32[lpos]] != WordBreak::Regional_Indicator) {
+        if (lpos < 0 || _word_break_properties[s32[lpos]] !=
+                            WordBreak::Regional_Indicator) {
           return false;
         }
 
         lpos = previous_word_break_property_position(s32, lpos);
-        if (lpos < 0 || _word_break_properties[s32[lpos]] != WordBreak::Regional_Indicator) {
+        if (lpos < 0 || _word_break_properties[s32[lpos]] !=
+                            WordBreak::Regional_Indicator) {
           break;
         }
       }
@@ -1554,7 +1576,7 @@ inline bool SATerm(SentenceBreak p) {
 static int previous_sentence_break_property_position(const char32_t *s32,
                                                      size_t i) {
   auto prop = SentenceBreak::Unassigned;
-  auto pos = (int)i - 1;
+  auto pos = static_cast<int>(i) - 1;
   while (pos >= 0) {
     prop = _sentence_break_properties[s32[pos]];
     if (prop != SentenceBreak::Extend && prop != SentenceBreak::Format) {
@@ -1579,7 +1601,6 @@ static size_t next_sentence_break_property_position(const char32_t *s32,
 }
 
 bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
-
   //---------------------------------------------------------------------------
   // Break at the start and end of text, unless the text is empty.
   //---------------------------------------------------------------------------

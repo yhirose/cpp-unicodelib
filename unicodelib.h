@@ -123,6 +123,7 @@ bool is_other_uppercase(char32_t cp);
 bool is_noncharacter_code_point(char32_t cp);
 bool is_other_grapheme_extend(char32_t cp);
 bool is_ids_binary_operator(char32_t cp);
+bool is_ids_trinary_operator(char32_t cp);
 bool is_radical(char32_t cp);
 bool is_unified_ideograph(char32_t cp);
 bool is_other_default_ignorable_code_point(char32_t cp);
