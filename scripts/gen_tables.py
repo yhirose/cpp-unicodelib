@@ -446,6 +446,7 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
         'Mtei': 'Meetei_Mayek',
         'Mult': 'Multani',
         'Mymr': 'Myanmar',
+        'Nand': 'Nandinagari',
         'Narb': 'Old_North_Arabian',
         'Nbat': 'Nabataean',
         'Newa': 'Newa',
@@ -764,19 +765,19 @@ else:
     ucd = sys.argv[1]
     out = sys.argv[2]
 
-    # genGeneralCategoryPropertyTable(ucd, out)
-    # getPropertyTable(ucd, out)
-    # getDerivedCorePropertyTable(ucd, out)
-    # getSimpleCaseMappingTable(ucd, out)
-    # getSpecialCaseMappingTable(ucd, out)
-    # getCaseFoldingTable(ucd, out)
-    # genBlockPropertyTable(ucd, out)
-    # genScriptPropertyTable(ucd, out)
-    # genScriptExtensionIdTable(ucd, out)
-    # genScriptExtensionPropertyForIdTable(ucd, out)
-    # genNomalizationPropertyTable(ucd, out)
-    # genNomalizationCompositionTable(ucd, out)
-    # getGraphemeBreakPropertyTable(ucd, out)
-    # getWordBreakPropertyTable(ucd, out)
-    # getSentenceBreakPropertyTable(ucd, out)
+    genGeneralCategoryPropertyTable(ucd, out)
+    getPropertyTable(ucd, out)
+    getDerivedCorePropertyTable(ucd, out)
+    getSimpleCaseMappingTable(ucd, out)
+    getSpecialCaseMappingTable(ucd, out)
+    getCaseFoldingTable(ucd, out)
+    genBlockPropertyTable(ucd, out)
+    genScriptPropertyTable(ucd, out)
+    genScriptExtensionIdTable(ucd, out)
+    genScriptExtensionPropertyForIdTable(ucd, out)
+    genNomalizationPropertyTable(ucd, out)
+    genNomalizationCompositionTable(ucd, out)
+    getGraphemeBreakPropertyTable(ucd, out)
+    getWordBreakPropertyTable(ucd, out)
+    getSentenceBreakPropertyTable(ucd, out)
     getEmojiPropertyTable(ucd, out)
