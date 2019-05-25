@@ -1,7 +1,7 @@
 cpp-unicodelib
 ==============
 
-C++11 Unicode library. (Unicode 11.0)
+C++11 Unicode library. (Unicode 12.1)
 
 API
 ---
