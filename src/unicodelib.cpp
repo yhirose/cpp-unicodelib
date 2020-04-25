@@ -699,7 +699,7 @@ static void full_case_mapping(const char32_t *s32, size_t l, size_t i,
   // property Case_Ignorable is listed in the data file
   // DerivedCoreProperties.txt in the Unicode Character Database. • The
   // Case_Ignorable property is defined for use in the context specifications of
-  // Table 3-14. It is a narrow-use property, and is not intended for use in
+  // Table 3-17. It is a narrow-use property, and is not intended for use in
   // other contexts. The more broadly applicable string casing function,
   // isCased(X), is defined in D143.
   //
@@ -708,7 +708,7 @@ static void full_case_mapping(const char32_t *s32, size_t l, size_t i,
   //
   // D138 A character C is in a particular casing context for context-dependent
   // matching if and only if it matches the corresponding specification in Table
-  // 3-14.
+  // 3-17.
   assert(i < l);
   auto cp = s32[i];
   auto count = _special_case_mappings.count(cp);

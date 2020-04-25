@@ -37,10 +37,6 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Thaana, 
 },
 {
-    Script::Armenian, 
-    Script::Georgian, 
-},
-{
     Script::Bengali, 
     Script::Devanagari, 
 },
@@ -67,6 +63,10 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
 {
     Script::Cyrillic, 
     Script::Old_Permic, 
+},
+{
+    Script::Cyrillic, 
+    Script::Syriac, 
 },
 {
     Script::Devanagari, 
@@ -101,6 +101,10 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Multani, 
 },
 {
+    Script::Han, 
+    Script::Latin, 
+},
+{
     Script::Hiragana, 
     Script::Katakana, 
 },
@@ -120,6 +124,11 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Arabic, 
     Script::Syriac, 
     Script::Thaana, 
+},
+{
+    Script::Arabic, 
+    Script::Thaana, 
+    Script::Yezidi, 
 },
 {
     Script::Bengali, 
@@ -157,12 +166,6 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Myanmar, 
 },
 {
-    Script::Arabic, 
-    Script::Hanifi_Rohingya, 
-    Script::Syriac, 
-    Script::Thaana, 
-},
-{
     Script::Bengali, 
     Script::Devanagari, 
     Script::Grantha, 
@@ -179,6 +182,13 @@ const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
     Script::Dogra, 
     Script::Kaithi, 
     Script::Mahajani, 
+},
+{
+    Script::Arabic, 
+    Script::Hanifi_Rohingya, 
+    Script::Syriac, 
+    Script::Thaana, 
+    Script::Yezidi, 
 },
 {
     Script::Bopomofo, 
