@@ -42,9 +42,27 @@ def findBestBlockSize(values):
 
     return blockSize
 
-def generateTable(type, defval, out, values):
+def isPremitiveType(type):
+    return type == 'int' or type == 'uint32_t' or type == 'uint64_t' or type == 'NormalizationProperties'
+
+def generateTable(name, type, defval, out, values):
+    def formatValue(val):
+        if isPremitiveType(type):
+            return "{},".format(val)
+        else:
+            return "D," if val == defval else "T::{},".format(val)
+
+    if isPremitiveType(type):
+        out.write("""namespace {0} {{
+""".format(name))
+    else:
+        out.write("""namespace {0} {{
+using T = {1};
+const auto D = {1}::{2};
+""".format(name, type, defval))
+
     blockSize = findBestBlockSize(values)
-    out.write("static const size_t _block_size = {};\n\n".format(blockSize))
+    out.write("static const size_t _block_size = {};\n".format(blockSize))
 
     blockValues = []
     for i in range(0, len(values), blockSize):
@@ -56,8 +74,8 @@ def generateTable(type, defval, out, values):
             iblock = i / blockSize
             out.write("static const {} _{}[] = {{ ".format(type, iblock))
             for val in items:
-                out.write("{},".format(val))
-            out.write(" };\n\n")
+                out.write(formatValue(val))
+            out.write(" };\n")
 
     out.write("static const {} *_blocks[] = {{\n".format(type))
     for iblock, blockValue in enumerate(blockValues):
@@ -70,7 +88,7 @@ def generateTable(type, defval, out, values):
             out.write("0,")
         else:
             out.write("_{},".format(iblock))
-    out.write("\n};\n\n")
+    out.write("\n};\n")
 
     out.write("static const {} _block_values[] = {{\n".format(type))
     for iblock, blockValue in enumerate(blockValues):
@@ -80,13 +98,12 @@ def generateTable(type, defval, out, values):
             else:
                 out.write("\n ")
         if blockValue != None:
-            out.write("{},".format(blockValue))
+            out.write(formatValue(blockValue))
         else:
-            out.write("{},".format(defval))
+            out.write(formatValue(defval))
     out.write("\n};\n")
 
-    out.write("""
-{} get_value(char32_t cp) {{
+    out.write("""inline {} get_value(char32_t cp) {{
   auto i = cp / _block_size;
   auto bl = _blocks[i];
   if (bl) {{
@@ -95,16 +112,17 @@ def generateTable(type, defval, out, values):
   }}
   return _block_values[i];
 }}
+}}
 """.format(type))
 
 #------------------------------------------------------------------------------
 # genGeneralCategoryPropertyTable
 #------------------------------------------------------------------------------
 
-def genGeneralCategoryPropertyTable(ucd, out):
+def genGeneralCategoryPropertyTable(ucd):
     fin = open(ucd + '/UnicodeData.txt')
-    fout = open(out + '/_general_category_properties.cpp', 'w')
 
+    defval = 'Cn'
     data = [x.rstrip().split(';') for x in fin]
 
     def items():
@@ -116,7 +134,7 @@ def genGeneralCategoryPropertyTable(ucd, out):
             value = flds[2]
 
             for cp in range(codePointPrev + 1, codePoint):
-                yield cp, 'Cn'
+                yield cp, defval
 
             if flds[1].endswith('First>'):
                 fldsLast = data[i + 1]
@@ -132,18 +150,17 @@ def genGeneralCategoryPropertyTable(ucd, out):
                 i += 1
 
         for cp in range(codePointPrev + 1, MaxCopePoint + 1):
-            yield cp, 'Cn'
+            yield cp, defval
 
     values = [val for cp, val in items()]
-    generateTable("GeneralCategory", "Cn", fout, values)
+    generateTable('_general_category_properties', 'GeneralCategory', defval, sys.stdout, values)
 
 #------------------------------------------------------------------------------
 # genPropertyTable
 #------------------------------------------------------------------------------
 
-def genPropertyTable(ucd, out):
+def genPropertyTable(ucd):
     fin = open(ucd + '/PropList.txt')
-    fout = open(out + '/_properties.cpp', 'w')
 
     values = [0] * (MaxCopePoint + 1)
     names = {}
@@ -165,15 +182,14 @@ def genPropertyTable(ucd, out):
             else:
                 values[codePoint] += (1 << val)
 
-    generateTable("uint64_t", 0, fout, values)
+    generateTable('_properties', "uint64_t", 0, sys.stdout, values)
 
 #------------------------------------------------------------------------------
 # genDerivedCorePropertyTable
 #------------------------------------------------------------------------------
 
-def genDerivedCorePropertyTable(ucd, out):
+def genDerivedCorePropertyTable(ucd):
     fin = open(ucd + '/DerivedCoreProperties.txt')
-    fout = open(out + '/_derived_core_properties.cpp', 'w')
 
     values = [0] * (MaxCopePoint + 1)
     names = {}
@@ -195,15 +211,14 @@ def genDerivedCorePropertyTable(ucd, out):
             else:
                 values[codePoint] += (1 << val)
 
-    generateTable("uint32_t", 0, fout, values)
+    generateTable('_derived_core_properties', "uint32_t", 0, sys.stdout, values)
 
 #------------------------------------------------------------------------------
 # genSimpleCaseMappingTable
 #------------------------------------------------------------------------------
 
-def genSimpleCaseMappingTable(ucd, out):
+def genSimpleCaseMappingTable(ucd):
     fin = open(ucd + '/UnicodeData.txt')
-    fout = open(out + '/_simple_case_mappings.cpp', 'w')
 
     data = [x.rstrip().split(';') for x in fin]
     r = re.compile(r"(?:<(\w+)> )?(.+)")
@@ -235,20 +250,16 @@ def genSimpleCaseMappingTable(ucd, out):
                 codePointPrev = codePoint
                 i += 1
 
-    fout.write("const std::unordered_map<char32_t, const char32_t*> _simple_case_mappings = {\n")
+    print("const std::unordered_map<char32_t, const char32_t*> _simple_case_mappings = {")
     for cp, upper, lower, title in items():
-        fout.write('{ 0x%08X, U"\\U%08X\\U%08X\\U%08X" },\n' % (cp, upper, lower, title))
-    fout.write("};\n")
+        print('{ 0x%08X, U"\\U%08X\\U%08X\\U%08X" },' % (cp, upper, lower, title))
+    print("};")
 
 #------------------------------------------------------------------------------
 # genSpecialCaseMappingTable
 #------------------------------------------------------------------------------
 
-def genSpecialCaseMappingTable(ucd, out):
-    fin = open(ucd + '/SpecialCasing.txt')
-    fout = open(out + '/_special_case_mappings.cpp', 'w')
-    foutDefault = open(out + '/_special_case_mappings_default.cpp', 'w')
-
+def genSpecialCaseMappingTable(ucd):
     r = re.compile(r"(?!#)(.+?); #")
 
     def to_array(str):
@@ -260,6 +271,7 @@ def genSpecialCaseMappingTable(ucd, out):
         return str in ('lt', 'tr', 'az')
 
     def items():
+        fin = open(ucd + '/SpecialCasing.txt')
         for line in fin:
             m = r.match(line)
             if m:
@@ -283,26 +295,30 @@ def genSpecialCaseMappingTable(ucd, out):
 
                 yield cp, lower, title, upper, language, context, hasContext
 
-    fout.write("const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings = {\n")
-    foutDefault.write("const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings_default = {\n")
+    # Regular
+    print("const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings = {")
     for cp, lower, title, upper, language, context, hasContext in items():
-        if hasContext:
-            f = fout
-        else:
-            f = foutDefault
-        f.write('{ 0x%08X, { %s, %s, %s, %s, SpecialCasingContext::%s } },\n'
-                % (cp, to_unicode_literal(lower), to_unicode_literal(title),
-                    to_unicode_literal(upper), language, context))
-    fout.write("};\n")
-    foutDefault.write("};\n")
+        if hasContext == True:
+            print('{ 0x%08X, { %s, %s, %s, %s, SpecialCasingContext::%s } },'
+                    % (cp, to_unicode_literal(lower), to_unicode_literal(title),
+                        to_unicode_literal(upper), language, context))
+    print("};")
+
+    # Default
+    print("const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings_default = {")
+    for cp, lower, title, upper, language, context, hasContext in items():
+        if hasContext == False:
+            print('{ 0x%08X, { %s, %s, %s, %s, SpecialCasingContext::%s } },'
+                    % (cp, to_unicode_literal(lower), to_unicode_literal(title),
+                        to_unicode_literal(upper), language, context))
+    print("};")
 
 #------------------------------------------------------------------------------
 # genCaseFoldingTable
 #------------------------------------------------------------------------------
 
-def genCaseFoldingTable(ucd, out):
+def genCaseFoldingTable(ucd):
     fin = open(ucd + '/CaseFolding.txt')
-    fout = open(out + '/_case_foldings.cpp', 'w')
 
     r = re.compile(r"(.+?); ([CFST]); (.+?); #.*")
 
@@ -325,22 +341,22 @@ def genCaseFoldingTable(ucd, out):
             elif status == 'T':
                 dic[cp][3] = codes[0]
 
-    fout.write("const std::unordered_map<char32_t, CaseFolding> _case_foldings = {\n")
+    print("const std::unordered_map<char32_t, CaseFolding> _case_foldings = {")
     for cp in dic:
         cf = dic[cp]
         f = to_unicode_literal(cf[2])
-        fout.write('{ 0x%08X, { 0x%08X,  0x%08X, %s, 0x%08X } },\n' % (cp, cf[0], cf[1], f, cf[3]))
-    fout.write("};\n")
+        print('{ 0x%08X, { 0x%08X,  0x%08X, %s, 0x%08X } },' % (cp, cf[0], cf[1], f, cf[3]))
+    print("};")
 
 #------------------------------------------------------------------------------
 # genBlockPropertyTable
 #------------------------------------------------------------------------------
 
-def genBlockPropertyTable(ucd, out):
+def genBlockPropertyTable(ucd):
     fin = open(ucd + '/Blocks.txt')
-    fout = open(out + '/_block_properties.cpp', 'w')
 
-    values = ['Unassigned'] * (MaxCopePoint + 1)
+    defval = 'Unassigned'
+    values = [defval] * (MaxCopePoint + 1)
     r = re.compile(r"([0-9A-F]+)\.\.([0-9A-F]+)\s*;\s+(.+)")
 
     for line in fin:
@@ -348,22 +364,22 @@ def genBlockPropertyTable(ucd, out):
         if m:
             codePointFirst = int(m.group(1), 16)
             codePointLast = int(m.group(2), 16)
-            block = ''.join([x.title() if x.islower() else x for x in re.split(r"[ -]", m.group(3))])
+            block = "{}".format(''.join([x.title() if x.islower() else x for x in re.split(r"[ -]", m.group(3))]))
 
             for cp in range(codePointFirst, codePointLast + 1):
                 values[cp] = block
 
-    generateTable("Block", "Unassigned", fout, values)
+    generateTable('_block_properties', 'Block', defval, sys.stdout, values)
 
 #------------------------------------------------------------------------------
 # genScriptPropertyTable
 #------------------------------------------------------------------------------
 
-def genScriptPropertyTable(ucd, out):
+def genScriptPropertyTable(ucd):
     fin = open(ucd + '/Scripts.txt')
-    fout = open(out + '/_script_properties.cpp', 'w')
 
-    values = ['Unassigned'] * (MaxCopePoint + 1)
+    defval = 'Unassigned'
+    values = [defval] * (MaxCopePoint + 1)
     r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s+;\s+(\w+)\s+#.*")
 
     for line in fin:
@@ -379,15 +395,14 @@ def genScriptPropertyTable(ucd, out):
             else:
                 values[codePoint] = value
 
-    generateTable("Script", "Unassigned", fout, values)
+    generateTable('_script_properties', 'Script', defval, sys.stdout, values)
 
 #------------------------------------------------------------------------------
 # genScriptExtensionIdTable
 #------------------------------------------------------------------------------
 
-def genScriptExtensionIdTable(ucd, out):
+def genScriptExtensionIdTable(ucd):
     fin = open(ucd + '/ScriptExtensions.txt')
-    fout = open(out + '/_script_extension_ids.cpp', 'w')
 
     values = [-1] * (MaxCopePoint + 1)
     rHeader = re.compile(r"# Script_Extensions=(.*)")
@@ -410,15 +425,14 @@ def genScriptExtensionIdTable(ucd, out):
                 else:
                     values[codePoint] = id
 
-    generateTable("int", "0", fout, values)
+    generateTable('_script_extension_ids', "int", 0, sys.stdout, values)
 
 #------------------------------------------------------------------------------
 # genScriptExtensionPropertyForIdTable
 #------------------------------------------------------------------------------
 
-def genScriptExtensionPropertyForIdTable(ucd, out):
+def genScriptExtensionPropertyForIdTable(ucd):
     fin = open(ucd + '/ScriptExtensions.txt')
-    fout = open(out + '/_script_extension_properties_for_id.cpp', 'w')
 
     # This list is from 'PropertyValueAliases.txt' in Unicode database.
     dic = {
@@ -585,25 +599,24 @@ def genScriptExtensionPropertyForIdTable(ucd, out):
     values = [-1] * (MaxCopePoint + 1)
     rHeader = re.compile(r"# Script_Extensions=(.*)")
 
-    fout.write("const std::vector<std::vector<Script>> _script_extension_properties_for_id = {\n")
+    print("const std::vector<std::vector<Script>> _script_extension_properties_for_id = {")
     id = 0
     for line in fin:
         m = rHeader.match(line)
         if m:
-            fout.write('{\n')
+            print('{')
             for sc in [dic[x] for x in m.group(1).split(' ')]:
-                fout.write('    Script::%s, \n' % sc)
-            fout.write('},\n')
+                print('    Script::%s, ' % sc)
+            print('},')
             id += 1
-    fout.write("};\n")
+    print("};")
 
 #------------------------------------------------------------------------------
 # genNomalizationPropertyTable
 #------------------------------------------------------------------------------
 
-def genNomalizationPropertyTable(ucd, out):
+def genNomalizationPropertyTable(ucd):
     fin = open(ucd + '/UnicodeData.txt')
-    fout = open(out + '/_normalization_properties.cpp', 'w')
 
     data = [x.rstrip().split(';') for x in fin]
     r = re.compile(r"(?:<(\w+)> )?(.+)")
@@ -653,16 +666,15 @@ def genNomalizationPropertyTable(ucd, out):
             codes = '0'
         values.append("{{{},{},{}}}".format(cls, compat, codes))
 
-    generateTable("NormalizationProperties", "{0,0,0}", fout, values)
+    generateTable('_normalization_properties', 'NormalizationProperties', "{0,0,0}", sys.stdout, values)
 
 #------------------------------------------------------------------------------
 # genNomalizationCompositionTable
 #------------------------------------------------------------------------------
 
-def genNomalizationCompositionTable(ucd, out):
+def genNomalizationCompositionTable(ucd):
     fin = open(ucd + '/UnicodeData.txt')
     finExclusions = open(ucd + '/CompositionExclusions.txt')
-    fout = open(out + '/_normalization_composition.cpp', 'w')
 
     data = [x.rstrip().split(';') for x in fin]
     r = re.compile(r"(?:<(\w+)> )?(.+)")
@@ -704,21 +716,21 @@ def genNomalizationCompositionTable(ucd, out):
             else:
                 exclusions.add(first)
 
-    fout.write("const std::unordered_map<std::u32string, char32_t> _normalization_composition = {\n")
+    print("const std::unordered_map<std::u32string, char32_t> _normalization_composition = {")
     for cp, codes in items():
         if not cp in exclusions:
-            fout.write('{ U"\\U%08X\\U%08X", 0x%08X },\n' % (codes[0], codes[1], cp))
-    fout.write("};\n")
+            print('{ U"\\U%08X\\U%08X", 0x%08X },' % (codes[0], codes[1], cp))
+    print("};")
 
 #------------------------------------------------------------------------------
 # genGraphemeBreakPropertyTable
 #------------------------------------------------------------------------------
 
-def genGraphemeBreakPropertyTable(ucd, out):
+def genGraphemeBreakPropertyTable(ucd):
     fin = open(ucd + '/auxiliary/GraphemeBreakProperty.txt')
-    fout = open(out + '/_grapheme_break_properties.cpp', 'w')
 
-    values = ['Unassigned'] * (MaxCopePoint + 1)
+    defval = 'Unassigned'
+    values = [defval] * (MaxCopePoint + 1)
     r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)\s*#.*")
 
     for line in fin:
@@ -734,17 +746,17 @@ def genGraphemeBreakPropertyTable(ucd, out):
             else:
                 values[codePoint] = value
 
-    generateTable("GraphemeBreak", "Unassigned", fout, values)
+    generateTable('_grapheme_break_properties', 'GraphemeBreak', defval, sys.stdout, values)
 
 #------------------------------------------------------------------------------
 # genWordBreakPropertyTable
 #------------------------------------------------------------------------------
 
-def genWordBreakPropertyTable(ucd, out):
+def genWordBreakPropertyTable(ucd):
     fin = open(ucd + '/auxiliary/WordBreakProperty.txt')
-    fout = open(out + '/_word_break_properties.cpp', 'w')
 
-    values = ['Unassigned'] * (MaxCopePoint + 1)
+    defval = 'Unassigned'
+    values = [defval] * (MaxCopePoint + 1)
     r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)\s*#.*")
 
     for line in fin:
@@ -760,17 +772,17 @@ def genWordBreakPropertyTable(ucd, out):
             else:
                 values[codePoint] = value
 
-    generateTable("WordBreak", "Unassigned", fout, values)
+    generateTable('_word_break_properties', 'WordBreak', defval, sys.stdout, values)
 
 #------------------------------------------------------------------------------
 # genSentenceBreakPropertyTable
 #------------------------------------------------------------------------------
 
-def genSentenceBreakPropertyTable(ucd, out):
+def genSentenceBreakPropertyTable(ucd):
     fin = open(ucd + '/auxiliary/SentenceBreakProperty.txt')
-    fout = open(out + '/_sentence_break_properties.cpp', 'w')
 
-    values = ['Unassigned'] * (MaxCopePoint + 1)
+    defval = 'Unassigned'
+    values = [defval] * (MaxCopePoint + 1)
     r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)\s*#.*")
 
     for line in fin:
@@ -786,17 +798,17 @@ def genSentenceBreakPropertyTable(ucd, out):
             else:
                 values[codePoint] = value
 
-    generateTable("SentenceBreak", "Unassigned", fout, values)
+    generateTable('_sentence_break_properties', 'SentenceBreak', defval, sys.stdout, values)
 
 #------------------------------------------------------------------------------
 # genEmojiPropertyTable
 #------------------------------------------------------------------------------
 
-def genEmojiPropertyTable(ucd, out):
+def genEmojiPropertyTable(ucd):
     fin = open(ucd + '/emoji/emoji-data.txt')
-    fout = open(out + '/_emoji_properties.cpp', 'w')
 
-    values = ['Unassigned'] * (MaxCopePoint + 1)
+    defval = 'Unassigned'
+    values = [defval] * (MaxCopePoint + 1)
     r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)\s*#.*")
 
     for line in fin:
@@ -812,31 +824,30 @@ def genEmojiPropertyTable(ucd, out):
             else:
                 values[codePoint] = value
 
-    generateTable("Emoji", "Unassigned", fout, values)
+    generateTable('_emoji_properties', 'Emoji', defval, sys.stdout, values)
 
 #------------------------------------------------------------------------------
 # Main
 #------------------------------------------------------------------------------
 
-if (len(sys.argv) < 3):
-    print('usage: python gen_tables.py UCD_DIR OUT_DIR')
+if (len(sys.argv) < 2):
+    print('usage: python gen_tables.py UCD_DIR')
 else:
     ucd = sys.argv[1]
-    out = sys.argv[2]
 
-    genGeneralCategoryPropertyTable(ucd, out)
-    genPropertyTable(ucd, out)
-    genDerivedCorePropertyTable(ucd, out)
-    genSimpleCaseMappingTable(ucd, out)
-    genSpecialCaseMappingTable(ucd, out)
-    genCaseFoldingTable(ucd, out)
-    genBlockPropertyTable(ucd, out)
-    genScriptPropertyTable(ucd, out)
-    genScriptExtensionIdTable(ucd, out)
-    genScriptExtensionPropertyForIdTable(ucd, out)
-    genNomalizationPropertyTable(ucd, out)
-    genNomalizationCompositionTable(ucd, out)
-    genGraphemeBreakPropertyTable(ucd, out)
-    genWordBreakPropertyTable(ucd, out)
-    genSentenceBreakPropertyTable(ucd, out)
-    genEmojiPropertyTable(ucd, out)
+    genGeneralCategoryPropertyTable(ucd)
+    genPropertyTable(ucd)
+    genDerivedCorePropertyTable(ucd)
+    genSimpleCaseMappingTable(ucd)
+    genSpecialCaseMappingTable(ucd)
+    genCaseFoldingTable(ucd)
+    genBlockPropertyTable(ucd)
+    genScriptPropertyTable(ucd)
+    genScriptExtensionIdTable(ucd)
+    genScriptExtensionPropertyForIdTable(ucd)
+    genNomalizationPropertyTable(ucd)
+    genNomalizationCompositionTable(ucd)
+    genGraphemeBreakPropertyTable(ucd)
+    genWordBreakPropertyTable(ucd)
+    genSentenceBreakPropertyTable(ucd)
+    genEmojiPropertyTable(ucd)
