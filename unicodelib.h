@@ -31157,6 +31157,9 @@ inline bool is_after_soft_dotted(const char32_t *s32, size_t l, size_t i) {
 
   // Before C: [\p{Soft_Dotted}] ([^\p{ccc=230} \p{ccc=0}])*
   auto pos = static_cast<int>(i) - 1;
+  if (pos >= static_cast<int>(l)) {
+    return false;
+  }
   while (pos >= 0 && !has_class_230_or_0(s32[pos])) {
     pos--;
   }
@@ -31206,6 +31209,9 @@ inline bool is_after_i(const char32_t *s32, size_t l, size_t i) {
 
   // Before C: [I] ([^\p{ccc=230} \p{ccc=0}])*
   auto pos = static_cast<int>(i) - 1;
+  if (pos >= static_cast<int>(l)) {
+    return false;
+  }
   while (pos >= 0 && !has_class_230_or_0(s32[pos])) {
     pos--;
   }
