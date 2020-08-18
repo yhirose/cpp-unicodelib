@@ -59,9 +59,23 @@ TEST_CASE("General category predicate functions", "[general category]") {
 // Property
 //-----------------------------------------------------------------------------
 
+TEST_CASE("Property", "[property]") {
+  REQUIRE(is_white_space(U'a') == false);
+  REQUIRE(is_white_space(U' ') == true);
+}
+
 //-----------------------------------------------------------------------------
 // Derived Property
 //-----------------------------------------------------------------------------
+
+TEST_CASE("Derived property", "[derived property]") {
+  REQUIRE(is_math(U'a') == false);
+  REQUIRE(is_math(U' ') == false);
+  REQUIRE(is_math(U'+') == true);
+  REQUIRE(is_alphabetic(U'a') == true);
+  REQUIRE(is_alphabetic(U' ') == false);
+  REQUIRE(is_alphabetic(U'+') == false);
+}
 
 //-----------------------------------------------------------------------------
 // Case

@@ -117,7 +117,7 @@ static size_t compose_hangul(const char32_t *source, size_t len,
 //-----------------------------------------------------------------------------
 
 GeneralCategory general_category(char32_t cp) {
-  return _general_category_properties[cp];
+  return _general_category_properties::get_value(cp);
 }
 
 bool is_cased_letter_category(GeneralCategory gc) {
@@ -287,131 +287,131 @@ const uint64_t Property_Prepended_Concatenation_Mark =
     0b100000000000000000000000000000000;
 
 bool is_white_space(char32_t cp) {
-  return (_properties[cp] & Property_White_Space) != 0;
+  return (_properties::get_value(cp) & Property_White_Space) != 0;
 }
 
 bool is_bidi_control(char32_t cp) {
-  return (_properties[cp] & Property_Bidi_Control) != 0;
+  return (_properties::get_value(cp) & Property_Bidi_Control) != 0;
 }
 
 bool is_join_control(char32_t cp) {
-  return (_properties[cp] & Property_Join_Control) != 0;
+  return (_properties::get_value(cp) & Property_Join_Control) != 0;
 }
 
-bool is_dash(char32_t cp) { return (_properties[cp] & Property_Dash) != 0; }
+bool is_dash(char32_t cp) { return (_properties::get_value(cp) & Property_Dash) != 0; }
 
-bool is_hyphen(char32_t cp) { return (_properties[cp] & Property_Hyphen) != 0; }
+bool is_hyphen(char32_t cp) { return (_properties::get_value(cp) & Property_Hyphen) != 0; }
 
 bool is_quotation_mark(char32_t cp) {
-  return (_properties[cp] & Property_Quotation_Mark) != 0;
+  return (_properties::get_value(cp) & Property_Quotation_Mark) != 0;
 }
 
 bool is_terminal_punctuation(char32_t cp) {
-  return (_properties[cp] & Property_Terminal_Punctuation) != 0;
+  return (_properties::get_value(cp) & Property_Terminal_Punctuation) != 0;
 }
 
 bool is_other_math(char32_t cp) {
-  return (_properties[cp] & Property_Other_Math) != 0;
+  return (_properties::get_value(cp) & Property_Other_Math) != 0;
 }
 
 bool is_hex_digit(char32_t cp) {
-  return (_properties[cp] & Property_Hex_Digit) != 0;
+  return (_properties::get_value(cp) & Property_Hex_Digit) != 0;
 }
 
 bool is_ascii_hex_digit(char32_t cp) {
-  return (_properties[cp] & Property_ASCII_Hex_Digit) != 0;
+  return (_properties::get_value(cp) & Property_ASCII_Hex_Digit) != 0;
 }
 
 bool is_other_alphabetic(char32_t cp) {
-  return (_properties[cp] & Property_Other_Alphabetic) != 0;
+  return (_properties::get_value(cp) & Property_Other_Alphabetic) != 0;
 }
 
 bool is_ideographic(char32_t cp) {
-  return (_properties[cp] & Property_Ideographic) != 0;
+  return (_properties::get_value(cp) & Property_Ideographic) != 0;
 }
 
 bool is_diacritic(char32_t cp) {
-  return (_properties[cp] & Property_Diacritic) != 0;
+  return (_properties::get_value(cp) & Property_Diacritic) != 0;
 }
 
 bool is_extender(char32_t cp) {
-  return (_properties[cp] & Property_Extender) != 0;
+  return (_properties::get_value(cp) & Property_Extender) != 0;
 }
 
 bool is_other_lowercase(char32_t cp) {
-  return (_properties[cp] & Property_Other_Lowercase) != 0;
+  return (_properties::get_value(cp) & Property_Other_Lowercase) != 0;
 }
 
 bool is_other_uppercase(char32_t cp) {
-  return (_properties[cp] & Property_Other_Uppercase) != 0;
+  return (_properties::get_value(cp) & Property_Other_Uppercase) != 0;
 }
 
 bool is_noncharacter_code_point(char32_t cp) {
-  return (_properties[cp] & Property_Noncharacter_Code_Point) != 0;
+  return (_properties::get_value(cp) & Property_Noncharacter_Code_Point) != 0;
 }
 
 bool is_other_grapheme_extend(char32_t cp) {
-  return (_properties[cp] & Property_Other_Grapheme_Extend) != 0;
+  return (_properties::get_value(cp) & Property_Other_Grapheme_Extend) != 0;
 }
 
 bool is_ids_binary_operator(char32_t cp) {
-  return (_properties[cp] & Property_IDS_Binary_Operator) != 0;
+  return (_properties::get_value(cp) & Property_IDS_Binary_Operator) != 0;
 }
 
 bool is_ids_trinary_operator(char32_t cp) {
-  return (_properties[cp] & Property_IDS_Trinary_Operator) != 0;
+  return (_properties::get_value(cp) & Property_IDS_Trinary_Operator) != 0;
 }
 
 bool is_radical(char32_t cp) {
-  return (_properties[cp] & Property_Radical) != 0;
+  return (_properties::get_value(cp) & Property_Radical) != 0;
 }
 
 bool is_unified_ideograph(char32_t cp) {
-  return (_properties[cp] & Property_Unified_Ideograph) != 0;
+  return (_properties::get_value(cp) & Property_Unified_Ideograph) != 0;
 }
 
 bool is_other_default_ignorable_code_point(char32_t cp) {
-  return (_properties[cp] & Property_Other_Default_Ignorable_Code_Point) != 0;
+  return (_properties::get_value(cp) & Property_Other_Default_Ignorable_Code_Point) != 0;
 }
 
 bool is_deprecated(char32_t cp) {
-  return (_properties[cp] & Property_Deprecated) != 0;
+  return (_properties::get_value(cp) & Property_Deprecated) != 0;
 }
 
 bool is_soft_dotted(char32_t cp) {
-  return (_properties[cp] & Property_Soft_Dotted) != 0;
+  return (_properties::get_value(cp) & Property_Soft_Dotted) != 0;
 }
 
 bool is_logical_order_exception(char32_t cp) {
-  return (_properties[cp] & Property_Logical_Order_Exception) != 0;
+  return (_properties::get_value(cp) & Property_Logical_Order_Exception) != 0;
 }
 
 bool is_other_id_start(char32_t cp) {
-  return (_properties[cp] & Property_Other_ID_Start) != 0;
+  return (_properties::get_value(cp) & Property_Other_ID_Start) != 0;
 }
 
 bool is_other_id_continue(char32_t cp) {
-  return (_properties[cp] & Property_Other_ID_Continue) != 0;
+  return (_properties::get_value(cp) & Property_Other_ID_Continue) != 0;
 }
 
 bool is_sentence_terminal(char32_t cp) {
-  return (_properties[cp] & Property_Sentence_Terminal) != 0;
+  return (_properties::get_value(cp) & Property_Sentence_Terminal) != 0;
 }
 
 bool is_variation_selector(char32_t cp) {
-  return (_properties[cp] & Property_Variation_Selector) != 0;
+  return (_properties::get_value(cp) & Property_Variation_Selector) != 0;
 }
 
 bool is_pattern_white_space(char32_t cp) {
-  return (_properties[cp] & Property_Pattern_White_Space) != 0;
+  return (_properties::get_value(cp) & Property_Pattern_White_Space) != 0;
 }
 
 bool is_pattern_syntax(char32_t cp) {
-  return (_properties[cp] & Property_Pattern_Syntax) != 0;
+  return (_properties::get_value(cp) & Property_Pattern_Syntax) != 0;
 }
 
 bool is_prepended_concatenation_mark(char32_t cp) {
-  return (_properties[cp] & Property_Prepended_Concatenation_Mark) != 0;
+  return (_properties::get_value(cp) & Property_Prepended_Concatenation_Mark) != 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -450,85 +450,85 @@ const uint32_t DerivedProperty_Grapheme_Link =
     0b00000000000001000000000000000000;
 
 bool is_math(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_Math) != 0;
+  return (_derived_core_properties::get_value(cp) & DerivedProperty_Math) != 0;
 }
 
 bool is_alphabetic(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_Alphabetic) != 0;
+  return (_derived_core_properties::get_value(cp) & DerivedProperty_Alphabetic) != 0;
 }
 
 bool is_lowercase(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_Lowercase) != 0;
+  return (_derived_core_properties::get_value(cp) & DerivedProperty_Lowercase) != 0;
 }
 
 bool is_uppercase(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_Uppercase) != 0;
+  return (_derived_core_properties::get_value(cp) & DerivedProperty_Uppercase) != 0;
 }
 
 bool is_cased(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_Cased) != 0;
+  return (_derived_core_properties::get_value(cp) & DerivedProperty_Cased) != 0;
 }
 
 bool is_case_ignorable(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_Case_Ignorable) != 0;
+  return (_derived_core_properties::get_value(cp) & DerivedProperty_Case_Ignorable) != 0;
 }
 
 bool is_changes_when_lowercased(char32_t cp) {
-  return (_derived_core_properties[cp] &
+  return (_derived_core_properties::get_value(cp) &
           DerivedProperty_Changes_When_Lowercased) != 0;
 }
 
 bool is_changes_when_uppercased(char32_t cp) {
-  return (_derived_core_properties[cp] &
+  return (_derived_core_properties::get_value(cp) &
           DerivedProperty_Changes_When_Uppercased) != 0;
 }
 
 bool is_changes_when_titlecased(char32_t cp) {
-  return (_derived_core_properties[cp] &
+  return (_derived_core_properties::get_value(cp) &
           DerivedProperty_Changes_When_Titlecased) != 0;
 }
 
 bool is_changes_when_casefolded(char32_t cp) {
-  return (_derived_core_properties[cp] &
+  return (_derived_core_properties::get_value(cp) &
           DerivedProperty_Changes_When_Casefolded) != 0;
 }
 
 bool is_changes_when_casemapped(char32_t cp) {
-  return (_derived_core_properties[cp] &
+  return (_derived_core_properties::get_value(cp) &
           DerivedProperty_Changes_When_Casemapped) != 0;
 }
 
 bool is_id_start(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_ID_Start) != 0;
+  return (_derived_core_properties::get_value(cp) & DerivedProperty_ID_Start) != 0;
 }
 
 bool is_id_continue(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_ID_Continue) != 0;
+  return (_derived_core_properties::get_value(cp) & DerivedProperty_ID_Continue) != 0;
 }
 
 bool is_xid_start(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_XID_Start) != 0;
+  return (_derived_core_properties::get_value(cp) & DerivedProperty_XID_Start) != 0;
 }
 
 bool is_xid_continue(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_XID_Continue) != 0;
+  return (_derived_core_properties::get_value(cp) & DerivedProperty_XID_Continue) != 0;
 }
 
 bool is_default_ignorable_code_point(char32_t cp) {
-  return (_derived_core_properties[cp] &
+  return (_derived_core_properties::get_value(cp) &
           DerivedProperty_Default_Ignorable_Code_Point) != 0;
 }
 
 bool is_grapheme_extend(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_Grapheme_Extend) != 0;
+  return (_derived_core_properties::get_value(cp) & DerivedProperty_Grapheme_Extend) != 0;
 }
 
 bool is_grapheme_base(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_Grapheme_Base) != 0;
+  return (_derived_core_properties::get_value(cp) & DerivedProperty_Grapheme_Base) != 0;
 }
 
 bool is_grapheme_link(char32_t cp) {
-  return (_derived_core_properties[cp] & DerivedProperty_Grapheme_Link) != 0;
+  return (_derived_core_properties::get_value(cp) & DerivedProperty_Grapheme_Link) != 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -536,7 +536,7 @@ bool is_grapheme_link(char32_t cp) {
 //-----------------------------------------------------------------------------
 
 int combining_class(char32_t cp) {
-  return _normalization_properties[cp].combining_class;
+  return _normalization_properties::get_value(cp).combining_class;
 }
 
 //-----------------------------------------------------------------------------
@@ -998,21 +998,21 @@ static bool is_standard_korean_syllable_block(const char32_t *s32, size_t l,
   // by a sequence of one or more V and a sequence of zero or more T, or any
   // other sequence that is canonically equivalent.
   size_t i = 0;
-  if (i == l || _grapheme_break_properties[s32[i]] != GraphemeBreak::L) {
+  if (i == l || _grapheme_break_properties::get_value(s32[i]) != GraphemeBreak::L) {
     return false;
   }
   i++;
-  while (i < l && _grapheme_break_properties[s32[i]] == GraphemeBreak::L) {
+  while (i < l && _grapheme_break_properties::get_value(s32[i]) == GraphemeBreak::L) {
     i++;
   }
-  if (i == l || _grapheme_break_properties[s32[i]] != GraphemeBreak::V) {
+  if (i == l || _grapheme_break_properties::get_value(s32[i]) != GraphemeBreak::V) {
     return false;
   }
   i++;
-  while (i < l && _grapheme_break_properties[s32[i]] == GraphemeBreak::V) {
+  while (i < l && _grapheme_break_properties::get_value(s32[i]) == GraphemeBreak::V) {
     i++;
   }
-  while (i < l || _grapheme_break_properties[s32[i]] == GraphemeBreak::T) {
+  while (i < l || _grapheme_break_properties::get_value(s32[i]) == GraphemeBreak::T) {
     i++;
   }
   length = i;
@@ -1129,8 +1129,8 @@ bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
     return true;
   }
 
-  auto lp = _grapheme_break_properties[s32[i - 1]];
-  auto rp = _grapheme_break_properties[s32[i]];
+  auto lp = _grapheme_break_properties::get_value(s32[i - 1]);
+  auto rp = _grapheme_break_properties::get_value(s32[i]);
 
   //---------------------------------------------------------------------------
   // Do not break between a CR and LF. Otherwise, break before and after
@@ -1207,16 +1207,16 @@ bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
 
   // GB11: \p{Extended_Pictographic} Extend* ZWJ x \p{Extended_Pictographic}
   {
-    auto rpEmoji = _emoji_properties[s32[i]];
+    auto rpEmoji = _emoji_properties::get_value(s32[i]);
 
     if (lp == GraphemeBreak::ZWJ && rpEmoji == Emoji::Extended_Pictographic) {
       auto pos = static_cast<int>(i) - 2;
       while (pos >= 0 &&
-             _grapheme_break_properties[s32[pos]] == GraphemeBreak::Extend) {
+             _grapheme_break_properties::get_value(s32[pos]) == GraphemeBreak::Extend) {
         pos--;
       }
       if (pos >= 0) {
-        auto lpEmoji = _emoji_properties[s32[pos]];
+        auto lpEmoji = _emoji_properties::get_value(s32[pos]);
         if (lpEmoji == Emoji::Extended_Pictographic) {
           return false;
         }
@@ -1236,16 +1236,16 @@ bool is_grapheme_boundary(const char32_t *s32, size_t l, size_t i) {
       rp == GraphemeBreak::Regional_Indicator) {
     auto pos = static_cast<int>(i) - 2;
     while (pos >= 1 &&
-           _grapheme_break_properties[s32[pos]] ==
+           _grapheme_break_properties::get_value(s32[pos]) ==
                GraphemeBreak::Regional_Indicator &&
-           _grapheme_break_properties[s32[pos - 1]] ==
+           _grapheme_break_properties::get_value(s32[pos - 1]) ==
                GraphemeBreak::Regional_Indicator) {
       pos -= 2;
     }
     if (pos < 0) {
       return false;
     }
-    if (_grapheme_break_properties[s32[pos]] !=
+    if (_grapheme_break_properties::get_value(s32[pos]) !=
         GraphemeBreak::Regional_Indicator) {
       return false;
     }
@@ -1296,7 +1296,7 @@ static int previous_word_break_property_position(const char32_t *s32,
   auto prop = WordBreak::Unassigned;
   auto pos = static_cast<int>(i) - 1;
   while (pos >= 0) {
-    prop = _word_break_properties[s32[pos]];
+    prop = _word_break_properties::get_value(s32[pos]);
     if (prop != WordBreak::Extend && prop != WordBreak::Format &&
         prop != WordBreak::ZWJ) {
       break;
@@ -1311,7 +1311,7 @@ static size_t next_word_break_property_position(const char32_t *s32, size_t l,
   auto prop = WordBreak::Unassigned;
   auto pos = i + 1;
   while (pos < l) {
-    prop = _word_break_properties[s32[pos]];
+    prop = _word_break_properties::get_value(s32[pos]);
     if (prop != WordBreak::Extend && prop != WordBreak::Format &&
         prop != WordBreak::ZWJ) {
       break;
@@ -1336,8 +1336,8 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
     return true;
   }
 
-  auto lp = _word_break_properties[s32[i - 1]];
-  auto rp = _word_break_properties[s32[i]];
+  auto lp = _word_break_properties::get_value(s32[i - 1]);
+  auto rp = _word_break_properties::get_value(s32[i]);
 
   //---------------------------------------------------------------------------
   // Do not break within CRLF
@@ -1370,7 +1370,7 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
 
   // WB3c: ZWJ x \p{Extended_Pictographic}
   {
-    auto rpEmoji = _emoji_properties[s32[i]];
+    auto rpEmoji = _emoji_properties::get_value(s32[i]);
 
     if (lp == WordBreak::ZWJ && rpEmoji == Emoji::Extended_Pictographic) {
       return false;
@@ -1402,7 +1402,7 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   lp = WordBreak::Unassigned;
   auto lpos = previous_word_break_property_position(s32, i);
   if (lpos >= 0) {
-    lp = _word_break_properties[s32[lpos]];
+    lp = _word_break_properties::get_value(s32[lpos]);
   }
 
   //---------------------------------------------------------------------------
@@ -1421,7 +1421,7 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   auto rp1 = WordBreak::Unassigned;
   auto rpos = next_word_break_property_position(s32, l, i);
   if (rpos < l) {
-    rp1 = _word_break_properties[s32[rpos]];
+    rp1 = _word_break_properties::get_value(s32[rpos]);
   }
 
   // WB6: AHLetter × (MidLetter | MidNumLetQ) AHLetter
@@ -1433,7 +1433,7 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   auto lp1 = WordBreak::Unassigned;
   lpos = previous_word_break_property_position(s32, lpos);
   if (lpos >= 0) {
-    lp1 = _word_break_properties[s32[lpos]];
+    lp1 = _word_break_properties::get_value(s32[lpos]);
   }
 
   // WB7: AHLetter (MidLetter | MidNumLetQ) × AHLetter
@@ -1538,13 +1538,13 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
 
       while (true) {
         lpos = previous_word_break_property_position(s32, lpos);
-        if (lpos < 0 || _word_break_properties[s32[lpos]] !=
+        if (lpos < 0 || _word_break_properties::get_value(s32[lpos]) !=
                             WordBreak::Regional_Indicator) {
           return false;
         }
 
         lpos = previous_word_break_property_position(s32, lpos);
-        if (lpos < 0 || _word_break_properties[s32[lpos]] !=
+        if (lpos < 0 || _word_break_properties::get_value(s32[lpos]) !=
                             WordBreak::Regional_Indicator) {
           break;
         }
@@ -1578,7 +1578,7 @@ static int previous_sentence_break_property_position(const char32_t *s32,
   auto prop = SentenceBreak::Unassigned;
   auto pos = static_cast<int>(i) - 1;
   while (pos >= 0) {
-    prop = _sentence_break_properties[s32[pos]];
+    prop = _sentence_break_properties::get_value(s32[pos]);
     if (prop != SentenceBreak::Extend && prop != SentenceBreak::Format) {
       break;
     }
@@ -1591,7 +1591,7 @@ static size_t next_sentence_break_property_position(const char32_t *s32,
                                                     size_t l, size_t i) {
   auto pos = i + 1;
   while (pos < l) {
-    auto prop = _sentence_break_properties[s32[pos]];
+    auto prop = _sentence_break_properties::get_value(s32[pos]);
     if (prop != SentenceBreak::Extend && prop != SentenceBreak::Format) {
       break;
     }
@@ -1619,8 +1619,8 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
   // Do not break within CRLF.
   //---------------------------------------------------------------------------
 
-  auto lp = _sentence_break_properties[s32[i - 1]];
-  auto rp = _sentence_break_properties[s32[i]];
+  auto lp = _sentence_break_properties::get_value(s32[i - 1]);
+  auto rp = _sentence_break_properties::get_value(s32[i]);
 
   // SB3: CR × LF
   if ((lp == SentenceBreak::CR) && (rp == SentenceBreak::LF)) {
@@ -1651,7 +1651,7 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
   lp = SentenceBreak::Unassigned;
   auto lpos = previous_sentence_break_property_position(s32, i);
   if (lpos >= 0) {
-    lp = _sentence_break_properties[s32[lpos]];
+    lp = _sentence_break_properties::get_value(s32[lpos]);
   }
 
   //---------------------------------------------------------------------------
@@ -1667,7 +1667,7 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
   if (lpos > 0) {
     lpos = previous_sentence_break_property_position(s32, lpos);
     if (lpos >= 0) {
-      lp1 = _sentence_break_properties[s32[lpos]];
+      lp1 = _sentence_break_properties::get_value(s32[lpos]);
     }
   }
 
@@ -1683,14 +1683,14 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
     lp2 = SentenceBreak::Unassigned;
     auto pos = previous_sentence_break_property_position(s32, i);
     while (pos >= 0) {
-      lp2 = _sentence_break_properties[s32[pos]];
+      lp2 = _sentence_break_properties::get_value(s32[pos]);
       if (lp2 != SentenceBreak::Sp) {
         break;
       }
       pos = previous_sentence_break_property_position(s32, pos);
     }
     while (pos >= 0) {
-      lp2 = _sentence_break_properties[s32[pos]];
+      lp2 = _sentence_break_properties::get_value(s32[pos]);
       if (lp2 != SentenceBreak::Close) {
         break;
       }
@@ -1702,7 +1702,7 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
   {
     size_t pos = i;
     while (pos < l) {
-      rp2 = _sentence_break_properties[s32[pos]];
+      rp2 = _sentence_break_properties::get_value(s32[pos]);
       if (ParaSep(rp2) || SATerm(rp2) || rp2 == SentenceBreak::OLetter ||
           rp2 == SentenceBreak::Upper || rp2 == SentenceBreak::Lower) {
         break;
@@ -1726,7 +1726,7 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
   {
     auto pos = previous_sentence_break_property_position(s32, i);
     while (pos >= 0) {
-      lp3 = _sentence_break_properties[s32[pos]];
+      lp3 = _sentence_break_properties::get_value(s32[pos]);
       if (lp3 != SentenceBreak::Close) {
         break;
       }
@@ -1768,20 +1768,20 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
 // Block
 //-----------------------------------------------------------------------------
 
-Block block(char32_t cp) { return _block_properties[cp]; }
+Block block(char32_t cp) { return _block_properties::get_value(cp); }
 
 //-----------------------------------------------------------------------------
 // Script
 //-----------------------------------------------------------------------------
 
-Script script(char32_t cp) { return _script_properties[cp]; }
+Script script(char32_t cp) { return _script_properties::get_value(cp); }
 
 bool is_script(Script sc, char32_t cp) {
   auto val = script(cp);
   switch (val) {
     case Script::Common:
     case Script::Inherited: {
-      auto id = _script_extension_ids[cp];
+      auto id = _script_extension_ids::get_value(cp);
       const auto &props = _script_extension_properties_for_id[id];
       return std::find(props.begin(), props.end(), sc) != props.end();
     }
@@ -1806,7 +1806,7 @@ static void decompose_code(const char32_t cp, std::u32string &out,
   if (hangul::is_precomposed_syllable(cp)) {
     hangul::decompose_hangul(cp, out);
   } else {
-    const auto &prop = _normalization_properties[cp];
+    const auto &prop = _normalization_properties::get_value(cp);
     if (prop.codes && (!prop.compat_format || norm == Normalization::NFKC ||
                        norm == Normalization::NFKD)) {
       size_t i = 0;
@@ -1831,7 +1831,7 @@ static std::u32string decompose(const char32_t *s32, size_t l,
 
   // Reorder combining marks with 'Canonical Ordering Algorithm'.
   for (size_t i = 0; i < out.length(); i++) {
-    const auto &prop = _normalization_properties[out[i]];
+    const auto &prop = _normalization_properties::get_value(out[i]);
     if (prop.combining_class > 0) {
       for (size_t j = i; j > 0; j--) {
         auto prev = out[j - 1];
@@ -1870,7 +1870,7 @@ static size_t compose_codes(const char32_t *s32, size_t l,
     size_t i = 1;
     for (; i < l; i++) {
       if (!cheched[i]) {
-        auto klass = _normalization_properties[s32[i]].combining_class;
+        auto klass = _normalization_properties::get_value(s32[i]).combining_class;
         if (max_class < klass) {
           if (compose_pair(starter, s32[i], starter)) {
             handled = true;
@@ -1891,7 +1891,7 @@ static size_t compose_codes(const char32_t *s32, size_t l,
   size_t i = 1;
   for (; i < l; i++) {
     if (!cheched[i]) {
-      if (_normalization_properties[s32[i]].combining_class == 0) {
+      if (_normalization_properties::get_value(s32[i]).combining_class == 0) {
         break;
       }
       out += s32[i];

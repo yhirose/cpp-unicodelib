@@ -130,28 +130,25 @@ enum class Emoji {
   Extended_Pictographic,
 };
 
-extern const GeneralCategory _general_category_properties[];
-extern const uint64_t _properties[];
-extern const uint32_t _derived_core_properties[];
-extern const std::unordered_map<char32_t, const char32_t *>
-    _simple_case_mappings;
-extern const std::unordered_multimap<char32_t, SpecialCasing>
-    _special_case_mappings;
-extern const std::unordered_multimap<char32_t, SpecialCasing>
-    _special_case_mappings_default;
+extern const std::unordered_map<char32_t, const char32_t *> _simple_case_mappings;
+extern const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings;
+extern const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings_default;
 extern const std::unordered_map<char32_t, CaseFolding> _case_foldings;
-extern const Block _block_properties[];
-extern const Script _script_properties[];
-extern const int _script_extension_ids[];
-extern const std::vector<std::vector<Script>>
-    _script_extension_properties_for_id;
-extern const NormalizationProperties _normalization_properties[];
-extern const std::unordered_map<std::u32string, char32_t>
-    _normalization_composition;
-extern const GraphemeBreak _grapheme_break_properties[];
-extern const WordBreak _word_break_properties[];
-extern const SentenceBreak _sentence_break_properties[];
-extern const Emoji _emoji_properties[];
+
+extern const std::unordered_map<std::u32string, char32_t> _normalization_composition;
+extern const std::vector<std::vector<Script>> _script_extension_properties_for_id;
+
+namespace _block_properties { extern Block get_value(char32_t cp); }
+namespace _derived_core_properties { extern uint32_t get_value(char32_t cp); }
+namespace _emoji_properties { extern Emoji get_value(char32_t cp); }
+namespace _general_category_properties{ extern GeneralCategory get_value(char32_t cp); }
+namespace _grapheme_break_properties{ extern GraphemeBreak get_value(char32_t cp); }
+namespace _normalization_properties { extern NormalizationProperties get_value(char32_t cp); }
+namespace _properties { extern uint64_t get_value(char32_t cp); }
+namespace _script_extension_ids { extern int get_value(char32_t cp); }
+namespace _script_properties { extern Script get_value(char32_t cp); }
+namespace _sentence_break_properties { extern SentenceBreak get_value(char32_t cp); }
+namespace _word_break_properties { extern WordBreak get_value(char32_t cp); }
 
 }  // namespace unicode
 
