@@ -9,6 +9,7 @@
 #define _CPPUNICODELIB_UNICODELIB_H_
 
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -31251,7 +31252,6 @@ inline void full_case_mapping(const char32_t *s32, size_t l, size_t i,
   // D138 A character C is in a particular casing context for context-dependent
   // matching if and only if it matches the corresponding specification in Table
   // 3-17.
-  assert(i < l);
   auto cp = s32[i];
   auto count = _special_case_mappings.count(cp);
   if (count != 0) {
