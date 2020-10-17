@@ -7,3 +7,5 @@ endif()
 
 add_subdirectory(test)
 enable_testing()
+
+install(FILES unicodelib.h unicodelib_encodings.h aaa.h DESTINATION include)
