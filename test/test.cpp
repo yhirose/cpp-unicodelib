@@ -292,7 +292,7 @@ void read_text_segmentation_test_file(const char *path, T callback) {
 }
 
 TEST_CASE("Grapheme cluster segmentation", "[segmentation]") {
-  auto path = "../../UCD/auxiliary/GraphemeBreakTest.txt";
+  auto path = "../UCD/auxiliary/GraphemeBreakTest.txt";
   read_text_segmentation_test_file(
       path,
       [](const auto &s32, const auto &boundary, auto expected_count, auto ln) {
@@ -306,7 +306,7 @@ TEST_CASE("Grapheme cluster segmentation", "[segmentation]") {
 }
 
 TEST_CASE("Word segmentation", "[segmentation]") {
-  auto path = "../../UCD/auxiliary/WordBreakTest.txt";
+  auto path = "../UCD/auxiliary/WordBreakTest.txt";
   read_text_segmentation_test_file(
       path,
       [](const auto &s32, const auto &boundary, auto expected_count, auto ln) {
@@ -318,7 +318,7 @@ TEST_CASE("Word segmentation", "[segmentation]") {
 }
 
 TEST_CASE("Sentence segmentation", "[segmentation]") {
-  auto path = "../../UCD/auxiliary/SentenceBreakTest.txt";
+  auto path = "../UCD/auxiliary/SentenceBreakTest.txt";
   read_text_segmentation_test_file(
       path,
       [](const auto &s32, const auto &boundary, auto expected_count, auto ln) {
@@ -358,7 +358,7 @@ TEST_CASE("Script extension", "[script]") {
 //-----------------------------------------------------------------------------
 
 TEST_CASE("Normalization", "[normalization]") {
-  ifstream fs("../../UCD/NormalizationTest.txt");
+  ifstream fs("../UCD/NormalizationTest.txt");
   REQUIRE(fs);
 
   std::string line;

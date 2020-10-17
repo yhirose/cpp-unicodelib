@@ -1,8 +1,13 @@
-cmake_minimum_required(VERSION 3.0)
-project("cpp-unicodelib")
+cmake_minimum_required(VERSION 3.1.0)
+project(test)
 
 include_directories(..)
-
-add_definitions("-std=c++1y -Werror -Wmost -Wnon-virtual-dtor -Woverloaded-virtual -Wfuture-compat -Wunused-lambda-capture -Wsometimes-uninitialized -Winconsistent-missing-destructor-override -Wshadow-uncaptured-local -Wold-style-cast -Wrange-loop-analysis -Wunused-macros")
+set(CMAKE_CXX_STANDARD 17)
 
 add_executable(test-main test.cpp test2.cpp)
+
+enable_testing()
+add_test(
+  NAME TestMain
+  COMMAND test-main
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

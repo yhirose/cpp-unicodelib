@@ -1,6 +1,8 @@
 cpp-unicodelib
 ==============
 
+[![](https://github.com/yhirose/cpp-unicodelib/workflows/CMake/badge.svg)](https://github.com/yhirose/cpp-unicodelib/actions)
+
 A C++11 single-file header-only Unicode library. (Unicode 13.0)
 
 API
