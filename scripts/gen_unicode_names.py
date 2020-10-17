@@ -38,8 +38,7 @@ def genUnicodeSymbols(ucd):
     aliases = getNameAliases(ucd)
 
     print('''
-#ifndef _CPPUNICODELIB_UNICODELIB_NAMES_H_
-#define _CPPUNICODELIB_UNICODELIB_NAMES_H_
+#pragma once
 
 #include <cstdlib>
 
@@ -59,8 +58,6 @@ namespace unicode {
 
     print('''
 } // namespace unicode
-
-#endif
 ''')
 
 if (len(sys.argv) < 2):

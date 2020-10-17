@@ -1,6 +1,5 @@
 
-#ifndef _CPPUNICODELIB_UNICODELIB_NAMES_H_
-#define _CPPUNICODELIB_UNICODELIB_NAMES_H_
+#pragma once
 
 #include <cstdlib>
 

@@ -1,15 +1,18 @@
 //
 //  unicodelib_encodings.h
 //
-//  Copyright (c) 2018 Yuji Hirose. All rights reserved.
+//  Copyright (c) 2020 Yuji Hirose. All rights reserved.
 //  MIT License
 //
 
-#ifndef _CPPUNICODELIB_UNICODELIB_ENCODINGS_H_
-#define _CPPUNICODELIB_UNICODELIB_ENCODINGS_H_
+#pragma once
 
 #include <cstdlib>
 #include <string>
+
+#if !defined(__cplusplus) || __cplusplus < 201703L
+#error "Requires complete C++17 support"
+#endif
 
 /*
 
@@ -356,20 +359,12 @@ inline void decode(const char16_t *s16, size_t l, std::u32string &out) {
 
 namespace utf8 {
 
-inline size_t codepoint_length(const std::string &s8) {
+inline size_t codepoint_length(std::string_view s8) {
   return codepoint_length(s8.data(), s8.length());
 }
 
-inline size_t codepoint_length(const char *s8) {
-  return codepoint_length(s8, std::char_traits<char>::length(s8));
-}
-
-inline size_t codepoint_count(const std::string &s8) {
+inline size_t codepoint_count(std::string_view s8) {
   return codepoint_count(s8.data(), s8.length());
-}
-
-inline size_t codepoint_count(const char *s8) {
-  return codepoint_count(s8, std::char_traits<char>::length(s8));
 }
 
 inline std::string encode_codepoint(char32_t cp) {
@@ -378,12 +373,8 @@ inline std::string encode_codepoint(char32_t cp) {
   return out;
 }
 
-inline void encode(const std::u32string &s32, std::string &out) {
+inline void encode(std::u32string_view s32, std::string &out) {
   encode(s32.data(), s32.length(), out);
-}
-
-inline void encode(const char32_t *s32, std::string &out) {
-  encode(s32, std::char_traits<char32_t>::length(s32), out);
 }
 
 inline std::string encode(const char32_t *s32, size_t l) {
@@ -392,20 +383,12 @@ inline std::string encode(const char32_t *s32, size_t l) {
   return out;
 }
 
-inline std::string encode(const std::u32string &s32) {
+inline std::string encode(std::u32string_view s32) {
   return encode(s32.data(), s32.length());
 }
 
-inline std::string encode(const char32_t *s32) {
-  return encode(s32, std::char_traits<char32_t>::length(s32));
-}
-
-inline size_t decode_codepoint(const std::string &s8, char32_t &cp) {
+inline size_t decode_codepoint(std::string_view s8, char32_t &cp) {
   return decode_codepoint(s8.data(), s8.length(), cp);
-}
-
-inline size_t decode_codepoint(const char *s8, char32_t &cp) {
-  return decode_codepoint(s8, std::char_traits<char>::length(s8), cp);
 }
 
 inline char32_t decode_codepoint(const char *s8, size_t l) {
@@ -414,20 +397,12 @@ inline char32_t decode_codepoint(const char *s8, size_t l) {
   return out;
 }
 
-inline char32_t decode_codepoint(const std::string &s8) {
+inline char32_t decode_codepoint(std::string_view s8) {
   return decode_codepoint(s8.data(), s8.length());
 }
 
-inline char32_t decode_codepoint(const char *s8) {
-  return decode_codepoint(s8, std::char_traits<char>::length(s8));
-}
-
-inline void decode(const std::string &s8, std::u32string &out) {
+inline void decode(std::string_view s8, std::u32string &out) {
   decode(s8.data(), s8.length(), out);
-}
-
-inline void decode(const char *s8, std::u32string &out) {
-  decode(s8, std::char_traits<char>::length(s8), out);
 }
 
 inline std::u32string decode(const char *s8, size_t l) {
@@ -436,32 +411,20 @@ inline std::u32string decode(const char *s8, size_t l) {
   return out;
 }
 
-inline std::u32string decode(const std::string &s8) {
+inline std::u32string decode(std::string_view s8) {
   return decode(s8.data(), s8.length());
-}
-
-inline std::u32string decode(const char *s8) {
-  return decode(s8, std::char_traits<char>::length(s8));
 }
 
 }  // namespace utf8
 
 namespace utf16 {
 
-inline size_t codepoint_length(const std::u16string &s16) {
+inline size_t codepoint_length(std::u16string_view s16) {
   return codepoint_length(s16.data(), s16.length());
 }
 
-inline size_t codepoint_length(const char16_t *s16) {
-  return codepoint_length(s16, std::char_traits<char16_t>::length(s16));
-}
-
-inline size_t codepoint_count(const std::u16string &s16) {
+inline size_t codepoint_count(std::u16string_view s16) {
   return codepoint_count(s16.data(), s16.length());
-}
-
-inline size_t codepoint_count(const char16_t *s16) {
-  return codepoint_count(s16, std::char_traits<char16_t>::length(s16));
 }
 
 inline std::u16string encode_codepoint(char32_t cp) {
@@ -470,12 +433,8 @@ inline std::u16string encode_codepoint(char32_t cp) {
   return out;
 }
 
-inline void encode(const std::u32string &s32, std::u16string &out) {
+inline void encode(std::u32string_view s32, std::u16string &out) {
   encode(s32.data(), s32.length(), out);
-}
-
-inline void encode(const char32_t *s32, std::u16string &out) {
-  encode(s32, std::char_traits<char32_t>::length(s32), out);
 }
 
 inline std::u16string encode(const char32_t *s32, size_t l) {
@@ -484,20 +443,12 @@ inline std::u16string encode(const char32_t *s32, size_t l) {
   return out;
 }
 
-inline std::u16string encode(const std::u32string &s32) {
+inline std::u16string encode(std::u32string_view s32) {
   return encode(s32.data(), s32.length());
 }
 
-inline std::u16string encode(const char32_t *s32) {
-  return encode(s32, std::char_traits<char32_t>::length(s32));
-}
-
-inline size_t decode_codepoint(const std::u16string &s16, char32_t &cp) {
+inline size_t decode_codepoint(std::u16string_view s16, char32_t &cp) {
   return decode_codepoint(s16.data(), s16.length(), cp);
-}
-
-inline size_t decode_codepoint(const char16_t *s16, char32_t &cp) {
-  return decode_codepoint(s16, std::char_traits<char16_t>::length(s16), cp);
 }
 
 inline char32_t decode_codepoint(const char16_t *s16, size_t l) {
@@ -506,20 +457,12 @@ inline char32_t decode_codepoint(const char16_t *s16, size_t l) {
   return out;
 }
 
-inline char32_t decode_codepoint(const std::u16string &s16) {
+inline char32_t decode_codepoint(std::u16string_view s16) {
   return decode_codepoint(s16.data(), s16.length());
 }
 
-inline char32_t decode_codepoint(const char16_t *s16) {
-  return decode_codepoint(s16, std::char_traits<char16_t>::length(s16));
-}
-
-inline void decode(const std::u16string &s16, std::u32string &out) {
+inline void decode(std::u16string_view s16, std::u32string &out) {
   decode(s16.data(), s16.length(), out);
-}
-
-inline void decode(const char16_t *s16, std::u32string &out) {
-  decode(s16, std::char_traits<char16_t>::length(s16), out);
 }
 
 inline std::u32string decode(const char16_t *s16, size_t l) {
@@ -528,12 +471,8 @@ inline std::u32string decode(const char16_t *s16, size_t l) {
   return out;
 }
 
-inline std::u32string decode(const std::u16string &s16) {
+inline std::u32string decode(std::u16string_view s16) {
   return decode(s16.data(), s16.length());
-}
-
-inline std::u32string decode(const char16_t *s16) {
-  return decode(s16, std::char_traits<char16_t>::length(s16));
 }
 
 }  // namespace utf16
@@ -546,7 +485,7 @@ inline std::string to_utf8(const char16_t *s16, size_t l) {
   return utf8::encode(utf16::decode(s16, l));
 }
 
-inline std::string to_utf8(const std::u16string &s16) {
+inline std::string to_utf8(std::u16string_view s16) {
   return to_utf8(s16.data(), s16.length());
 }
 
@@ -554,7 +493,7 @@ inline std::u16string to_utf16(const char *s8, size_t l) {
   return utf16::encode(utf8::decode(s8, l));
 }
 
-inline std::u16string to_utf16(const std::string &s8) {
+inline std::u16string to_utf16(std::string_view s8) {
   return to_utf16(s8.data(), s8.length());
 }
 
@@ -564,92 +503,61 @@ inline std::u16string to_utf16(const std::string &s8) {
 
 namespace detail {
 
-template <typename T = wchar_t>
-inline std::wstring to_wstring_core(
-    const char *s8, size_t l,
-    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
-  auto s16 = utf16::encode(utf8::decode(s8, l));
-  return std::wstring(reinterpret_cast<const wchar_t *>(s16.data()), s16.length());
+inline std::wstring to_wstring_core(const char *s8, size_t l) {
+  if constexpr (sizeof(wchar_t) == 2) {
+    auto s16 = utf16::encode(utf8::decode(s8, l));
+    return std::wstring(reinterpret_cast<const wchar_t *>(s16.data()),
+                        s16.length());
+  } else if constexpr (sizeof(wchar_t) == 4) {
+    auto s32 = utf8::decode(s8, l);
+    return std::wstring(reinterpret_cast<const wchar_t *>(s32.data()),
+                        s32.length());
+  }
 }
 
-template <typename T = wchar_t>
-inline std::wstring to_wstring_core(
-    const char *s8, size_t l,
-    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
-  auto s32 = utf8::decode(s8, l);
-  return std::wstring(reinterpret_cast<const wchar_t *>(s32.data()), s32.length());
+inline std::wstring to_wstring_core(const char16_t *s16, size_t l) {
+  if constexpr (sizeof(wchar_t) == 2) {
+    return std::wstring(reinterpret_cast<const wchar_t *>(s16), l);
+  } else if constexpr (sizeof(wchar_t) == 4) {
+    auto s32 = utf16::decode(s16, l);
+    return std::wstring(reinterpret_cast<const wchar_t *>(s32.data()),
+                        s32.length());
+  }
 }
 
-template <typename T = wchar_t>
-inline std::wstring to_wstring_core(
-    const char16_t *s16, size_t l,
-    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
-  return std::wstring(reinterpret_cast<const wchar_t *>(s16), l);
+inline std::wstring to_wstring_core(const char32_t *s32, size_t l) {
+  if constexpr (sizeof(wchar_t) == 2) {
+    auto s16 = utf16::encode(s32, l);
+    return std::wstring(reinterpret_cast<const wchar_t *>(s16.data()),
+                        s16.length());
+  } else if constexpr (sizeof(wchar_t) == 4) {
+    return std::wstring(reinterpret_cast<const wchar_t *>(s32), l);
+  }
 }
 
-template <typename T = wchar_t>
-inline std::wstring to_wstring_core(
-    const char16_t *s16, size_t l,
-    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
-  auto s32 = utf16::decode(s16, l);
-  return std::wstring(reinterpret_cast<const wchar_t *>(s32.data()), s32.length());
+inline std::string to_utf8_core(const wchar_t *sw, size_t l) {
+  if constexpr (sizeof(wchar_t) == 2) {
+    return utf8::encode(
+        utf16::decode(reinterpret_cast<const char16_t *>(sw), l));
+  } else if constexpr (sizeof(wchar_t) == 4) {
+    return utf8::encode(reinterpret_cast<const char32_t *>(sw), l);
+  }
 }
 
-template <typename T = wchar_t>
-inline std::wstring to_wstring_core(
-    const char32_t *s32, size_t l,
-    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
-  auto s16 = utf16::encode(s32, l);
-  return std::wstring(reinterpret_cast<const wchar_t *>(s16.data()), s16.length());
+inline std::u16string to_utf16_core(const wchar_t *sw, size_t l) {
+  if constexpr (sizeof(wchar_t) == 2) {
+    return std::u16string(reinterpret_cast<const char16_t *>(sw), l);
+  } else if constexpr (sizeof(wchar_t) == 4) {
+    return utf16::encode(reinterpret_cast<const char32_t *>(sw), l);
+  }
 }
 
-template <typename T = wchar_t>
-inline std::wstring to_wstring_core(
-    const char32_t *s32, size_t l,
-    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
-  return std::wstring(reinterpret_cast<const wchar_t *>(s32), l);
-}
-
-template <typename T = wchar_t>
-inline std::string to_utf8_core(
-    const wchar_t *sw, size_t l,
-    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
-  return utf8::encode(utf16::decode(reinterpret_cast<const char16_t *>(sw), l));
-}
-
-template <typename T = wchar_t>
-inline std::string to_utf8_core(
-    const wchar_t *sw, size_t l,
-    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
-  return utf8::encode(reinterpret_cast<const char32_t *>(sw), l);
-}
-
-template <typename T = wchar_t>
-inline std::u16string to_utf16_core(
-    const wchar_t *sw, size_t l,
-    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
-  return std::u16string(reinterpret_cast<const char16_t *>(sw), l);
-}
-
-template <typename T = wchar_t>
-inline std::u16string to_utf16_core(
-    const wchar_t *sw, size_t l,
-    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
-  return utf16::encode(reinterpret_cast<const char32_t *>(sw), l);
-}
-
-template <typename T = wchar_t>
-inline std::u32string to_utf32_core(
-    const wchar_t *sw, size_t l,
-    typename std::enable_if<sizeof(T) == 2>::type * = 0) {
-  return utf16::decode(reinterpret_cast<const char16_t *>(sw), l);
-}
-
-template <typename T = wchar_t>
-inline std::u32string to_utf32_core(
-    const wchar_t *sw, size_t l,
-    typename std::enable_if<sizeof(T) == 4>::type * = 0) {
-  return std::u32string(reinterpret_cast<const char32_t *>(sw), l);
+inline std::u32string to_utf32_core(const wchar_t *sw, size_t l) {
+  if constexpr (sizeof(wchar_t) == 2) {
+    return utf16::decode(reinterpret_cast<const char16_t *>(sw), l);
+  } else if constexpr (sizeof(wchar_t) == 4) {
+    return std::u32string(reinterpret_cast<const char32_t *>(sw), l);
+  }
 }
 
 }  // namespace detail
@@ -658,7 +566,7 @@ inline std::wstring to_wstring(const char *s8, size_t l) {
   return detail::to_wstring_core(s8, l);
 }
 
-inline std::wstring to_wstring(const std::string &s8) {
+inline std::wstring to_wstring(std::string_view s8) {
   return to_wstring(s8.data(), s8.length());
 }
 
@@ -666,7 +574,7 @@ inline std::wstring to_wstring(const char16_t *s16, size_t l) {
   return detail::to_wstring_core(s16, l);
 }
 
-inline std::wstring to_wstring(const std::u16string &s16) {
+inline std::wstring to_wstring(std::u16string_view s16) {
   return to_wstring(s16.data(), s16.length());
 }
 
@@ -674,7 +582,7 @@ inline std::wstring to_wstring(const char32_t *s32, size_t l) {
   return detail::to_wstring_core(s32, l);
 }
 
-inline std::wstring to_wstring(const std::u32string &s32) {
+inline std::wstring to_wstring(std::u32string_view s32) {
   return to_wstring(s32.data(), s32.length());
 }
 
@@ -682,7 +590,7 @@ inline std::string to_utf8(const wchar_t *sw, size_t l) {
   return detail::to_utf8_core(sw, l);
 }
 
-inline std::string to_utf8(const std::wstring &sw) {
+inline std::string to_utf8(std::wstring_view sw) {
   return to_utf8(sw.data(), sw.length());
 }
 
@@ -690,7 +598,7 @@ inline std::u16string to_utf16(const wchar_t *sw, size_t l) {
   return detail::to_utf16_core(sw, l);
 }
 
-inline std::u16string to_utf16(const std::wstring &sw) {
+inline std::u16string to_utf16(std::wstring_view sw) {
   return to_utf16(sw.data(), sw.length());
 }
 
@@ -698,12 +606,10 @@ inline std::u32string to_utf32(const wchar_t *sw, size_t l) {
   return detail::to_utf32_core(sw, l);
 }
 
-inline std::u32string to_utf32(const std::wstring &sw) {
+inline std::u32string to_utf32(std::wstring_view sw) {
   return to_utf32(sw.data(), sw.length());
 }
 
 }  // namespace unicode
-
-#endif
 
 // vim: et ts=2 sw=2 cin cino=\:0 ff=unix

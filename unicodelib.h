@@ -5,14 +5,17 @@
 //  MIT License
 //
 
-#ifndef _CPPUNICODELIB_UNICODELIB_H_
-#define _CPPUNICODELIB_UNICODELIB_H_
+#pragma once
 
 #include <cstdlib>
 #include <cstring>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#if !defined(__cplusplus) || __cplusplus < 201703L
+#error "Requires complete C++17 support"
+#endif
 
 namespace unicode {
 
@@ -729,7 +732,7 @@ std::u32string to_nfkd(const char32_t *s32, size_t l);
 // Inline Wrapper functions
 //-----------------------------------------------------------------------------
 
-inline std::u32string to_uppercase(const std::u32string &s32,
+inline std::u32string to_uppercase(const std::u32string_view s32,
                                    const char *lang = nullptr) {
   return to_uppercase(s32.data(), s32.length(), lang);
 }
@@ -739,7 +742,7 @@ inline std::u32string to_uppercase(const char32_t *s32,
   return to_uppercase(s32, std::char_traits<char32_t>::length(s32), lang);
 }
 
-inline std::u32string to_lowercase(const std::u32string &s32,
+inline std::u32string to_lowercase(const std::u32string_view s32,
                                    const char *lang = nullptr) {
   return to_lowercase(s32.data(), s32.length(), lang);
 }
@@ -749,7 +752,7 @@ inline std::u32string to_lowercase(const char32_t *s32,
   return to_lowercase(s32, std::char_traits<char32_t>::length(s32), lang);
 }
 
-inline std::u32string to_titlecase(const std::u32string &s32,
+inline std::u32string to_titlecase(const std::u32string_view s32,
                                    const char *lang = nullptr) {
   return to_titlecase(s32.data(), s32.length(), lang);
 }
@@ -760,7 +763,7 @@ inline std::u32string to_titlecase(const char32_t *s32,
 }
 
 inline std::u32string to_case_fold(
-    const std::u32string &s32,
+    const std::u32string_view s32,
     bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
   return to_case_fold(s32.data(), s32.length(),
                       special_case_for_uppercase_I_and_dotted_uppercase_I);
@@ -773,7 +776,7 @@ inline std::u32string to_case_fold(
                       special_case_for_uppercase_I_and_dotted_uppercase_I);
 }
 
-inline bool is_uppercase(const std::u32string &s32) {
+inline bool is_uppercase(const std::u32string_view s32) {
   return is_uppercase(s32.data(), s32.length());
 }
 
@@ -781,7 +784,7 @@ inline bool is_uppercase(const char32_t *s32) {
   return is_uppercase(s32, std::char_traits<char32_t>::length(s32));
 }
 
-inline bool is_lowercase(const std::u32string &s32) {
+inline bool is_lowercase(const std::u32string_view s32) {
   return is_lowercase(s32.data(), s32.length());
 }
 
@@ -789,7 +792,7 @@ inline bool is_lowercase(const char32_t *s32) {
   return is_lowercase(s32, std::char_traits<char32_t>::length(s32));
 }
 
-inline bool is_titlecase(const std::u32string &s32) {
+inline bool is_titlecase(const std::u32string_view s32) {
   return is_titlecase(s32.data(), s32.length());
 }
 
@@ -797,7 +800,7 @@ inline bool is_titlecase(const char32_t *s32) {
   return is_titlecase(s32, std::char_traits<char32_t>::length(s32));
 }
 
-inline bool is_case_fold(const std::u32string &s32) {
+inline bool is_case_fold(const std::u32string_view s32) {
   return is_case_fold(s32.data(), s32.length());
 }
 
@@ -806,7 +809,7 @@ inline bool is_case_fold(const char32_t *s32) {
 }
 
 inline bool caseless_match(
-    const std::u32string &s1, const std::u32string &s2,
+    const std::u32string_view s1, const std::u32string_view s2,
     bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
   return caseless_match(s1.data(), s1.length(), s2.data(), s2.length(),
                         special_case_for_uppercase_I_and_dotted_uppercase_I);
@@ -821,7 +824,7 @@ inline bool caseless_match(
 }
 
 inline bool canonical_caseless_match(
-    const std::u32string &s1, const std::u32string &s2,
+    const std::u32string_view s1, const std::u32string_view s2,
     bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
   return canonical_caseless_match(
       s1.data(), s1.length(), s2.data(), s2.length(),
@@ -838,7 +841,7 @@ inline bool canonical_caseless_match(
 }
 
 inline bool compatibility_caseless_match(
-    const std::u32string &s1, const std::u32string &s2,
+    const std::u32string_view s1, const std::u32string_view s2,
     bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
   return compatibility_caseless_match(
       s1.data(), s1.length(), s2.data(), s2.length(),
@@ -854,7 +857,7 @@ inline bool compatibility_caseless_match(
       special_case_for_uppercase_I_and_dotted_uppercase_I);
 }
 
-inline std::u32string to_nfc(const std::u32string &s32) {
+inline std::u32string to_nfc(const std::u32string_view s32) {
   return to_nfc(s32.data(), s32.length());
 }
 
@@ -862,7 +865,7 @@ inline std::u32string to_nfc(const char32_t *s32) {
   return to_nfc(s32, std::char_traits<char32_t>::length(s32));
 }
 
-inline std::u32string to_nfd(const std::u32string &s32) {
+inline std::u32string to_nfd(const std::u32string_view s32) {
   return to_nfd(s32.data(), s32.length());
 }
 
@@ -870,7 +873,7 @@ inline std::u32string to_nfd(const char32_t *s32) {
   return to_nfd(s32, std::char_traits<char32_t>::length(s32));
 }
 
-inline std::u32string to_nfkc(const std::u32string &s32) {
+inline std::u32string to_nfkc(const std::u32string_view s32) {
   return to_nfkc(s32.data(), s32.length());
 }
 
@@ -878,7 +881,7 @@ inline std::u32string to_nfkc(const char32_t *s32) {
   return to_nfkc(s32, std::char_traits<char32_t>::length(s32));
 }
 
-inline std::u32string to_nfkd(const std::u32string &s32) {
+inline std::u32string to_nfkd(const std::u32string_view s32) {
   return to_nfkd(s32.data(), s32.length());
 }
 
@@ -886,7 +889,7 @@ inline std::u32string to_nfkd(const char32_t *s32) {
   return to_nfkd(s32, std::char_traits<char32_t>::length(s32));
 }
 
-inline size_t grapheme_count(const std::u32string &s32) {
+inline size_t grapheme_count(const std::u32string_view s32) {
   return grapheme_count(s32.data(), s32.length());
 }
 
@@ -894,7 +897,7 @@ inline size_t grapheme_count(const char32_t *s32) {
   return grapheme_count(s32, std::char_traits<char32_t>::length(s32));
 }
 
-inline size_t grapheme_length(const std::u32string &s32) {
+inline size_t grapheme_length(const std::u32string_view s32) {
   return grapheme_length(s32.data(), s32.length());
 }
 
@@ -32457,7 +32460,7 @@ inline size_t compose_codes(const char32_t *s32, size_t l,
   return i;
 }
 
-inline std::u32string compose(const std::u32string &s32) {
+inline std::u32string compose(const std::u32string_view s32) {
   std::u32string out;
   size_t i = 0;
   while (i < s32.length()) {
@@ -32489,7 +32492,5 @@ inline std::u32string to_nfkd(const char32_t *s32, size_t l) {
 // ----------------------------------------------------------------------------
 
 }  // namespace unicode
-
-#endif
 
 // vim: et ts=2 sw=2 cin cino=\:0 ff=unix
