@@ -211,7 +211,7 @@ inline void for_each(const char *s8, size_t l, T callback) {
 
 inline void decode(const char *s8, size_t l, std::u32string &out) {
   for_each(s8, l,
-           [&](const char *s, size_t l, size_t beg, size_t end, size_t i) {
+           [&](const char *s, size_t /*l*/, size_t beg, size_t end, size_t /*i*/) {
              size_t bytes;
              char32_t cp;
              decode_codepoint(&s[beg], (end - beg), bytes, cp);
@@ -343,7 +343,7 @@ inline void for_each(const char16_t *s16, size_t l, T callback) {
 
 inline void decode(const char16_t *s16, size_t l, std::u32string &out) {
   for_each(s16, l,
-           [&](const char16_t *s, size_t l, size_t beg, size_t end, size_t i) {
+           [&](const char16_t *s, size_t /*l*/, size_t beg, size_t end, size_t /*i*/) {
              size_t length;
              char32_t cp;
              decode_codepoint(&s[beg], (end - beg), length, cp);
