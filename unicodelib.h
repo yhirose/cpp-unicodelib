@@ -32340,6 +32340,9 @@ inline bool is_script(Script sc, char32_t cp) {
     case Script::Common:
     case Script::Inherited: {
       auto id = _script_extension_ids::get_value(cp);
+      if (id == -1) {
+        return false;
+      }
       const auto &props = _script_extension_properties_for_id[id];
       return std::find(props.begin(), props.end(), sc) != props.end();
     }
