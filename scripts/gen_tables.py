@@ -71,7 +71,7 @@ const auto D = {1}::{2};
             blockValues.append(items[0])
         else:
             blockValues.append(None)
-            iblock = i / blockSize
+            iblock = i // blockSize
             out.write("static const {} _{}[] = {{ ".format(type, iblock))
             for val in items:
                 out.write(formatValue(val))
@@ -461,6 +461,7 @@ def genScriptExtensionPropertyForIdTable(ucd):
         'Cher': 'Cherokee',
         'Chrs': 'Chorasmian',
         'Copt': 'Coptic',
+        'Cpmn': 'Cypro_Minoan',
         'Cprt': 'Cypriot',
         'Cyrl': 'Cyrillic',
         'Deva': 'Devanagari',
@@ -537,6 +538,7 @@ def genScriptExtensionPropertyForIdTable(ucd):
         'Ogam': 'Ogham',
         'Olck': 'Ol_Chiki',
         'Orkh': 'Old_Turkic',
+        'Ougr': 'Old_Uyghur',
         'Orya': 'Oriya',
         'Osge': 'Osage',
         'Osma': 'Osmanya',
