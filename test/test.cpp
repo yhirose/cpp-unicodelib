@@ -295,7 +295,7 @@ TEST_CASE("Grapheme cluster segmentation", "[segmentation]") {
   auto path = "../UCD/auxiliary/GraphemeBreakTest.txt";
   read_text_segmentation_test_file(
       path,
-      [](const auto &s32, const auto &boundary, auto expected_count, auto ln) {
+      [](const auto &s32, const auto &boundary, auto expected_count, auto /*ln*/) {
         for (auto i = 0u; i < boundary.size(); i++) {
           auto actual = is_grapheme_boundary(s32.data(), s32.length(), i);
           REQUIRE(boundary[i] == actual);
@@ -309,7 +309,7 @@ TEST_CASE("Word segmentation", "[segmentation]") {
   auto path = "../UCD/auxiliary/WordBreakTest.txt";
   read_text_segmentation_test_file(
       path,
-      [](const auto &s32, const auto &boundary, auto expected_count, auto ln) {
+      [](const auto &s32, const auto &boundary, auto /*expected_count*/, auto /*ln*/) {
         for (auto i = 0u; i < boundary.size(); i++) {
           auto actual = is_word_boundary(s32.data(), s32.length(), i);
           REQUIRE(boundary[i] == actual);
@@ -321,7 +321,7 @@ TEST_CASE("Sentence segmentation", "[segmentation]") {
   auto path = "../UCD/auxiliary/SentenceBreakTest.txt";
   read_text_segmentation_test_file(
       path,
-      [](const auto &s32, const auto &boundary, auto expected_count, auto ln) {
+      [](const auto &s32, const auto &boundary, auto /*expected_count*/, auto /*ln*/) {
         for (auto i = 0u; i < boundary.size(); i++) {
           auto actual = is_sentence_boundary(s32.data(), s32.length(), i);
           REQUIRE(boundary[i] == actual);

@@ -31145,7 +31145,7 @@ inline bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   {
     if (lp == WordBreak::Regional_Indicator &&
         rp == WordBreak::Regional_Indicator) {
-      auto lpos = previous_word_break_property_position(s32, i);
+      lpos = previous_word_break_property_position(s32, i);
 
       while (true) {
         lpos = previous_word_break_property_position(s32, lpos);
