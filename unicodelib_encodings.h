@@ -210,13 +210,14 @@ inline void for_each(const char *s8, size_t l, T callback) {
 }
 
 inline void decode(const char *s8, size_t l, std::u32string &out) {
-  for_each(s8, l,
-           [&](const char *s, size_t /*l*/, size_t beg, size_t end, size_t /*i*/) {
-             size_t bytes;
-             char32_t cp;
-             decode_codepoint(&s[beg], (end - beg), bytes, cp);
-             out += cp;
-           });
+  for_each(
+      s8, l,
+      [&](const char *s, size_t /*l*/, size_t beg, size_t end, size_t /*i*/) {
+        size_t bytes;
+        char32_t cp;
+        decode_codepoint(&s[beg], (end - beg), bytes, cp);
+        out += cp;
+      });
 }
 
 }  // namespace utf8
@@ -343,7 +344,8 @@ inline void for_each(const char16_t *s16, size_t l, T callback) {
 
 inline void decode(const char16_t *s16, size_t l, std::u32string &out) {
   for_each(s16, l,
-           [&](const char16_t *s, size_t /*l*/, size_t beg, size_t end, size_t /*i*/) {
+           [&](const char16_t *s, size_t /*l*/, size_t beg, size_t end,
+               size_t /*i*/) {
              size_t length;
              char32_t cp;
              decode_codepoint(&s[beg], (end - beg), length, cp);
@@ -515,7 +517,7 @@ inline std::wstring to_wstring_core(const char *s8, size_t l) {
 
 inline std::wstring to_wstring_core(const char16_t *s16, size_t l) {
   if constexpr (sizeof(wchar_t) == 2) {
-    return std::wstring(s16, s16+l);
+    return std::wstring(s16, s16 + l);
   } else if constexpr (sizeof(wchar_t) == 4) {
     auto s32 = utf16::decode(s16, l);
     return std::wstring(s32.begin(), s32.end());
@@ -527,36 +529,35 @@ inline std::wstring to_wstring_core(const char32_t *s32, size_t l) {
     auto s16 = utf16::encode(s32, l);
     return std::wstring(s16.begin(), s16.end());
   } else if constexpr (sizeof(wchar_t) == 4) {
-    return std::wstring(s32, s32+l);
+    return std::wstring(s32, s32 + l);
   }
 }
 
 inline std::string to_utf8_core(const wchar_t *sw, size_t l) {
   if constexpr (sizeof(wchar_t) == 2) {
-    std::u16string buf(sw, sw+l);
-    return utf8::encode(
-        utf16::decode(buf.data(), l));
+    std::u16string buf(sw, sw + l);
+    return utf8::encode(utf16::decode(buf.data(), l));
   } else if constexpr (sizeof(wchar_t) == 4) {
-    std::u32string buf(sw, sw+l);
+    std::u32string buf(sw, sw + l);
     return utf8::encode(buf.data(), l);
   }
 }
 
 inline std::u16string to_utf16_core(const wchar_t *sw, size_t l) {
   if constexpr (sizeof(wchar_t) == 2) {
-    return std::u16string(sw, sw+l);
+    return std::u16string(sw, sw + l);
   } else if constexpr (sizeof(wchar_t) == 4) {
-    std::u32string buf(sw, sw+l);
+    std::u32string buf(sw, sw + l);
     return utf16::encode(buf.data(), l);
   }
 }
 
 inline std::u32string to_utf32_core(const wchar_t *sw, size_t l) {
   if constexpr (sizeof(wchar_t) == 2) {
-    std::u16string buf(sw, sw+l);
+    std::u16string buf(sw, sw + l);
     return utf16::decode(buf.data(), l);
   } else if constexpr (sizeof(wchar_t) == 4) {
-    return std::u32string(sw, sw+l);
+    return std::u32string(sw, sw + l);
   }
 }
 
