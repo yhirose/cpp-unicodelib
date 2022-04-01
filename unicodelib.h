@@ -31145,17 +31145,17 @@ inline bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   {
     if (lp == WordBreak::Regional_Indicator &&
         rp == WordBreak::Regional_Indicator) {
-      auto lpos = previous_word_break_property_position(s32, i);
+      auto lpos_2 = previous_word_break_property_position(s32, i);
 
       while (true) {
-        lpos = previous_word_break_property_position(s32, lpos);
-        if (lpos < 0 || _word_break_properties::get_value(s32[lpos]) !=
+        lpos_2 = previous_word_break_property_position(s32, lpos_2);
+        if (lpos_2 < 0 || _word_break_properties::get_value(s32[lpos_2]) !=
                             WordBreak::Regional_Indicator) {
           return false;
         }
 
-        lpos = previous_word_break_property_position(s32, lpos);
-        if (lpos < 0 || _word_break_properties::get_value(s32[lpos]) !=
+        lpos_2 = previous_word_break_property_position(s32, lpos_2);
+        if (lpos_2 < 0 || _word_break_properties::get_value(s32[lpos_2]) !=
                             WordBreak::Regional_Indicator) {
           break;
         }
