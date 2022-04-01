@@ -506,57 +506,57 @@ namespace detail {
 inline std::wstring to_wstring_core(const char *s8, size_t l) {
   if constexpr (sizeof(wchar_t) == 2) {
     auto s16 = utf16::encode(utf8::decode(s8, l));
-    return std::wstring(reinterpret_cast<const wchar_t *>(s16.data()),
-                        s16.length());
+    return std::wstring(s16.begin(), s16.end());
   } else if constexpr (sizeof(wchar_t) == 4) {
     auto s32 = utf8::decode(s8, l);
-    return std::wstring(reinterpret_cast<const wchar_t *>(s32.data()),
-                        s32.length());
+    return std::wstring(s32.begin(), s32.end());
   }
 }
 
 inline std::wstring to_wstring_core(const char16_t *s16, size_t l) {
   if constexpr (sizeof(wchar_t) == 2) {
-    return std::wstring(reinterpret_cast<const wchar_t *>(s16), l);
+    return std::wstring(s16, s16+l);
   } else if constexpr (sizeof(wchar_t) == 4) {
     auto s32 = utf16::decode(s16, l);
-    return std::wstring(reinterpret_cast<const wchar_t *>(s32.data()),
-                        s32.length());
+    return std::wstring(s32.begin(), s32.end());
   }
 }
 
 inline std::wstring to_wstring_core(const char32_t *s32, size_t l) {
   if constexpr (sizeof(wchar_t) == 2) {
     auto s16 = utf16::encode(s32, l);
-    return std::wstring(reinterpret_cast<const wchar_t *>(s16.data()),
-                        s16.length());
+    return std::wstring(s16.begin(), s16.end());
   } else if constexpr (sizeof(wchar_t) == 4) {
-    return std::wstring(reinterpret_cast<const wchar_t *>(s32), l);
+    return std::wstring(s32, s32+l);
   }
 }
 
 inline std::string to_utf8_core(const wchar_t *sw, size_t l) {
   if constexpr (sizeof(wchar_t) == 2) {
+    std::u16string buf(sw, sw+l);
     return utf8::encode(
-        utf16::decode(reinterpret_cast<const char16_t *>(sw), l));
+        utf16::decode(buf.data(), l));
   } else if constexpr (sizeof(wchar_t) == 4) {
-    return utf8::encode(reinterpret_cast<const char32_t *>(sw), l);
+    std::u32string buf(sw, sw+l);
+    return utf8::encode(buf.data(), l);
   }
 }
 
 inline std::u16string to_utf16_core(const wchar_t *sw, size_t l) {
   if constexpr (sizeof(wchar_t) == 2) {
-    return std::u16string(reinterpret_cast<const char16_t *>(sw), l);
+    return std::u16string(sw, sw+l);
   } else if constexpr (sizeof(wchar_t) == 4) {
-    return utf16::encode(reinterpret_cast<const char32_t *>(sw), l);
+    std::u32string buf(sw, sw+l);
+    return utf16::encode(buf.data(), l);
   }
 }
 
 inline std::u32string to_utf32_core(const wchar_t *sw, size_t l) {
   if constexpr (sizeof(wchar_t) == 2) {
-    return utf16::decode(reinterpret_cast<const char16_t *>(sw), l);
+    std::u16string buf(sw, sw+l);
+    return utf16::decode(buf.data(), l);
   } else if constexpr (sizeof(wchar_t) == 4) {
-    return std::u32string(reinterpret_cast<const char32_t *>(sw), l);
+    return std::u32string(sw, sw+l);
   }
 }
 
