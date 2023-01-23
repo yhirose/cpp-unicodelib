@@ -1,7 +1,7 @@
-﻿#include <catch2/catch_test_macros.hpp>
-
-#include <unicodelib.h>
+﻿#include <unicodelib.h>
 #include <unicodelib_encodings.h>
+
+#include <catch2/catch_test_macros.hpp>
 #include <fstream>
 #include <sstream>
 
@@ -250,6 +250,14 @@ TEST_CASE("Combining character sequence", "[segmentation]") {
           4);
   REQUIRE(extended_combining_character_sequence_count(korean.data(),
                                                       korean.length()) == 2);
+
+  // D56: The sequence <0030, FE00, 20E3> represents a variant form of the digit
+  // zero, followed by an enclosing keycap.
+  std::u32string enclosing_keycap = U"\u0030\uFE00\u20E3\u0030\uFE00\u20E3";
+  REQUIRE(combining_character_sequence_length(enclosing_keycap.data(),
+                                              enclosing_keycap.length()) == 3);
+  REQUIRE(combining_character_sequence_count(enclosing_keycap.data(),
+                                             enclosing_keycap.length()) == 2);
 }
 
 template <typename T>
@@ -294,8 +302,8 @@ void read_text_segmentation_test_file(const char *path, T callback) {
 TEST_CASE("Grapheme cluster segmentation", "[segmentation]") {
   auto path = "../UCD/auxiliary/GraphemeBreakTest.txt";
   read_text_segmentation_test_file(
-      path,
-      [](const auto &s32, const auto &boundary, auto expected_count, auto /*ln*/) {
+      path, [](const auto &s32, const auto &boundary, auto expected_count,
+               auto /*ln*/) {
         for (auto i = 0u; i < boundary.size(); i++) {
           auto actual = is_grapheme_boundary(s32.data(), s32.length(), i);
           REQUIRE(boundary[i] == actual);
@@ -308,8 +316,8 @@ TEST_CASE("Grapheme cluster segmentation", "[segmentation]") {
 TEST_CASE("Word segmentation", "[segmentation]") {
   auto path = "../UCD/auxiliary/WordBreakTest.txt";
   read_text_segmentation_test_file(
-      path,
-      [](const auto &s32, const auto &boundary, auto /*expected_count*/, auto /*ln*/) {
+      path, [](const auto &s32, const auto &boundary, auto /*expected_count*/,
+               auto /*ln*/) {
         for (auto i = 0u; i < boundary.size(); i++) {
           auto actual = is_word_boundary(s32.data(), s32.length(), i);
           REQUIRE(boundary[i] == actual);
@@ -320,8 +328,8 @@ TEST_CASE("Word segmentation", "[segmentation]") {
 TEST_CASE("Sentence segmentation", "[segmentation]") {
   auto path = "../UCD/auxiliary/SentenceBreakTest.txt";
   read_text_segmentation_test_file(
-      path,
-      [](const auto &s32, const auto &boundary, auto /*expected_count*/, auto /*ln*/) {
+      path, [](const auto &s32, const auto &boundary, auto /*expected_count*/,
+               auto /*ln*/) {
         for (auto i = 0u; i < boundary.size(); i++) {
           auto actual = is_sentence_boundary(s32.data(), s32.length(), i);
           REQUIRE(boundary[i] == actual);
@@ -504,7 +512,7 @@ TEST_CASE("decode 3", "[utf8]") {
   REQUIRE(utf8::decode(u8text) == u32text);
 }
 
-} // namespace test_utf8
+}  // namespace test_utf8
 
 //-----------------------------------------------------------------------------
 // UTF16 encoding
@@ -588,7 +596,7 @@ TEST_CASE("utf16 decode 3", "[utf16]") {
   REQUIRE(utf16::decode(u16text) == u32text);
 }
 
-} // namespace test_utf16
+}  // namespace test_utf16
 
 //-----------------------------------------------------------------------------
 // Conversion between encodings
@@ -613,6 +621,6 @@ TEST_CASE("Conversion text", "[encodings]") {
   REQUIRE(to_utf32(wtext) == u32text);
 }
 
-} // namespace test_encodeings
+}  // namespace test_encodeings
 
 // vim: et ts=2 sw=2 cin cino=\:0 ff=unix
