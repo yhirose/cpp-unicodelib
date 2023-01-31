@@ -3,7 +3,7 @@ cpp-unicodelib
 
 [![](https://github.com/yhirose/cpp-unicodelib/workflows/CMake/badge.svg)](https://github.com/yhirose/cpp-unicodelib/actions)
 
-A C++17 single-file header-only Unicode library. (Unicode 14.0)
+A C++17 single-file header-only Unicode library. (Unicode 15.0)
 
 API
 ---
