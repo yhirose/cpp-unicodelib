@@ -3,7 +3,7 @@ cpp-unicodelib
 
 [![](https://github.com/yhirose/cpp-unicodelib/workflows/CMake/badge.svg)](https://github.com/yhirose/cpp-unicodelib/actions)
 
-A C++17 single-file header-only Unicode library. (Unicode 15.0)
+A C++17 single-file header-only Unicode library. (Unicode 15.1)
 
 API
 ---
@@ -94,6 +94,9 @@ bool is_default_ignorable_code_point(char32_t cp);
 bool is_grapheme_extend(char32_t cp);
 bool is_grapheme_base(char32_t cp);
 bool is_grapheme_link(char32_t cp);
+bool is_indic_conjunct_break_linker(char32_t cp);
+bool is_indic_conjunct_break_consonant(char32_t cp);
+bool is_indic_conjunct_break_extend(char32_t cp);
 ```
 
 ### Case
@@ -219,4 +222,4 @@ std::u32string to_utf32(const wchar_t *sw, size_t l);
 License
 -------
 
-MIT license (© 2020 Yuji Hirose)
+MIT license (© 2023 Yuji Hirose)

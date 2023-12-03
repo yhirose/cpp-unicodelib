@@ -35,3 +35,4 @@ tags
 *.*sdf
 *.user
 .vs/
+.DS_Store

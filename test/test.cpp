@@ -306,10 +306,10 @@ TEST_CASE("Grapheme cluster segmentation", "[segmentation]") {
                auto /*ln*/) {
         for (auto i = 0u; i < boundary.size(); i++) {
           auto actual = is_grapheme_boundary(s32.data(), s32.length(), i);
-          REQUIRE(boundary[i] == actual);
+          CHECK(boundary[i] == actual);
         }
 
-        REQUIRE(expected_count == grapheme_count(s32));
+        CHECK(expected_count == grapheme_count(s32));
       });
 }
 
@@ -320,7 +320,7 @@ TEST_CASE("Word segmentation", "[segmentation]") {
                auto /*ln*/) {
         for (auto i = 0u; i < boundary.size(); i++) {
           auto actual = is_word_boundary(s32.data(), s32.length(), i);
-          REQUIRE(boundary[i] == actual);
+          CHECK(boundary[i] == actual);
         }
       });
 }
@@ -332,7 +332,7 @@ TEST_CASE("Sentence segmentation", "[segmentation]") {
                auto /*ln*/) {
         for (auto i = 0u; i < boundary.size(); i++) {
           auto actual = is_sentence_boundary(s32.data(), s32.length(), i);
-          REQUIRE(boundary[i] == actual);
+          CHECK(boundary[i] == actual);
         }
       });
 }

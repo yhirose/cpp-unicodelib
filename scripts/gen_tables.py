@@ -193,15 +193,21 @@ def genDerivedCorePropertyTable(ucd):
 
     values = [0] * (MaxCopePoint + 1)
     names = {}
-    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)\s*#.*")
+    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)(?:;\s*(\w+))?\s*#.*")
 
     for line in fin:
         m = r.match(line)
         if m:
             codePoint = int(m.group(1), 16)
             name = m.group(3)
+            prop_val = m.group(4)
+
+            if prop_val:
+                name = name + "_" + prop_val
+
             if not name in names:
                 names[name] = len(names)
+
             val = names[name]
 
             if m.group(2):
