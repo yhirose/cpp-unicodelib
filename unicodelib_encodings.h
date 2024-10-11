@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <cstdint>
 #include <string>
 
 #if !defined(__cplusplus) || __cplusplus < 201703L
