@@ -404,42 +404,10 @@ def genScriptPropertyTable(ucd):
     generateTable('_script_properties', 'Script', defval, sys.stdout, values)
 
 #------------------------------------------------------------------------------
-# genScriptExtensionIdTable
+# genScriptExtensionTable
 #------------------------------------------------------------------------------
 
-def genScriptExtensionIdTable(ucd):
-    fin = open(ucd + '/ScriptExtensions.txt')
-
-    values = [-1] * (MaxCopePoint + 1)
-    rHeader = re.compile(r"# Script_Extensions=(.*)")
-    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?.*")
-
-    id = -1
-    for line in fin:
-        m = rHeader.match(line)
-        if m:
-            id += 1
-        else:
-            m = r.match(line)
-            if m:
-                codePoint = int(m.group(1), 16)
-
-                if m.group(2):
-                    codePointLast = int(m.group(2), 16)
-                    for cp in range(codePoint, codePointLast + 1):
-                        values[cp] = id
-                else:
-                    values[codePoint] = id
-
-    generateTable('_script_extension_ids', "int", 0, sys.stdout, values)
-
-#------------------------------------------------------------------------------
-# genScriptExtensionPropertyForIdTable
-#------------------------------------------------------------------------------
-
-def genScriptExtensionPropertyForIdTable(ucd):
-    fin = open(ucd + '/ScriptExtensions.txt')
-
+def genScriptExtensionTable(ucd):
     # This list is from 'PropertyValueAliases.txt' in Unicode database.
     dic = {
         'Adlm': 'Adlam',
@@ -479,6 +447,7 @@ def genScriptExtensionPropertyForIdTable(ucd):
         'Elba': 'Elbasan',
         'Elym': 'Elymaic',
         'Ethi': 'Ethiopic',
+        'Gara': 'Garay',
         'Geor': 'Georgian',
         'Glag': 'Glagolitic',
         'Gong': 'Gunjala_Gondi',
@@ -487,6 +456,7 @@ def genScriptExtensionPropertyForIdTable(ucd):
         'Gran': 'Grantha',
         'Grek': 'Greek',
         'Gujr': 'Gujarati',
+        'Gukh': 'Gurung_Khema',
         'Guru': 'Gurmukhi',
         'Hang': 'Hangul',
         'Hani': 'Han',
@@ -503,11 +473,13 @@ def genScriptExtensionPropertyForIdTable(ucd):
         'Java': 'Javanese',
         'Kali': 'Kayah_Li',
         'Kana': 'Katakana',
+        'Kawi': 'Kawi',
         'Khar': 'Kharoshthi',
         'Khmr': 'Khmer',
         'Khoj': 'Khojki',
         'Kits': 'Khitan_Small_Script',
         'Knda': 'Kannada',
+        'Krai': 'Kirat_Rai',
         'Kthi': 'Kaithi',
         'Lana': 'Tai_Tham',
         'Laoo': 'Lao',
@@ -535,6 +507,7 @@ def genScriptExtensionPropertyForIdTable(ucd):
         'Mtei': 'Meetei_Mayek',
         'Mult': 'Multani',
         'Mymr': 'Myanmar',
+        'Nagm': 'Nag_Mundari',
         'Nand': 'Nandinagari',
         'Narb': 'Old_North_Arabian',
         'Nbat': 'Nabataean',
@@ -543,11 +516,12 @@ def genScriptExtensionPropertyForIdTable(ucd):
         'Nshu': 'Nushu',
         'Ogam': 'Ogham',
         'Olck': 'Ol_Chiki',
+        'Onao': 'Ol_Onal',
         'Orkh': 'Old_Turkic',
-        'Ougr': 'Old_Uyghur',
         'Orya': 'Oriya',
         'Osge': 'Osage',
         'Osma': 'Osmanya',
+        'Ougr': 'Old_Uyghur',
         'Palm': 'Palmyrene',
         'Pauc': 'Pau_Cin_Hau',
         'Perm': 'Old_Permic',
@@ -574,6 +548,7 @@ def genScriptExtensionPropertyForIdTable(ucd):
         'Sora': 'Sora_Sompeng',
         'Soyo': 'Soyombo',
         'Sund': 'Sundanese',
+        'Sunu': 'Sunuwar',
         'Sylo': 'Syloti_Nagri',
         'Syrc': 'Syriac',
         'Tagb': 'Tagbanwa',
@@ -590,8 +565,13 @@ def genScriptExtensionPropertyForIdTable(ucd):
         'Thai': 'Thai',
         'Tibt': 'Tibetan',
         'Tirh': 'Tirhuta',
+        'Tnsa': 'Tangsa',
+        'Todr': 'Todhri',
+        'Toto': 'Toto',
+        'Tutg': 'Tulu_Tigalari',
         'Ugar': 'Ugaritic',
         'Vaii': 'Vai',
+        'Vith': 'Vithkuqi',
         'Wara': 'Warang_Citi',
         'Wcho': 'Wancho',
         'Xpeo': 'Old_Persian',
@@ -604,20 +584,41 @@ def genScriptExtensionPropertyForIdTable(ucd):
         'Zzzz': 'Unknown',
     }
 
+    fin = open(ucd + '/ScriptExtensions.txt')
+
     values = [-1] * (MaxCopePoint + 1)
-    rHeader = re.compile(r"# Script_Extensions=(.*)")
+    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(.*?)\s*#.*")
+
+    ids = {}
 
     print("const std::vector<std::vector<Script>> _script_extension_properties_for_id = {")
-    id = 0
     for line in fin:
-        m = rHeader.match(line)
+        m = r.match(line)
         if m:
-            print('{')
-            for sc in [dic[x] for x in m.group(1).split(' ')]:
-                print('    Script::%s, ' % sc)
-            print('},')
-            id += 1
+            firstCode = int(m.group(1), 16)
+
+            if m.group(2):
+                lastCode = int(m.group(2), 16) + 1
+            else:
+                lastCode = firstCode + 1
+
+            scripts = m.group(3)
+
+            if scripts in ids:
+                id = ids[scripts]
+            else:
+                id = len(ids)
+                ids[scripts] = id
+                print('{')
+                for sc in [dic[x] for x in scripts.split(' ')]:
+                    print('    Script::%s, ' % sc)
+                print('},')
+
+            for cp in range(firstCode, lastCode):
+                values[cp] = id
     print("};")
+
+    generateTable('_script_extension_ids', "int", 0, sys.stdout, values)
 
 #------------------------------------------------------------------------------
 # genNomalizationPropertyTable
@@ -851,8 +852,7 @@ else:
     genCaseFoldingTable(ucd)
     genBlockPropertyTable(ucd)
     genScriptPropertyTable(ucd)
-    genScriptExtensionIdTable(ucd)
-    genScriptExtensionPropertyForIdTable(ucd)
+    genScriptExtensionTable(ucd)
     genNomalizationPropertyTable(ucd)
     genNomalizationCompositionTable(ucd)
     genGraphemeBreakPropertyTable(ucd)
