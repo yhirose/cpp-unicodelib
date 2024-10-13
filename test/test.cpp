@@ -359,6 +359,7 @@ TEST_CASE("Script", "[script]") {
 TEST_CASE("Script extension", "[script]") {
   REQUIRE(is_script(Script::Hiragana, U'ー'));
   REQUIRE(is_script(Script::Katakana, U'ー'));
+  REQUIRE(is_script(Script::Latin, U'ー') == false);
 }
 
 //-----------------------------------------------------------------------------
