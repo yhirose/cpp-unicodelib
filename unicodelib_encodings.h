@@ -215,8 +215,9 @@ inline void decode(const char *s8, size_t l, std::u32string &out) {
       [&](const char *s, size_t /*l*/, size_t beg, size_t end, size_t /*i*/) {
         size_t bytes;
         char32_t cp;
-        decode_codepoint(&s[beg], (end - beg), bytes, cp);
-        out += cp;
+        if (decode_codepoint(&s[beg], (end - beg), bytes, cp)) {
+          out += cp;
+        }
       });
 }
 
@@ -348,8 +349,9 @@ inline void decode(const char16_t *s16, size_t l, std::u32string &out) {
                size_t /*i*/) {
              size_t length;
              char32_t cp;
-             decode_codepoint(&s[beg], (end - beg), length, cp);
-             out += cp;
+             if (decode_codepoint(&s[beg], (end - beg), length, cp)) {
+               out += cp;
+             }
            });
 }
 
