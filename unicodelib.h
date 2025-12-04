@@ -34107,6 +34107,13 @@ inline bool is_language_qualified(const char *user_lang,
   return !spec_lang || (user_lang && !strcmp(user_lang, spec_lang));
 }
 
+inline bool is_dutch(const char *lang) {
+  // Check for Dutch language code (nl, nl-NL, nl-BE, etc.)
+  return lang && (strcmp(lang, "nl") == 0 ||
+                  (strncmp(lang, "nl-", 3) == 0) ||
+                  (strncmp(lang, "nl_", 3) == 0));
+}
+
 inline bool is_final_sigma(const char32_t *s32, size_t l, size_t i) {
   // C is preceded by a sequence consisting of a cased letter and
   // then zero or more case-ignorable characters, and C is not
@@ -34347,6 +34354,18 @@ inline std::u32string to_titlecase(const char32_t *s32, size_t l,
 
     titlecase_mapping(s32, l, i, lang, out);
     i++;
+
+    // Special case for Dutch IJ titlecasing:
+    // When the first letter of a word is 'I' (or 'Í') followed by 'j',
+    // both letters should be capitalized: "ijsje" -> "IJsje"
+    if (is_dutch(lang) && !out.empty()) {
+      auto last = out.back();
+      if ((last == U'I' || last == U'Í') && i < l &&
+          (s32[i] == U'j' || s32[i] == U'J')) {
+        out += U'J';
+        i++;
+      }
+    }
 
     if (i == l) {
       break;

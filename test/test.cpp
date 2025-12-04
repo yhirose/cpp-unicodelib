@@ -168,6 +168,16 @@ TEST_CASE("Full case mapping", "[case]") {
   REQUIRE(to_titlecase(U"hello WORLD. A, a.") == U"Hello World. A, A.");
   REQUIRE(to_titlecase(U"ΧΑΟΣ χαος Σ σ") == U"Χαος Χαος Σ Σ");
   REQUIRE(to_titlecase(U"Ǳabc ǳabc ǲabc") == U"ǲabc ǲabc ǲabc");
+
+  // Dutch IJ titlecasing
+  REQUIRE(to_titlecase(U"ijsje", "nl") == U"IJsje");
+  REQUIRE(to_titlecase(U"IJssel", "nl") == U"IJssel");
+  REQUIRE(to_titlecase(U"ik hou van ijsje", "nl") == U"Ik Hou Van IJsje");
+  REQUIRE(to_titlecase(U"ijmuiden", "nl") == U"IJmuiden");
+  REQUIRE(to_titlecase(U"IJMUIDEN", "nl") == U"IJmuiden");
+  // Without Dutch locale, IJ should not be special-cased
+  REQUIRE(to_titlecase(U"ijsje") == U"Ijsje");
+  REQUIRE(to_titlecase(U"ijsje", "en") == U"Ijsje");
 }
 
 TEST_CASE("Full case folding", "[case]") {
