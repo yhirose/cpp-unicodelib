@@ -8,6 +8,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -19,6 +20,12 @@
 #endif
 
 namespace unicode {
+
+//-----------------------------------------------------------------------------
+// Unicode Version
+//-----------------------------------------------------------------------------
+
+constexpr auto Unicode_Version = "17.0.0";
 
 //-----------------------------------------------------------------------------
 // General Category
