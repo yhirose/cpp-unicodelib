@@ -245,9 +245,10 @@ bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i);
 // Block
 //-----------------------------------------------------------------------------
 
-// This is generated from 'Blocks.txt' in Unicode database.
-// `python scripts/gen_property_values.py < UCD/Blocks.txt`
 enum class Block {
+// This is generated from 'Blocks.txt' in Unicode database.
+// COMMAND: `python scripts/gen_property_values.py < UCD/Blocks.txt`
+// -------- [BEGIN GENERATED BLOCK] --------
   Unassigned,
   BasicLatin,
   Latin1Supplement,
@@ -587,6 +588,7 @@ enum class Block {
   VariationSelectorsSupplement,
   SupplementaryPrivateUseAreaA,
   SupplementaryPrivateUseAreaB,
+// -------- [END GENERATED BLOCK] --------
 };
 
 Block block(char32_t cp);
@@ -595,9 +597,10 @@ Block block(char32_t cp);
 // Script
 //-----------------------------------------------------------------------------
 
-// This is generated from 'Scripts.txt' in Unicode database.
-// `python scripts/gen_property_values.py < UCD/Scripts.txt`
 enum class Script {
+// This is generated from 'Scripts.txt' in Unicode database.
+// COMMAND: `python scripts/gen_property_values.py < UCD/Scripts.txt`
+// -------- [BEGIN GENERATED BLOCK] --------
   Unassigned,
   Common,
   Latin,
@@ -769,6 +772,7 @@ enum class Script {
   Sunuwar,
   Todhri,
   Tulu_Tigalari,
+// -------- [END GENERATED BLOCK] --------
 };
 
 Script script(char32_t cp);
@@ -1017,9 +1021,10 @@ struct NormalizationProperties {
   const char32_t *codes;
 };
 
-// This is generated from 'GraphemeBreakProperty.txt' in Unicode database.
-// `python scripts/gen_property_values.py < UCD/auxiliary/GraphemeBreakProperty.txt`
 enum class GraphemeBreak {
+// This is generated from 'GraphemeBreakProperty.txt' in Unicode database.
+// COMMAND: `python scripts/gen_property_values.py < UCD/auxiliary/GraphemeBreakProperty.txt`
+// -------- [BEGIN GENERATED BLOCK] --------
   Unassigned,
   Prepend,
   CR,
@@ -1034,11 +1039,13 @@ enum class GraphemeBreak {
   LV,
   LVT,
   ZWJ,
+// -------- [END GENERATED BLOCK] --------
 };
 
-// This is generated from 'WordBreakProperty.txt' in Unicode database.
-// `python scripts/gen_property_values.py < UCD/auxiliary/WordBreakProperty.txt`
 enum class WordBreak {
+// This is generated from 'WordBreakProperty.txt' in Unicode database.
+// COMMAND: `python scripts/gen_property_values.py < UCD/auxiliary/WordBreakProperty.txt`
+// -------- [BEGIN GENERATED BLOCK] --------
   Unassigned,
   Double_Quote,
   Single_Quote,
@@ -1058,11 +1065,13 @@ enum class WordBreak {
   ExtendNumLet,
   ZWJ,
   WSegSpace,
+// -------- [END GENERATED BLOCK] --------
 };
 
-// This is generated from 'SentenceBreakProperty.txt' in Unicode database.
-// `python scripts/gen_property_values.py < UCD/auxiliary/SentenceBreakProperty.txt`
 enum class SentenceBreak {
+// This is generated from 'SentenceBreakProperty.txt' in Unicode database.
+// COMMAND: `python scripts/gen_property_values.py < UCD/auxiliary/SentenceBreakProperty.txt`
+// -------- [BEGIN GENERATED BLOCK] --------
   Unassigned,
   CR,
   LF,
@@ -1078,11 +1087,13 @@ enum class SentenceBreak {
   STerm,
   Close,
   SContinue,
+// -------- [END GENERATED BLOCK] --------
 };
 
-// This is generated from 'emoji-data.txt' in Unicode database.
-// `python scripts/gen_property_values.py < UCD/emoji/emoji-data.txt`
 enum class Emoji {
+// This is generated from 'emoji-data.txt' in Unicode database.
+// COMMAND: `python scripts/gen_property_values.py < UCD/emoji/emoji-data.txt`
+// -------- [BEGIN GENERATED BLOCK] --------
   Unassigned,
   Emoji,
   Emoji_Presentation,
@@ -1090,6 +1101,7 @@ enum class Emoji {
   Emoji_Modifier_Base,
   Emoji_Component,
   Extended_Pictographic,
+// -------- [END GENERATED BLOCK] --------
 };
 
 //-----------------------------------------------------------------------------
@@ -1097,7 +1109,8 @@ enum class Emoji {
 //-----------------------------------------------------------------------------
 
 // This is generated from Unicode database.
-// `python scripts/gen_tables.py UCD`
+// COMMAND: `python scripts/gen_tables.py UCD`
+// -------- [BEGIN GENERATED BLOCK] --------
 namespace _general_category_properties {
 using T = GeneralCategory;
 const auto D = GeneralCategory::Cn;
@@ -33494,6 +33507,7 @@ inline Emoji get_value(char32_t cp) {
   return _block_values[i];
 }
 }
+// -------- [END GENERATED BLOCK] --------
 // End of Unicode Data
 
 //-----------------------------------------------------------------------------
