@@ -1,7 +1,7 @@
 //
 //  unicodelib_encodings.h
 //
-//  Copyright (c) 2020 Yuji Hirose. All rights reserved.
+//  Copyright (c) 2025 Yuji Hirose. All rights reserved.
 //  MIT License
 //
 

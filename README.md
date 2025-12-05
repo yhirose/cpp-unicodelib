@@ -3,7 +3,7 @@ cpp-unicodelib
 
 [![](https://github.com/yhirose/cpp-unicodelib/workflows/CMake/badge.svg)](https://github.com/yhirose/cpp-unicodelib/actions)
 
-A C++17 single-file header-only Unicode library. (Unicode 16.0.0)
+A C++17 single-file header-only Unicode library. (Unicode 17.0.0)
 
 API
 ---
@@ -222,4 +222,4 @@ std::u32string to_utf32(const wchar_t *sw, size_t l);
 License
 -------
 
-MIT license (© 2023 Yuji Hirose)
+MIT license (© 2025 Yuji Hirose)
