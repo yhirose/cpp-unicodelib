@@ -1,8 +1,6 @@
 
 #pragma once
 
-#include <cstdlib>
-
 namespace unicode {
 
 const char32_t START_OF_HEADING = 0x0001;

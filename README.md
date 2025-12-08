@@ -5,6 +5,8 @@ cpp-unicodelib
 
 A C++17 single-file header-only Unicode library. (Unicode 17.0.0)
 
+C++20 modules support can be enabled by using the CMake build flag `UNICODELIB_BUILD_MODULES` as module `unicodelib`.
+
 API
 ---
 
