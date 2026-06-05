@@ -147,6 +147,12 @@ TEST_CASE("Simple case folding", "[case]") {
   REQUIRE(simple_case_folding(U'Ǳ') == U'ǳ');
   REQUIRE(simple_case_folding(U'ǲ') == U'ǳ');
   REQUIRE(simple_case_folding(U'ǳ') == U'ǳ');
+
+  // Characters with only a full (F) folding have no simple folding and
+  // must fold to themselves, not to 0.
+  REQUIRE(simple_case_folding(U'ß') == U'ß');
+  REQUIRE(simple_case_folding(U'İ') == U'İ');
+  REQUIRE(simple_case_folding(U'ﬀ') == U'ﬀ');
 }
 
 TEST_CASE("Full case mapping", "[case]") {

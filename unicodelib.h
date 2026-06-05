@@ -34272,7 +34272,9 @@ inline char32_t simple_case_folding(char32_t cp) {
     if (cf.S) {
       return cf.S;
     }
-    return cf.C;
+    if (cf.C) {
+      return cf.C;
+    }
   }
   return cp;
 }
