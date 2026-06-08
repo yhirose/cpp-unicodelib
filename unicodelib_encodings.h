@@ -197,29 +197,15 @@ inline size_t decode_codepoint(const char *s8, size_t l, char32_t &out) {
   return 0;
 }
 
-template <typename T>
-inline void for_each(const char *s8, size_t l, T callback) {
-  size_t id = 0;
-  size_t i = 0;
-  while (i < l) {
-    auto beg = i++;
-    while (i < l && (s8[i] & 0xc0) == 0x80) {
-      i++;
+inline void decode(const char* s8, size_t l, std::u32string& out) {
+  for (size_t i = 0, bytes; i < l; i += bytes) {
+    char32_t cp;
+    if (decode_codepoint(&s8[i], l - i, bytes, cp)) {
+      out += cp;
+    } else {
+      bytes = 1;
     }
-    callback(s8, l, beg, i, id++);
   }
-}
-
-inline void decode(const char *s8, size_t l, std::u32string &out) {
-  for_each(
-      s8, l,
-      [&](const char *s, size_t /*l*/, size_t beg, size_t end, size_t /*i*/) {
-        size_t bytes;
-        char32_t cp;
-        if (decode_codepoint(&s[beg], (end - beg), bytes, cp)) {
-          out += cp;
-        }
-      });
 }
 
 }  // namespace utf8
@@ -331,30 +317,17 @@ inline size_t decode_codepoint(const char16_t *s16, size_t l, char32_t &out) {
   return 0;
 }
 
-template <typename T>
-inline void for_each(const char16_t *s16, size_t l, T callback) {
-  size_t id = 0;
-  size_t i = 0;
-  while (i < l) {
-    auto beg = i++;
-    if (is_surrogate_pair(&s16[beg], l - beg)) {
-      i++;
+inline void decode(const char16_t* s16, size_t l, std::u32string& out) {
+  for (size_t i = 0, length; i < l; i += length) {
+    char32_t cp;
+    if (decode_codepoint(&s16[i], l - i, length, cp)) {
+      out += cp;
+    } else {
+      length = 1;
     }
-    callback(s16, l, beg, i, id++);
   }
 }
 
-inline void decode(const char16_t *s16, size_t l, std::u32string &out) {
-  for_each(s16, l,
-           [&](const char16_t *s, size_t /*l*/, size_t beg, size_t end,
-               size_t /*i*/) {
-             size_t length;
-             char32_t cp;
-             if (decode_codepoint(&s[beg], (end - beg), length, cp)) {
-               out += cp;
-             }
-           });
-}
 
 }  // namespace utf16
 
