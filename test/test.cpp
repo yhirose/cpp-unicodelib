@@ -529,6 +529,25 @@ TEST_CASE("decode 3", "[utf8]") {
   REQUIRE(utf8::decode(u8text) == u32text);
 }
 
+TEST_CASE("decode invalid utf8 resync", "[utf8]") {
+  // An invalid lead byte must resync at the next byte and must not swallow the
+  // following valid characters.
+  REQUIRE(utf8::decode("\xE0" "AB") == U"AB");        // truncated 3-byte lead
+  REQUIRE(utf8::decode("\xF0" "Hello") == U"Hello");  // truncated 4-byte lead
+  REQUIRE(utf8::decode("\xE1\x80" "A") == U"A");       // bad 3rd byte
+  REQUIRE(utf8::decode("a\x80" "b") == U"ab");         // lone continuation byte
+  REQUIRE(utf8::decode("\xFF\xFF" "x") == U"x");        // never-valid lead bytes
+}
+
+TEST_CASE("decode_codepoint rejects bad continuation bytes", "[utf8]") {
+  char32_t cp;
+  // A continuation byte that is not 0x80-0xBF makes decode fail (0 bytes).
+  REQUIRE(utf8::decode_codepoint("\xE0" "AB", 3, cp) == 0);
+  REQUIRE(utf8::decode_codepoint("\xF0\x41\x42\x43", 4, cp) == 0);
+  // A well-formed sequence is still accepted and reports its length.
+  REQUIRE(utf8::decode_codepoint(u8"あ", 3, cp) == 3);
+}
+
 }  // namespace test_utf8
 
 //-----------------------------------------------------------------------------
@@ -611,6 +630,12 @@ TEST_CASE("utf16 decode 2", "[utf16]") {
 TEST_CASE("utf16 decode 3", "[utf16]") {
   REQUIRE(utf16::decode(u16text) == u32text);
   REQUIRE(utf16::decode(u16text) == u32text);
+}
+
+TEST_CASE("utf16 decode invalid resync", "[utf16]") {
+  // A lone high surrogate must resync and must not swallow the next unit.
+  const char16_t lone_high[] = {0xD800, u'A'};
+  REQUIRE(utf16::decode(std::u16string_view(lone_high, 2)) == U"A");
 }
 
 }  // namespace test_utf16
