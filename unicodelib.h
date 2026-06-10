@@ -28,6 +28,16 @@ namespace unicode {
 constexpr auto Unicode_Version = "17.0.0";
 
 //-----------------------------------------------------------------------------
+// Unicode Scalar Value
+//-----------------------------------------------------------------------------
+
+// D76 in the Unicode Standard: any code point except surrogates.
+// Named 'is_scalar_value' to avoid colliding with std::is_scalar.
+inline bool is_scalar_value(char32_t cp) {
+  return cp < 0xD800 || (0xE000 <= cp && cp <= 0x10FFFF);
+}
+
+//-----------------------------------------------------------------------------
 // General Category
 //-----------------------------------------------------------------------------
 
@@ -3564,6 +3574,9 @@ static const GeneralCategory _block_values[] = {
  T::Co,T::Co,T::Co,T::Co,T::Co,T::Co,T::Co,D,
 };
 inline GeneralCategory get_value(char32_t cp) {
+  if (cp > 0x10FFFF) {
+    return D;
+  }
   auto i = cp / _block_size;
   auto bl = _blocks[i];
   if (bl) {
@@ -5966,6 +5979,9 @@ static const uint64_t _block_values[] = {
  0,0,0,0,0,0,0,0,
 };
 inline uint64_t get_value(char32_t cp) {
+  if (cp > 0x10FFFF) {
+    return 0;
+  }
   auto i = cp / _block_size;
   auto bl = _blocks[i];
   if (bl) {
@@ -8411,6 +8427,9 @@ static const uint32_t _block_values[] = {
  0,0,0,0,0,0,0,0,
 };
 inline uint32_t get_value(char32_t cp) {
+  if (cp > 0x10FFFF) {
+    return 0;
+  }
   auto i = cp / _block_size;
   auto bl = _blocks[i];
   if (bl) {
@@ -17633,6 +17652,9 @@ static const Block _block_values[] = {
  T::SupplementaryPrivateUseAreaB,T::SupplementaryPrivateUseAreaB,T::SupplementaryPrivateUseAreaB,T::SupplementaryPrivateUseAreaB,T::SupplementaryPrivateUseAreaB,T::SupplementaryPrivateUseAreaB,T::SupplementaryPrivateUseAreaB,T::SupplementaryPrivateUseAreaB,
 };
 inline Block get_value(char32_t cp) {
+  if (cp > 0x10FFFF) {
+    return D;
+  }
   auto i = cp / _block_size;
   auto bl = _blocks[i];
   if (bl) {
@@ -20058,6 +20080,9 @@ static const Script _block_values[] = {
  D,D,D,D,D,D,D,D,
 };
 inline Script get_value(char32_t cp) {
+  if (cp > 0x10FFFF) {
+    return D;
+  }
   auto i = cp / _block_size;
   auto bl = _blocks[i];
   if (bl) {
@@ -21974,6 +21999,9 @@ static const int _block_values[] = {
  -1,-1,-1,-1,-1,-1,-1,-1,
 };
 inline int get_value(char32_t cp) {
+  if (cp > 0x10FFFF) {
+    return 0;
+  }
   auto i = cp / _block_size;
   auto bl = _blocks[i];
   if (bl) {
@@ -24339,6 +24367,9 @@ static const NormalizationProperties _block_values[] = {
  {0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},
 };
 inline NormalizationProperties get_value(char32_t cp) {
+  if (cp > 0x10FFFF) {
+    return {0,0,0};
+  }
   auto i = cp / _block_size;
   auto bl = _blocks[i];
   if (bl) {
@@ -27708,6 +27739,9 @@ static const GraphemeBreak _block_values[] = {
  D,D,D,D,D,D,D,D,
 };
 inline GraphemeBreak get_value(char32_t cp) {
+  if (cp > 0x10FFFF) {
+    return D;
+  }
   auto i = cp / _block_size;
   auto bl = _blocks[i];
   if (bl) {
@@ -30101,6 +30135,9 @@ static const WordBreak _block_values[] = {
  D,D,D,D,D,D,D,D,
 };
 inline WordBreak get_value(char32_t cp) {
+  if (cp > 0x10FFFF) {
+    return D;
+  }
   auto i = cp / _block_size;
   auto bl = _blocks[i];
   if (bl) {
@@ -32520,6 +32557,9 @@ static const SentenceBreak _block_values[] = {
  D,D,D,D,D,D,D,D,
 };
 inline SentenceBreak get_value(char32_t cp) {
+  if (cp > 0x10FFFF) {
+    return D;
+  }
   auto i = cp / _block_size;
   auto bl = _blocks[i];
   if (bl) {
@@ -33652,6 +33692,9 @@ static const Emoji _block_values[] = {
  D,D,D,D,D,D,D,D,
 };
 inline Emoji get_value(char32_t cp) {
+  if (cp > 0x10FFFF) {
+    return D;
+  }
   auto i = cp / _block_size;
   auto bl = _blocks[i];
   if (bl) {

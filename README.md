@@ -10,6 +10,12 @@ API
 
 ## Functions
 
+### Unicode Scalar Value
+
+```cpp
+bool is_scalar_value(char32_t cp); // false for surrogates and code points beyond U+10FFFF
+```
+
 ### Unicode Property
 
 #### General Category

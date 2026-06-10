@@ -27,6 +27,30 @@ void split(const char *b, const char *e, char d, Fn fn) {
 }
 
 //-----------------------------------------------------------------------------
+// Unicode Scalar Value
+//-----------------------------------------------------------------------------
+
+TEST_CASE("is_scalar_value", "[scalar value]") {
+  REQUIRE(is_scalar_value(U'a') == true);
+  REQUIRE(is_scalar_value(0xD7FF) == true);
+  REQUIRE(is_scalar_value(0xD800) == false);  // Surrogate
+  REQUIRE(is_scalar_value(0xDFFF) == false);  // Surrogate
+  REQUIRE(is_scalar_value(0xE000) == true);
+  REQUIRE(is_scalar_value(0x10FFFF) == true);
+  REQUIRE(is_scalar_value(0x110000) == false);  // Beyond U+10FFFF
+}
+
+TEST_CASE("Property lookup beyond U+10FFFF", "[scalar value]") {
+  REQUIRE(general_category(0x110000) == GeneralCategory::Unassigned);
+  REQUIRE(general_category(0xFFFFFFFF) == GeneralCategory::Unassigned);
+  REQUIRE(is_letter(0x110000) == false);
+  REQUIRE(is_white_space(0xFFFFFFFF) == false);
+  REQUIRE(is_alphabetic(0x110000) == false);
+  REQUIRE(block(0x110000) == Block::Unassigned);
+  REQUIRE(script(0x110000) == Script::Unassigned);
+}
+
+//-----------------------------------------------------------------------------
 // General Category
 //-----------------------------------------------------------------------------
 
@@ -548,6 +572,52 @@ TEST_CASE("decode_codepoint rejects bad continuation bytes", "[utf8]") {
   REQUIRE(utf8::decode_codepoint(u8"あ", 3, cp) == 3);
 }
 
+TEST_CASE("decode_codepoint rejects ill-formed scalar values", "[utf8]") {
+  char32_t cp;
+  // Overlong sequences
+  REQUIRE(utf8::decode_codepoint("\xC0\xAF", 2, cp) == 0);
+  REQUIRE(utf8::decode_codepoint("\xC1\xBF", 2, cp) == 0);
+  REQUIRE(utf8::decode_codepoint("\xE0\x80\xAF", 3, cp) == 0);
+  REQUIRE(utf8::decode_codepoint("\xF0\x80\x80\xAF", 4, cp) == 0);
+  // Surrogates
+  REQUIRE(utf8::decode_codepoint("\xED\xA0\x80", 3, cp) == 0);  // U+D800
+  REQUIRE(utf8::decode_codepoint("\xED\xBF\xBF", 3, cp) == 0);  // U+DFFF
+  // Beyond U+10FFFF
+  REQUIRE(utf8::decode_codepoint("\xF4\x90\x80\x80", 4, cp) == 0);  // U+110000
+  REQUIRE(utf8::decode_codepoint("\xF5\x80\x80\x80", 4, cp) == 0);
+
+  // Boundaries that must stay valid
+  REQUIRE(utf8::decode_codepoint("\xC2\x80", 2, cp) == 2);
+  REQUIRE(cp == 0x0080);
+  REQUIRE(utf8::decode_codepoint("\xE0\xA0\x80", 3, cp) == 3);
+  REQUIRE(cp == 0x0800);
+  REQUIRE(utf8::decode_codepoint("\xED\x9F\xBF", 3, cp) == 3);
+  REQUIRE(cp == 0xD7FF);
+  REQUIRE(utf8::decode_codepoint("\xEE\x80\x80", 3, cp) == 3);
+  REQUIRE(cp == 0xE000);
+  REQUIRE(utf8::decode_codepoint("\xF4\x8F\xBF\xBF", 4, cp) == 4);
+  REQUIRE(cp == 0x10FFFF);
+}
+
+TEST_CASE("decode drops ill-formed sequences and resyncs", "[utf8]") {
+  REQUIRE(utf8::decode("\xC0\xAF" "A") == U"A");          // overlong '/'
+  REQUIRE(utf8::decode("\xED\xA0\x80" "A") == U"A");      // surrogate U+D800
+  REQUIRE(utf8::decode("\xF4\x90\x80\x80" "A") == U"A");  // U+110000
+}
+
+TEST_CASE("codepoint_length consistent with decode_codepoint", "[utf8]") {
+  REQUIRE(utf8::codepoint_length("\xE3\x81", 2) == 0);      // truncated
+  REQUIRE(utf8::codepoint_length("\x80", 1) == 0);          // continuation byte
+  REQUIRE(utf8::codepoint_length("\xED\xA0\x80", 3) == 0);  // surrogate
+  REQUIRE(utf8::codepoint_length("\xE3\x81\x82", 3) == 3);
+}
+
+TEST_CASE("codepoint_count with ill-formed input", "[utf8]") {
+  // never loops forever, and matches what decode() produces
+  REQUIRE(utf8::codepoint_count("a\x80" "b", 3) == 2);
+  REQUIRE(utf8::codepoint_count("\xF0" "Hello", 6) == 5);
+}
+
 }  // namespace test_utf8
 
 //-----------------------------------------------------------------------------
@@ -636,6 +706,42 @@ TEST_CASE("utf16 decode invalid resync", "[utf16]") {
   // A lone high surrogate must resync and must not swallow the next unit.
   const char16_t lone_high[] = {0xD800, u'A'};
   REQUIRE(utf16::decode(std::u16string_view(lone_high, 2)) == U"A");
+}
+
+TEST_CASE("utf16 is_surrogate_pair bounds", "[utf16]") {
+  // Must not read s16[1] when only one unit is available.
+  const char16_t lone_high[] = {0xD800};
+  REQUIRE(utf16::is_surrogate_pair(lone_high, 1) == false);
+}
+
+TEST_CASE("utf16 decode_codepoint rejects unpaired surrogates", "[utf16]") {
+  char32_t cp;
+  const char16_t high[] = {0xD800, u'A'};
+  const char16_t low[] = {0xDC00, u'A'};
+  REQUIRE(utf16::decode_codepoint(high, 2, cp) == 0);
+  REQUIRE(utf16::decode_codepoint(low, 2, cp) == 0);
+}
+
+TEST_CASE("utf16 decode drops unpaired surrogates", "[utf16]") {
+  const char16_t s[] = {0xDC00, u'A'};
+  REQUIRE(utf16::decode(s, 2) == U"A");
+}
+
+TEST_CASE("utf16 codepoint_length consistent with encode/decode", "[utf16]") {
+  // Invalid scalar values yield 0, as encode_codepoint does.
+  REQUIRE(utf16::codepoint_length(0xD800) == 0);
+  REQUIRE(utf16::codepoint_length(0x110000) == 0);
+  REQUIRE(utf16::codepoint_length(0x10FFFF) == 2);
+  // Unpaired surrogates yield 0, as decode_codepoint does.
+  const char16_t high[] = {0xD800};
+  const char16_t low[] = {0xDC00};
+  REQUIRE(utf16::codepoint_length(high, 1) == 0);
+  REQUIRE(utf16::codepoint_length(low, 1) == 0);
+}
+
+TEST_CASE("utf16 codepoint_count with unpaired surrogates", "[utf16]") {
+  const char16_t s[] = {0xD800, u'A', 0xDC00, u'B'};
+  REQUIRE(utf16::codepoint_count(s, 4) == 2);
 }
 
 }  // namespace test_utf16
