@@ -103,7 +103,10 @@ const auto D = {1}::{2};
             out.write(formatValue(defval))
     out.write("\n};\n")
 
-    out.write("""inline {} get_value(char32_t cp) {{
+    out.write("""inline {0} get_value(char32_t cp) {{
+  if (cp > 0x10FFFF) {{
+    return {1};
+  }}
   auto i = cp / _block_size;
   auto bl = _blocks[i];
   if (bl) {{
@@ -113,7 +116,7 @@ const auto D = {1}::{2};
   return _block_values[i];
 }}
 }}
-""".format(type))
+""".format(type, formatValue(defval).rstrip(',')))
 
 #------------------------------------------------------------------------------
 # genGeneralCategoryPropertyTable
