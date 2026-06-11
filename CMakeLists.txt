@@ -13,4 +13,4 @@ enable_testing()
 
 add_subdirectory(test)
 
-install(FILES unicodelib.h unicodelib_encodings.h aaa.h DESTINATION include)
+install(FILES unicodelib.h unicodelib_encodings.h unicodelib_names.h DESTINATION include)
