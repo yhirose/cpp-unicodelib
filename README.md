@@ -176,6 +176,27 @@ bool is_word_boundary(const char32_t *s32, size_t l, size_t i);
 bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i);
 ```
 
+### East Asian Width / Display Width
+
+```cpp
+// East_Asian_Width property (UAX #11)
+enum class EastAsianWidth { Neutral, Ambiguous, Halfwidth, Wide, Fullwidth, Narrow };
+EastAsianWidth east_asian_width(char32_t cp);
+
+// How Ambiguous-width characters are counted as terminal columns
+enum class AmbiguousWidth { Narrow, Wide };
+
+// Display width (terminal columns) of a single code point: 0 / 1 / 2
+int codepoint_width(char32_t cp, AmbiguousWidth amb = AmbiguousWidth::Narrow);
+
+// Display width of a string, measured per extended grapheme cluster so that
+// emoji ZWJ sequences, flags, keycaps and base+variation-selector sequences
+// each count as one cell group.
+int width(const char32_t* s32, size_t l, AmbiguousWidth amb = AmbiguousWidth::Narrow);
+int width(const char32_t* s32, AmbiguousWidth amb = AmbiguousWidth::Narrow);
+int width(std::u32string_view s32, AmbiguousWidth amb = AmbiguousWidth::Narrow);
+```
+
 ### Encoding
 
 #### UTF8 Encoding

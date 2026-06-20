@@ -839,6 +839,58 @@ def genEmojiPropertyTable(ucd):
     generateTable('_emoji_properties', 'Emoji', defval, sys.stdout, values)
 
 #------------------------------------------------------------------------------
+# genEastAsianWidthPropertyTable
+#------------------------------------------------------------------------------
+
+def genEastAsianWidthPropertyTable(ucd):
+    fin = open(ucd + '/EastAsianWidth.txt')
+
+    # Map the short property values in the data file to the descriptive enum
+    # members declared in `enum class EastAsianWidth`.
+    longname = {
+        'N': 'Neutral',
+        'A': 'Ambiguous',
+        'H': 'Halfwidth',
+        'W': 'Wide',
+        'F': 'Fullwidth',
+        'Na': 'Narrow',
+    }
+
+    defval = 'Neutral'
+    values = [defval] * (MaxCopePoint + 1)
+
+    # Per the header of EastAsianWidth.txt, unassigned code points in the
+    # following ranges default to 'Wide' (W). These ranges are NOT listed in
+    # the data lines, so pre-fill them before applying the explicit data
+    # (explicit assignments below override these defaults where they overlap).
+    for first, last in [
+        (0x3400, 0x4DBF),    # CJK Unified Ideographs Extension A
+        (0x4E00, 0x9FFF),    # CJK Unified Ideographs
+        (0xF900, 0xFAFF),    # CJK Compatibility Ideographs
+        (0x20000, 0x2FFFD),  # Plane 2 (Supplementary Ideographic Plane)
+        (0x30000, 0x3FFFD),  # Plane 3 (Tertiary Ideographic Plane)
+    ]:
+        for cp in range(first, last + 1):
+            values[cp] = 'Wide'
+
+    r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)")
+
+    for line in fin:
+        m = r.match(line)
+        if m:
+            codePoint = int(m.group(1), 16)
+            value = longname[m.group(3)]
+
+            if m.group(2):
+                codePointLast = int(m.group(2), 16)
+                for cp in range(codePoint, codePointLast + 1):
+                    values[cp] = value
+            else:
+                values[codePoint] = value
+
+    generateTable('_east_asian_width_properties', 'EastAsianWidth', defval, sys.stdout, values)
+
+#------------------------------------------------------------------------------
 # Main
 #------------------------------------------------------------------------------
 
@@ -862,3 +914,4 @@ else:
     genWordBreakPropertyTable(ucd)
     genSentenceBreakPropertyTable(ucd)
     genEmojiPropertyTable(ucd)
+    genEastAsianWidthPropertyTable(ucd)

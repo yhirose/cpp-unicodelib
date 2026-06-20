@@ -771,4 +771,111 @@ TEST_CASE("Conversion text", "[encodings]") {
 
 }  // namespace test_encodeings
 
+//-----------------------------------------------------------------------------
+// East Asian Width / Display Width
+//-----------------------------------------------------------------------------
+
+TEST_CASE("east_asian_width property", "[width]") {
+  REQUIRE(east_asian_width(U'A') == EastAsianWidth::Narrow);       // Na
+  REQUIRE(east_asian_width(U' ') == EastAsianWidth::Narrow);       // Na
+  REQUIRE(east_asian_width(0x00A1) == EastAsianWidth::Ambiguous);  // ¡ -> A
+  REQUIRE(east_asian_width(0x3042) == EastAsianWidth::Wide);       // ぁ -> W
+  REQUIRE(east_asian_width(0xFF21) == EastAsianWidth::Fullwidth);  // Ａ -> F
+  REQUIRE(east_asian_width(0xFF61) == EastAsianWidth::Halfwidth);  // ｡ -> H
+
+  // Unassigned code points in the CJK / SIP / TIP ranges default to Wide.
+  REQUIRE(east_asian_width(0x4E00) == EastAsianWidth::Wide);   // assigned CJK
+  REQUIRE(east_asian_width(0x20000) == EastAsianWidth::Wide);  // SIP
+  REQUIRE(east_asian_width(0x3FFFD) == EastAsianWidth::Wide);  // TIP boundary
+}
+
+TEST_CASE("codepoint_width", "[width]") {
+  REQUIRE(codepoint_width(U'A') == 1);
+  REQUIRE(codepoint_width(0x3042) == 2);  // ぁ (Wide)
+  REQUIRE(codepoint_width(0xFF21) == 2);  // Ａ (Fullwidth)
+  REQUIRE(codepoint_width(0xFF61) == 1);  // ｡ (Halfwidth)
+
+  REQUIRE(codepoint_width(U'\0') == 0);    // NUL
+  REQUIRE(codepoint_width(U'\t') == 0);    // control
+  REQUIRE(codepoint_width(0x0301) == 0);   // combining acute (Mn)
+  REQUIRE(codepoint_width(0x200D) == 0);   // ZWJ (Cf)
+  REQUIRE(codepoint_width(0x20DD) == 0);   // enclosing circle (Me)
+  REQUIRE(codepoint_width(0x1F600) == 2);  // GRINNING FACE (Emoji_Presentation)
+
+  // Ambiguous width follows the policy.
+  REQUIRE(codepoint_width(0x00A1, AmbiguousWidth::Narrow) == 1);
+  REQUIRE(codepoint_width(0x00A1, AmbiguousWidth::Wide) == 2);
+}
+
+TEST_CASE("width of strings", "[width]") {
+  REQUIRE(width(U"hello") == 5);
+  REQUIRE(width(U"日本語") == 6);
+  REQUIRE(width(U"aあb") == 4);
+
+  // A combining mark adds no width: 'e' + U+0301 (COMBINING ACUTE ACCENT).
+  REQUIRE(width(U"é") == 1);
+
+}
+
+TEST_CASE("width of emoji clusters", "[width]") {
+  // Single emoji.
+  REQUIRE(width(U"\U0001F600") == 2);
+
+  // ZWJ sequence: family renders as one wide glyph.
+  REQUIRE(width(U"\U0001F468‍\U0001F469‍\U0001F467‍\U0001F466") ==
+          2);
+
+  // Flag: two regional indicators -> one wide glyph.
+  REQUIRE(width(U"\U0001F1EF\U0001F1F5") == 2);
+
+  // Emoji modifier sequence (thumbs up + skin tone).
+  REQUIRE(width(U"\U0001F44D\U0001F3FD") == 2);
+
+  // Variation selectors: VS16 forces wide, VS15 forces narrow.
+  REQUIRE(width(U"❤️") == 2);  // heart, emoji presentation
+  REQUIRE(width(U"❤︎") == 1);  // heart, text presentation
+
+  // Keycap: '1' + VS16 + COMBINING ENCLOSING KEYCAP.
+  REQUIRE(width(U"1️⃣") == 2);
+}
+
+TEST_CASE("width consistency with EastAsianWidth.txt", "[width]") {
+  std::ifstream fs("../UCD/EastAsianWidth.txt");
+  REQUIRE(fs);
+
+  auto to_enum = [](const std::string &s) {
+    if (s == "N") return EastAsianWidth::Neutral;
+    if (s == "A") return EastAsianWidth::Ambiguous;
+    if (s == "H") return EastAsianWidth::Halfwidth;
+    if (s == "W") return EastAsianWidth::Wide;
+    if (s == "F") return EastAsianWidth::Fullwidth;
+    return EastAsianWidth::Narrow;  // Na
+  };
+
+  std::string line;
+  while (std::getline(fs, line)) {
+    auto hash = line.find('#');
+    if (hash != std::string::npos) line = line.substr(0, hash);
+    auto semi = line.find(';');
+    if (semi == std::string::npos) continue;
+
+    std::string range = line.substr(0, semi);
+    std::string value = line.substr(semi + 1);
+    value.erase(0, value.find_first_not_of(" \t"));
+    value.erase(value.find_last_not_of(" \t\r") + 1);
+    if (value.empty()) continue;
+
+    auto dotdot = range.find("..");
+    char32_t first = std::stoul(range.substr(0, dotdot), nullptr, 16);
+    char32_t last = dotdot == std::string::npos
+                        ? first
+                        : std::stoul(range.substr(dotdot + 2), nullptr, 16);
+
+    auto expected = to_enum(value);
+    for (char32_t cp = first; cp <= last; cp++) {
+      REQUIRE(east_asian_width(cp) == expected);
+    }
+  }
+}
+
 // vim: et ts=2 sw=2 cin cino=\:0 ff=unix
