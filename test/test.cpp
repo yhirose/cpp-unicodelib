@@ -191,8 +191,20 @@ TEST_CASE("Full case mapping", "[case]") {
   REQUIRE(to_uppercase(U"χαοσς") == U"ΧΑΟΣΣ");
   REQUIRE(to_uppercase(U"χαος σ") == U"ΧΑΟΣ Σ");
 
-  // German
+  // German: by default, ß (U+00DF) uppercases to "SS"
   REQUIRE(to_uppercase(U"Maße") == U"MASSE");
+
+  // German capital sharp s tailoring (opt-in): ß -> ẞ (U+1E9E)
+  REQUIRE(to_uppercase(U"Maße", CaseTailoring::GermanCapitalSharpS) ==
+          U"MAẞE");
+  REQUIRE(to_uppercase(U"straße", CaseTailoring::GermanCapitalSharpS) ==
+          U"STRAẞE");
+  REQUIRE(to_uppercase(U"ß", CaseTailoring::GermanCapitalSharpS) == U"ẞ");
+  // It can be combined with a locale and does not affect lowercasing.
+  REQUIRE(to_uppercase(U"Maße",
+                       Locale{"de"} | CaseTailoring::GermanCapitalSharpS) ==
+          U"MAẞE");
+  REQUIRE(to_lowercase(U"ẞ", CaseTailoring::GermanCapitalSharpS) == U"ß");
 
   // Title case
   REQUIRE(to_titlecase(U"hello WORLD. A, a.") == U"Hello World. A, A.");
@@ -205,6 +217,11 @@ TEST_CASE("Full case mapping", "[case]") {
   REQUIRE(to_titlecase(U"ik hou van ijsje", "nl") == U"Ik Hou Van IJsje");
   REQUIRE(to_titlecase(U"ijmuiden", "nl") == U"IJmuiden");
   REQUIRE(to_titlecase(U"IJMUIDEN", "nl") == U"IJmuiden");
+  // The locale is matched by its primary subtag, case-insensitively.
+  REQUIRE(to_titlecase(U"ijsje", "nl-BE") == U"IJsje");
+  REQUIRE(to_titlecase(U"ijsje", "nl_NL") == U"IJsje");
+  REQUIRE(to_titlecase(U"ijsje", "NL") == U"IJsje");
+  REQUIRE(to_titlecase(U"ijsje", Locale{"nl-NL"}) == U"IJsje");
   // Without Dutch locale, IJ should not be special-cased
   REQUIRE(to_titlecase(U"ijsje") == U"Ijsje");
   REQUIRE(to_titlecase(U"ijsje", "en") == U"Ijsje");
@@ -227,11 +244,16 @@ TEST_CASE("Casless match", "[case]") {
   REQUIRE(caseless_match(U"İstanbul", U"ıstanbul") == false);
   REQUIRE(caseless_match(U"İstanbul", U"Istanbul") == false);
   REQUIRE(caseless_match(U"Istanbul", U"istanbul") == true);
-  REQUIRE(caseless_match(U"Istanbul", U"ıstanbul", true) == true);
-  REQUIRE(caseless_match(U"İstanbul", U"istanbul", true) == true);
-  REQUIRE(caseless_match(U"İstanbul", U"ıstanbul", true) == false);
-  REQUIRE(caseless_match(U"İstanbul", U"Istanbul", true) == false);
-  REQUIRE(caseless_match(U"Istanbul", U"istanbul", true) == false);
+  REQUIRE(caseless_match(U"Istanbul", U"ıstanbul",
+                         CaseTailoring::TurkicCaseFold) == true);
+  REQUIRE(caseless_match(U"İstanbul", U"istanbul",
+                         CaseTailoring::TurkicCaseFold) == true);
+  REQUIRE(caseless_match(U"İstanbul", U"ıstanbul",
+                         CaseTailoring::TurkicCaseFold) == false);
+  REQUIRE(caseless_match(U"İstanbul", U"Istanbul",
+                         CaseTailoring::TurkicCaseFold) == false);
+  REQUIRE(caseless_match(U"Istanbul", U"istanbul",
+                         CaseTailoring::TurkicCaseFold) == false);
 
   // Sigma
   REQUIRE(caseless_match(U"όσος", U"ΌΣΟΣ") == true);

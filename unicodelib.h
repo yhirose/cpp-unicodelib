@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -198,32 +199,121 @@ char32_t simple_lowercase_mapping(char32_t cp);
 char32_t simple_titlecase_mapping(char32_t cp);
 char32_t simple_case_folding(char32_t cp);
 
+// A minimal BCP 47 locale. Only the primary language subtag is significant for
+// case mapping, and it is matched case-insensitively. So "tr", "tr-TR", "TR"
+// and "tr_TR" are all treated as Turkish.
+class Locale {
+ public:
+  Locale() = default;
+  Locale(const char *tag)
+      : language_(tag ? primary_subtag(tag) : std::string()) {}
+  Locale(std::string_view tag) : language_(primary_subtag(tag)) {}
+
+  // The lowercased primary language subtag (e.g. "tr" for "tr-TR").
+  std::string_view language() const { return language_; }
+
+  // True if the primary language subtag equals `primary` (case-insensitive).
+  bool is(std::string_view primary) const {
+    if (language_.size() != primary.size()) {
+      return false;
+    }
+    for (size_t i = 0; i < primary.size(); i++) {
+      if (language_[i] != to_lower_ascii(primary[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // True if a locale was specified.
+  explicit operator bool() const { return !language_.empty(); }
+
+ private:
+  static char to_lower_ascii(char c) {
+    return (c >= 'A' && c <= 'Z') ? static_cast<char>(c - 'A' + 'a') : c;
+  }
+  static std::string primary_subtag(std::string_view tag) {
+    std::string out;
+    for (char c : tag) {
+      if (c == '-' || c == '_') {
+        break;
+      }
+      out += to_lower_ascii(c);
+    }
+    return out;
+  }
+  std::string language_;
+};
+
+// Opt-in case tailorings that are NOT implied by the locale. They are combined
+// with operator| (e.g. `CaseTailoring::TurkicCaseFold | CaseTailoring::...`).
+enum class CaseTailoring : unsigned {
+  None = 0,
+  // Use the Turkic full case folding mappings (the optional "T" mappings in
+  // CaseFolding.txt) for U+0049 and U+0130.
+  TurkicCaseFold = 1u << 0,
+  // When uppercasing, map U+00DF (ß) to U+1E9E (ẞ, LATIN CAPITAL LETTER SHARP
+  // S) instead of the default "SS".
+  GermanCapitalSharpS = 1u << 1,
+};
+
+constexpr CaseTailoring operator|(CaseTailoring a, CaseTailoring b) {
+  return static_cast<CaseTailoring>(static_cast<unsigned>(a) |
+                                    static_cast<unsigned>(b));
+}
+
+constexpr bool has_tailoring(CaseTailoring set, CaseTailoring flag) {
+  return (static_cast<unsigned>(set) & static_cast<unsigned>(flag)) != 0;
+}
+
+// Bundles the locale and the opt-in tailorings for the case operations. It is
+// implicitly constructible from a locale tag (`"tr"`), a Locale, or a
+// CaseTailoring, so most call sites stay terse.
+struct CaseOptions {
+  Locale locale;
+  CaseTailoring tailoring = CaseTailoring::None;
+
+  CaseOptions() = default;
+  CaseOptions(Locale locale) : locale(locale) {}
+  CaseOptions(const char *tag) : locale(tag) {}
+  CaseOptions(std::string_view tag) : locale(tag) {}
+  CaseOptions(CaseTailoring tailoring) : tailoring(tailoring) {}
+  CaseOptions(Locale locale, CaseTailoring tailoring)
+      : locale(locale), tailoring(tailoring) {}
+};
+
+inline CaseOptions operator|(Locale locale, CaseTailoring tailoring) {
+  return CaseOptions(locale, tailoring);
+}
+
+inline CaseOptions operator|(CaseOptions options, CaseTailoring tailoring) {
+  options.tailoring = options.tailoring | tailoring;
+  return options;
+}
+
 std::u32string to_uppercase(const char32_t *s32, size_t l,
-                            const char *lang = nullptr);
+                            const CaseOptions &options = {});
 std::u32string to_lowercase(const char32_t *s32, size_t l,
-                            const char *lang = nullptr);
+                            const CaseOptions &options = {});
 std::u32string to_titlecase(const char32_t *s32, size_t l,
-                            const char *lang = nullptr);
-std::u32string to_case_fold(
-    const char32_t *s32, size_t l,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
+                            const CaseOptions &options = {});
+std::u32string to_case_fold(const char32_t *s32, size_t l,
+                            const CaseOptions &options = {});
 
 bool is_uppercase(const char32_t *s32, size_t l);
 bool is_lowercase(const char32_t *s32, size_t l);
 bool is_titlecase(const char32_t *s32, size_t l);
 bool is_case_fold(const char32_t *s32, size_t l);
 
-bool caseless_match(
-    const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
+bool caseless_match(const char32_t *s1, size_t l1, const char32_t *s2,
+                    size_t l2, const CaseOptions &options = {});
 
-bool canonical_caseless_match(
-    const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
+bool canonical_caseless_match(const char32_t *s1, size_t l1, const char32_t *s2,
+                              size_t l2, const CaseOptions &options = {});
 
-bool compatibility_caseless_match(
-    const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false);
+bool compatibility_caseless_match(const char32_t *s1, size_t l1,
+                                  const char32_t *s2, size_t l2,
+                                  const CaseOptions &options = {});
 
 //-----------------------------------------------------------------------------
 // Text Segmentation
@@ -814,47 +904,43 @@ std::u32string to_nfkd(const char32_t *s32, size_t l);
 //-----------------------------------------------------------------------------
 
 inline std::u32string to_uppercase(const std::u32string_view s32,
-                                   const char *lang = nullptr) {
-  return to_uppercase(s32.data(), s32.length(), lang);
+                                   const CaseOptions &options = {}) {
+  return to_uppercase(s32.data(), s32.length(), options);
 }
 
 inline std::u32string to_uppercase(const char32_t *s32,
-                                   const char *lang = nullptr) {
-  return to_uppercase(s32, std::char_traits<char32_t>::length(s32), lang);
+                                   const CaseOptions &options = {}) {
+  return to_uppercase(s32, std::char_traits<char32_t>::length(s32), options);
 }
 
 inline std::u32string to_lowercase(const std::u32string_view s32,
-                                   const char *lang = nullptr) {
-  return to_lowercase(s32.data(), s32.length(), lang);
+                                   const CaseOptions &options = {}) {
+  return to_lowercase(s32.data(), s32.length(), options);
 }
 
 inline std::u32string to_lowercase(const char32_t *s32,
-                                   const char *lang = nullptr) {
-  return to_lowercase(s32, std::char_traits<char32_t>::length(s32), lang);
+                                   const CaseOptions &options = {}) {
+  return to_lowercase(s32, std::char_traits<char32_t>::length(s32), options);
 }
 
 inline std::u32string to_titlecase(const std::u32string_view s32,
-                                   const char *lang = nullptr) {
-  return to_titlecase(s32.data(), s32.length(), lang);
+                                   const CaseOptions &options = {}) {
+  return to_titlecase(s32.data(), s32.length(), options);
 }
 
 inline std::u32string to_titlecase(const char32_t *s32,
-                                   const char *lang = nullptr) {
-  return to_titlecase(s32, std::char_traits<char32_t>::length(s32), lang);
+                                   const CaseOptions &options = {}) {
+  return to_titlecase(s32, std::char_traits<char32_t>::length(s32), options);
 }
 
-inline std::u32string to_case_fold(
-    const std::u32string_view s32,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
-  return to_case_fold(s32.data(), s32.length(),
-                      special_case_for_uppercase_I_and_dotted_uppercase_I);
+inline std::u32string to_case_fold(const std::u32string_view s32,
+                                   const CaseOptions &options = {}) {
+  return to_case_fold(s32.data(), s32.length(), options);
 }
 
-inline std::u32string to_case_fold(
-    const char32_t *s32,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
-  return to_case_fold(s32, std::char_traits<char32_t>::length(s32),
-                      special_case_for_uppercase_I_and_dotted_uppercase_I);
+inline std::u32string to_case_fold(const char32_t *s32,
+                                   const CaseOptions &options = {}) {
+  return to_case_fold(s32, std::char_traits<char32_t>::length(s32), options);
 }
 
 inline bool is_uppercase(const std::u32string_view s32) {
@@ -889,53 +975,45 @@ inline bool is_case_fold(const char32_t *s32) {
   return is_case_fold(s32, std::char_traits<char32_t>::length(s32));
 }
 
-inline bool caseless_match(
-    const std::u32string_view s1, const std::u32string_view s2,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
+inline bool caseless_match(const std::u32string_view s1,
+                           const std::u32string_view s2,
+                           const CaseOptions &options = {}) {
   return caseless_match(s1.data(), s1.length(), s2.data(), s2.length(),
-                        special_case_for_uppercase_I_and_dotted_uppercase_I);
+                        options);
 }
 
-inline bool caseless_match(
-    const char32_t *s1, const char32_t *s2,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
+inline bool caseless_match(const char32_t *s1, const char32_t *s2,
+                           const CaseOptions &options = {}) {
   return caseless_match(s1, std::char_traits<char32_t>::length(s1), s2,
-                        std::char_traits<char32_t>::length(s2),
-                        special_case_for_uppercase_I_and_dotted_uppercase_I);
+                        std::char_traits<char32_t>::length(s2), options);
 }
 
-inline bool canonical_caseless_match(
-    const std::u32string_view s1, const std::u32string_view s2,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
-  return canonical_caseless_match(
-      s1.data(), s1.length(), s2.data(), s2.length(),
-      special_case_for_uppercase_I_and_dotted_uppercase_I);
+inline bool canonical_caseless_match(const std::u32string_view s1,
+                                     const std::u32string_view s2,
+                                     const CaseOptions &options = {}) {
+  return canonical_caseless_match(s1.data(), s1.length(), s2.data(),
+                                  s2.length(), options);
 }
 
-inline bool canonical_caseless_match(
-    const char32_t *s1, const char32_t *s2,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
-  return canonical_caseless_match(
-      s1, std::char_traits<char32_t>::length(s1), s2,
-      std::char_traits<char32_t>::length(s2),
-      special_case_for_uppercase_I_and_dotted_uppercase_I);
+inline bool canonical_caseless_match(const char32_t *s1, const char32_t *s2,
+                                     const CaseOptions &options = {}) {
+  return canonical_caseless_match(s1, std::char_traits<char32_t>::length(s1),
+                                  s2, std::char_traits<char32_t>::length(s2),
+                                  options);
 }
 
-inline bool compatibility_caseless_match(
-    const std::u32string_view s1, const std::u32string_view s2,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
-  return compatibility_caseless_match(
-      s1.data(), s1.length(), s2.data(), s2.length(),
-      special_case_for_uppercase_I_and_dotted_uppercase_I);
+inline bool compatibility_caseless_match(const std::u32string_view s1,
+                                         const std::u32string_view s2,
+                                         const CaseOptions &options = {}) {
+  return compatibility_caseless_match(s1.data(), s1.length(), s2.data(),
+                                      s2.length(), options);
 }
 
-inline bool compatibility_caseless_match(
-    const char32_t *s1, const char32_t *s2,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I = false) {
+inline bool compatibility_caseless_match(const char32_t *s1, const char32_t *s2,
+                                         const CaseOptions &options = {}) {
   return compatibility_caseless_match(
       s1, std::char_traits<char32_t>::length(s1), s2,
-      std::char_traits<char32_t>::length(s2),
-      special_case_for_uppercase_I_and_dotted_uppercase_I);
+      std::char_traits<char32_t>::length(s2), options);
 }
 
 inline std::u32string to_nfc(const std::u32string_view s32) {
@@ -35520,16 +35598,10 @@ inline char32_t simple_case_folding(char32_t cp) {
   return cp;
 }
 
-inline bool is_language_qualified(const char *user_lang,
-                                  const char *spec_lang) {
-  return !spec_lang || (user_lang && !strcmp(user_lang, spec_lang));
-}
-
-inline bool is_dutch(const char *lang) {
-  // Check for Dutch language code (nl, nl-NL, nl-BE, etc.)
-  return lang && (strcmp(lang, "nl") == 0 ||
-                  (strncmp(lang, "nl-", 3) == 0) ||
-                  (strncmp(lang, "nl_", 3) == 0));
+inline bool is_language_qualified(const Locale &locale, const char *spec_lang) {
+  // A SpecialCasing entry with no language applies to every locale; otherwise
+  // the locale's primary language subtag must match (e.g. "tr", "az", "lt").
+  return !spec_lang || locale.is(spec_lang);
 }
 
 inline bool is_final_sigma(const char32_t *s32, size_t l, size_t i) {
@@ -35638,7 +35710,7 @@ inline bool is_after_i(const char32_t *s32, size_t l, size_t i) {
 }
 
 inline void full_case_mapping(const char32_t *s32, size_t l, size_t i,
-                              const char *lang, CaseMappingType type,
+                              const CaseOptions &options, CaseMappingType type,
                               std::u32string &out) {
   // D135 A character C is defined to be cased if and only if C has the
   // Lowercase or Uppercase property or has a General_Category value of
@@ -35667,12 +35739,21 @@ inline void full_case_mapping(const char32_t *s32, size_t l, size_t i,
   // matching if and only if it matches the corresponding specification in Table
   // 3-17.
   auto cp = s32[i];
+
+  // German capital sharp s tailoring (opt-in, not implied by the locale): when
+  // uppercasing, map U+00DF (ß) to U+1E9E (ẞ) rather than the default "SS".
+  if (type == CaseMappingType::Upper && cp == 0x000000DF &&
+      has_tailoring(options.tailoring, CaseTailoring::GermanCapitalSharpS)) {
+    out += U'\U00001E9E';
+    return;
+  }
+
   auto count = _special_case_mappings.count(cp);
   if (count != 0) {
     auto r = _special_case_mappings.equal_range(cp);
     for (auto it = r.first; it != r.second; ++it) {
       const auto &sc = it->second;
-      if (is_language_qualified(lang, sc.language)) {
+      if (is_language_qualified(options.locale, sc.language)) {
         auto handle = false;
         switch (sc.context) {
           case SpecialCasingContext::Final_Sigma:
@@ -35717,42 +35798,42 @@ inline void full_case_mapping(const char32_t *s32, size_t l, size_t i,
 }
 
 inline void uppercase_mapping(const char32_t *s32, size_t l, size_t i,
-                              const char *lang, std::u32string &out) {
-  full_case_mapping(s32, l, i, lang, CaseMappingType::Upper, out);
+                              const CaseOptions &options, std::u32string &out) {
+  full_case_mapping(s32, l, i, options, CaseMappingType::Upper, out);
 }
 
 inline void lowercase_mapping(const char32_t *s32, size_t l, size_t i,
-                              const char *lang, std::u32string &out) {
-  full_case_mapping(s32, l, i, lang, CaseMappingType::Lower, out);
+                              const CaseOptions &options, std::u32string &out) {
+  full_case_mapping(s32, l, i, options, CaseMappingType::Lower, out);
 }
 
 inline void titlecase_mapping(const char32_t *s32, size_t l, size_t i,
-                              const char *lang, std::u32string &out) {
-  full_case_mapping(s32, l, i, lang, CaseMappingType::Title, out);
+                              const CaseOptions &options, std::u32string &out) {
+  full_case_mapping(s32, l, i, options, CaseMappingType::Title, out);
 }
 
 inline std::u32string to_uppercase(const char32_t *s32, size_t l,
-                                   const char *lang) {
+                                   const CaseOptions &options) {
   // R1 toUppercase(X): Map each character C in X to Uppercase_Mapping(C)
   std::u32string out;
   for (size_t i = 0; i < l; i++) {
-    uppercase_mapping(s32, l, i, lang, out);
+    uppercase_mapping(s32, l, i, options, out);
   }
   return out;
 }
 
 inline std::u32string to_lowercase(const char32_t *s32, size_t l,
-                                   const char *lang) {
+                                   const CaseOptions &options) {
   // R2 toLowercase(X): Map each character C in X to Lowercase_Mapping(C)
   std::u32string out;
   for (size_t i = 0; i < l; i++) {
-    lowercase_mapping(s32, l, i, lang, out);
+    lowercase_mapping(s32, l, i, options, out);
   }
   return out;
 }
 
 inline std::u32string to_titlecase(const char32_t *s32, size_t l,
-                                   const char *lang) {
+                                   const CaseOptions &options) {
   // R3 toTitlecase(X): Find the word boundaries in X according to Unicode
   // Standard Annex #29, “Unicode Text Segmentation.” For each word boundary,
   // find the first cased character F following the word boundary. If F exists,
@@ -35770,13 +35851,13 @@ inline std::u32string to_titlecase(const char32_t *s32, size_t l,
       break;
     }
 
-    titlecase_mapping(s32, l, i, lang, out);
+    titlecase_mapping(s32, l, i, options, out);
     i++;
 
-    // Special case for Dutch IJ titlecasing:
-    // When the first letter of a word is 'I' (or 'Í') followed by 'j',
-    // both letters should be capitalized: "ijsje" -> "IJsje"
-    if (is_dutch(lang) && !out.empty()) {
+    // Special case for Dutch IJ titlecasing (a locale tailoring not covered by
+    // SpecialCasing.txt; see CLDR nl-Title.xml). When a word begins with 'ij',
+    // both letters are capitalized: "ijsje" -> "IJsje".
+    if (options.locale.is("nl") && !out.empty()) {
       auto last = out.back();
       if ((last == U'I' || last == U'Í') && i < l &&
           (s32[i] == U'j' || s32[i] == U'J')) {
@@ -35790,20 +35871,20 @@ inline std::u32string to_titlecase(const char32_t *s32, size_t l,
     }
 
     while (i < l && !is_word_boundary(s32, l, i)) {
-      lowercase_mapping(s32, l, i, lang, out);
+      lowercase_mapping(s32, l, i, options, out);
       i++;
     }
   }
   return out;
 }
 
-inline void case_folding(
-    char32_t cp, bool special_case_for_uppercase_I_and_dotted_uppercase_I,
-    std::u32string &out) {
+inline void case_folding(char32_t cp, const CaseOptions &options,
+                         std::u32string &out) {
   auto it = _case_foldings.find(cp);
   if (it != _case_foldings.end()) {
     const auto &cf = it->second;
-    if (special_case_for_uppercase_I_and_dotted_uppercase_I && cf.T) {
+    if (has_tailoring(options.tailoring, CaseTailoring::TurkicCaseFold) &&
+        cf.T) {
       out += cf.T;
       return;
     } else if (cf.F) {
@@ -35820,14 +35901,12 @@ inline void case_folding(
   out += cp;
 }
 
-inline std::u32string to_case_fold(
-    const char32_t *s32, size_t l,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I) {
+inline std::u32string to_case_fold(const char32_t *s32, size_t l,
+                                   const CaseOptions &options) {
   // R4 toCasefold(X): Map each character C in X to Case_Folding(C)
   std::u32string out;
   for (size_t i = 0; i < l; i++) {
-    case_folding(s32[i], special_case_for_uppercase_I_and_dotted_uppercase_I,
-                 out);
+    case_folding(s32[i], options, out);
   }
   return out;
 }
@@ -35897,59 +35976,42 @@ inline bool is_case_fold(const char32_t *s32, size_t l) {
   return true;
 }
 
-inline bool caseless_match(
-    const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I) {
+inline bool caseless_match(const char32_t *s1, size_t l1, const char32_t *s2,
+                           size_t l2, const CaseOptions &options) {
   // D144 A string X is a caseless match for a string Y if and only if
   // toCasefold(X) = toCasefold(Y)
-  return to_case_fold(s1, l1,
-                      special_case_for_uppercase_I_and_dotted_uppercase_I) ==
-         to_case_fold(s2, l2,
-                      special_case_for_uppercase_I_and_dotted_uppercase_I);
+  return to_case_fold(s1, l1, options) == to_case_fold(s2, l2, options);
 }
 
-inline bool canonical_caseless_match(
-    const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I) {
+inline bool canonical_caseless_match(const char32_t *s1, size_t l1,
+                                     const char32_t *s2, size_t l2,
+                                     const CaseOptions &options) {
   // D145 A string X is a canonical caseless match for a string Y if and only if
   // NFD(toCasefold(NFD(X))) = NFD(toCasefold(NFD(Y)))
-  return to_nfd(to_case_fold(
-             to_nfd(s1, l1),
-             special_case_for_uppercase_I_and_dotted_uppercase_I)) ==
-         to_nfd(
-             to_case_fold(to_nfd(s2, l2),
-                          special_case_for_uppercase_I_and_dotted_uppercase_I));
+  return to_nfd(to_case_fold(to_nfd(s1, l1), options)) ==
+         to_nfd(to_case_fold(to_nfd(s2, l2), options));
 }
 
-inline bool compatibility_caseless_match(
-    const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I) {
+inline bool compatibility_caseless_match(const char32_t *s1, size_t l1,
+                                         const char32_t *s2, size_t l2,
+                                         const CaseOptions &options) {
   // D146 A string X is a compatibility caseless match for a string Y if and
   // only if NFKD(toCasefold(NFKD(toCasefold(NFD(X))))) =
   // NFKD(toCasefold(NFKD(toCasefold(NFD(Y)))))
-  return to_nfkd(to_case_fold(
-             to_nfkd(to_case_fold(
-                 to_nfd(s1, l1),
-                 special_case_for_uppercase_I_and_dotted_uppercase_I)),
-             special_case_for_uppercase_I_and_dotted_uppercase_I)) ==
-         to_nfkd(to_case_fold(
-             to_nfkd(to_case_fold(
-                 to_nfd(s2, l2),
-                 special_case_for_uppercase_I_and_dotted_uppercase_I)),
-             special_case_for_uppercase_I_and_dotted_uppercase_I));
+  return to_nfkd(to_case_fold(to_nfkd(to_case_fold(to_nfd(s1, l1), options)),
+                              options)) ==
+         to_nfkd(to_case_fold(to_nfkd(to_case_fold(to_nfd(s2, l2), options)),
+                              options));
 }
 
 #if 0 // TODO
-inline bool identifier_caseless_match(
-    const char32_t *s1, size_t l1, const char32_t *s2, size_t l2,
-    bool special_case_for_uppercase_I_and_dotted_uppercase_I) {
+inline bool identifier_caseless_match(const char32_t *s1, size_t l1,
+                                      const char32_t *s2, size_t l2,
+                                      const CaseOptions &options) {
   // D147 A string X is an identifier caseless match for a string Y if and
   // only if toNFKC_Casefold(NFD(X)) = toNFKC_Casefold(NFD(Y))
-  return to_nfkc_case_fold(
-             to_nfd(s1, l1),
-             special_case_for_uppercase_I_and_dotted_uppercase_I) ==
-         to_nfkc_case_fold(to_nfd(s2, l2),
-                           special_case_for_uppercase_I_and_dotted_uppercase_I);
+  return to_nfkc_case_fold(to_nfd(s1, l1), options) ==
+         to_nfkc_case_fold(to_nfd(s2, l2), options);
 }
 #endif
 
