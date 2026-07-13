@@ -162,11 +162,50 @@ def genGeneralCategoryPropertyTable(ucd):
 # genPropertyTable
 #------------------------------------------------------------------------------
 
+# Bit assignments must match the hand-written Property_* constants in
+# unicodelib.h. Never derive them from the order of appearance in
+# PropList.txt: that order changes between Unicode versions.
+PROPERTY_BITS = {
+    'White_Space': 0,
+    'Bidi_Control': 1,
+    'Join_Control': 2,
+    'Dash': 3,
+    'Hyphen': 4,
+    'Quotation_Mark': 5,
+    'Terminal_Punctuation': 6,
+    'Other_Math': 7,
+    'Hex_Digit': 8,
+    'ASCII_Hex_Digit': 9,
+    'Other_Alphabetic': 10,
+    'Ideographic': 11,
+    'Diacritic': 12,
+    'Extender': 13,
+    'Other_Lowercase': 14,
+    'Other_Uppercase': 15,
+    'Noncharacter_Code_Point': 16,
+    'Other_Grapheme_Extend': 17,
+    'IDS_Binary_Operator': 18,
+    'IDS_Trinary_Operator': 19,
+    'Radical': 20,
+    'Unified_Ideograph': 21,
+    'Other_Default_Ignorable_Code_Point': 22,
+    'Deprecated': 23,
+    'Soft_Dotted': 24,
+    'Logical_Order_Exception': 25,
+    'Other_ID_Start': 26,
+    'Other_ID_Continue': 27,
+    'Sentence_Terminal': 28,
+    'Variation_Selector': 29,
+    'Pattern_White_Space': 30,
+    'Pattern_Syntax': 31,
+    'Prepended_Concatenation_Mark': 32,
+}
+
 def genPropertyTable(ucd):
     fin = open(ucd + '/PropList.txt')
 
     values = [0] * (MaxCopePoint + 1)
-    names = {}
+    skipped = set()
     r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)\s*#.*")
 
     for line in fin:
@@ -174,9 +213,10 @@ def genPropertyTable(ucd):
         if m:
             codePoint = int(m.group(1), 16)
             name = m.group(3)
-            if not name in names:
-                names[name] = len(names)
-            val = names[name]
+            if name not in PROPERTY_BITS:
+                skipped.add(name)
+                continue
+            val = PROPERTY_BITS[name]
 
             if m.group(2):
                 codePointLast = int(m.group(2), 16)
@@ -185,17 +225,48 @@ def genPropertyTable(ucd):
             else:
                 values[codePoint] += (1 << val)
 
+    for name in sorted(skipped):
+        print('NOTE: PropList property not exposed by unicodelib: ' + name,
+              file=sys.stderr)
+
     generateTable('_properties', "uint64_t", 0, sys.stdout, values)
 
 #------------------------------------------------------------------------------
 # genDerivedCorePropertyTable
 #------------------------------------------------------------------------------
 
+# Bit assignments must match the hand-written DerivedProperty_* constants in
+# unicodelib.h (see PROPERTY_BITS above for why they are fixed here).
+DERIVED_PROPERTY_BITS = {
+    'Math': 0,
+    'Alphabetic': 1,
+    'Lowercase': 2,
+    'Uppercase': 3,
+    'Cased': 4,
+    'Case_Ignorable': 5,
+    'Changes_When_Lowercased': 6,
+    'Changes_When_Uppercased': 7,
+    'Changes_When_Titlecased': 8,
+    'Changes_When_Casefolded': 9,
+    'Changes_When_Casemapped': 10,
+    'ID_Start': 11,
+    'ID_Continue': 12,
+    'XID_Start': 13,
+    'XID_Continue': 14,
+    'Default_Ignorable_Code_Point': 15,
+    'Grapheme_Extend': 16,
+    'Grapheme_Base': 17,
+    'Grapheme_Link': 18,
+    'InCB_Linker': 19,
+    'InCB_Consonant': 20,
+    'InCB_Extend': 21,
+}
+
 def genDerivedCorePropertyTable(ucd):
     fin = open(ucd + '/DerivedCoreProperties.txt')
 
     values = [0] * (MaxCopePoint + 1)
-    names = {}
+    skipped = set()
     r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(\w+)(?:;\s*(\w+))?\s*#.*")
 
     for line in fin:
@@ -208,10 +279,11 @@ def genDerivedCorePropertyTable(ucd):
             if prop_val:
                 name = name + "_" + prop_val
 
-            if not name in names:
-                names[name] = len(names)
+            if name not in DERIVED_PROPERTY_BITS:
+                skipped.add(name)
+                continue
 
-            val = names[name]
+            val = DERIVED_PROPERTY_BITS[name]
 
             if m.group(2):
                 codePointLast = int(m.group(2), 16)
@@ -219,6 +291,10 @@ def genDerivedCorePropertyTable(ucd):
                     values[cp] += (1 << val)
             else:
                 values[codePoint] += (1 << val)
+
+    for name in sorted(skipped):
+        print('NOTE: DerivedCoreProperties property not exposed by '
+              'unicodelib: ' + name, file=sys.stderr)
 
     generateTable('_derived_core_properties', "uint32_t", 0, sys.stdout, values)
 
