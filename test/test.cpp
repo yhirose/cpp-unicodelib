@@ -86,6 +86,27 @@ TEST_CASE("General category predicate functions", "[general category]") {
 TEST_CASE("Property", "[property]") {
   REQUIRE(is_white_space(U'a') == false);
   REQUIRE(is_white_space(U' ') == true);
+
+  // One probe per property whose table bit follows the properties that were
+  // added to PropList.txt in newer Unicode versions (the bits shift if the
+  // generator ever assigns them by order of appearance again).
+  REQUIRE(is_radical(0x2F00) == true);        // KANGXI RADICAL ONE
+  REQUIRE(is_unified_ideograph(0x4E00) == true);
+  REQUIRE(is_other_default_ignorable_code_point(0x3164) == true);
+  REQUIRE(is_deprecated(0x0149) == true);
+  REQUIRE(is_soft_dotted(U'i') == true);
+  REQUIRE(is_soft_dotted(U'j') == true);
+  REQUIRE(is_logical_order_exception(0x0E40) == true);  // THAI SARA E
+  REQUIRE(is_other_id_start(0x1885) == true);
+  REQUIRE(is_other_id_continue(0x00B7) == true);
+  REQUIRE(is_sentence_terminal(U'.') == true);
+  REQUIRE(is_variation_selector(0xFE0F) == true);
+  REQUIRE(is_pattern_white_space(U' ') == true);
+  REQUIRE(is_pattern_syntax(U'+') == true);
+  REQUIRE(is_prepended_concatenation_mark(0x0600) == true);
+  REQUIRE(is_radical(U'a') == false);
+  REQUIRE(is_soft_dotted(U'a') == false);
+  REQUIRE(is_variation_selector(U'a') == false);
 }
 
 //-----------------------------------------------------------------------------
@@ -225,6 +246,28 @@ TEST_CASE("Full case mapping", "[case]") {
   // Without Dutch locale, IJ should not be special-cased
   REQUIRE(to_titlecase(U"ijsje") == U"Ijsje");
   REQUIRE(to_titlecase(U"ijsje", "en") == U"Ijsje");
+
+  // Turkish/Azeri: I lowercases to dotless \u0131 unless followed by dot above
+  REQUIRE(to_lowercase(U"I", "tr") == U"\u0131");
+  REQUIRE(to_lowercase(U"AI", "tr") == U"a\u0131");
+  REQUIRE(to_lowercase(U"I", "az") == U"\u0131");
+  // I + combining dot above (U+0307) collapses to plain i
+  // (Not_Before_Dot skips the tr mapping, After_I removes the dot)
+  REQUIRE(to_lowercase(U"I\u0307", "tr") == U"i");
+  // \u0130 lowercases to plain i in Turkish, to i + dot above elsewhere
+  REQUIRE(to_lowercase(U"\u0130", "tr") == U"i");
+  REQUIRE(to_lowercase(U"\u0130") == U"i\u0307");
+
+  // Lithuanian: unconditional language-qualified mappings; \u00CC \u00CD
+  // \u0128 keep the dot above when lowercased
+  REQUIRE(to_lowercase(U"\u00CC", "lt") == U"i\u0307\u0300");
+  REQUIRE(to_lowercase(U"\u00CD", "lt") == U"i\u0307\u0301");
+  REQUIRE(to_lowercase(U"\u0128", "lt") == U"i\u0307\u0303");
+  // More_Above: dot above is introduced only when a class-230 mark follows
+  REQUIRE(to_lowercase(U"I\u0300", "lt") == U"i\u0307\u0300");
+  REQUIRE(to_lowercase(U"I", "lt") == U"i");
+  // After_Soft_Dotted: the dot above is removed when uppercasing
+  REQUIRE(to_uppercase(U"i\u0307", "lt") == U"I");
 }
 
 TEST_CASE("Full case folding", "[case]") {
@@ -312,6 +355,12 @@ TEST_CASE("Combining character sequence", "[segmentation]") {
           4);
   REQUIRE(extended_combining_character_sequence_count(korean.data(),
                                                       korean.length()) == 2);
+
+  // A standard Korean syllable block (D134) must not absorb following
+  // characters that are not trailing consonants.
+  std::u32string korean_mixed = U"\u1100\u1161abc";
+  REQUIRE(extended_combining_character_sequence_count(
+              korean_mixed.data(), korean_mixed.length()) == 4);
 
   // D56: The sequence <0030, FE00, 20E3> represents a variant form of the digit
   // zero, followed by an enclosing keycap.
@@ -427,6 +476,18 @@ TEST_CASE("Script extension", "[script]") {
 //-----------------------------------------------------------------------------
 // Normalization
 //-----------------------------------------------------------------------------
+
+TEST_CASE("Hangul composition boundary", "[normalization]") {
+  // Composition with a valid trailing consonant
+  REQUIRE(to_nfc(U"\u1100\u1161\u11A8") == U"\uAC01");
+  REQUIRE(to_nfc(U"\uAC00\u11A8") == U"\uAC01");
+  // U+11A7 (TBase) is not a valid trailing consonant and must not be
+  // silently absorbed into the preceding LV syllable.
+  REQUIRE(to_nfc(U"\uAC00\u11A7") == U"\uAC00\u11A7");
+  // U+11C3 (TBase + TCount) is beyond the modern trailing consonants and
+  // must not compose into a different syllable.
+  REQUIRE(to_nfc(U"\uAC00\u11C3") == U"\uAC00\u11C3");
+}
 
 TEST_CASE("Normalization", "[normalization]") {
   ifstream fs("../UCD/NormalizationTest.txt");
