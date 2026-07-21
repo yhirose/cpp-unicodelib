@@ -335,9 +335,9 @@ def genSimpleCaseMappingTable(ucd):
                 codePointPrev = codePoint
                 i += 1
 
-    print("const std::unordered_map<char32_t, const char32_t*> _simple_case_mappings = {")
-    for cp, upper, lower, title in items():
-        print('{ 0x%08X, U"\\U%08X\\U%08X\\U%08X" },' % (cp, upper, lower, title))
+    print("constexpr char32_t _simple_case_mappings[][4] = {")
+    for cp, upper, lower, title in sorted(items()):
+        print('{ 0x%08X, 0x%08X, 0x%08X, 0x%08X },' % (cp, upper, lower, title))
     print("};")
 
 #------------------------------------------------------------------------------
