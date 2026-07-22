@@ -11567,7 +11567,7 @@ const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings = 
 { 0x00000069, { U"\U00000069", U"\U00000130", U"\U00000130", "tr", SpecialCasingContext::Unassigned } },
 { 0x00000069, { U"\U00000069", U"\U00000130", U"\U00000130", "az", SpecialCasingContext::Unassigned } },
 };
-const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings_default = {
+const std::unordered_map<char32_t, SpecialCasing> _special_case_mappings_default = {
 { 0x000000DF, { U"\U000000DF", U"\U00000053\U00000073", U"\U00000053\U00000053", 0, SpecialCasingContext::Unassigned } },
 { 0x00000130, { U"\U00000069\U00000307", U"\U00000130", U"\U00000130", 0, SpecialCasingContext::Unassigned } },
 { 0x0000FB00, { U"\U0000FB00", U"\U00000046\U00000066", U"\U00000046\U00000046", 0, SpecialCasingContext::Unassigned } },
