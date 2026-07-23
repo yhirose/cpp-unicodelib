@@ -335,7 +335,7 @@ def genSimpleCaseMappingTable(ucd):
                 codePointPrev = codePoint
                 i += 1
 
-    print("const std::unordered_map<char32_t, const char32_t*> _simple_case_mappings = {")
+    print("inline const std::unordered_map<char32_t, const char32_t*> _simple_case_mappings = {")
     for cp, upper, lower, title in items():
         print('{ 0x%08X, U"\\U%08X\\U%08X\\U%08X" },' % (cp, upper, lower, title))
     print("};")
@@ -381,7 +381,7 @@ def genSpecialCaseMappingTable(ucd):
                 yield cp, lower, title, upper, language, context, hasContext
 
     # Regular
-    print("const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings = {")
+    print("inline const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings = {")
     for cp, lower, title, upper, language, context, hasContext in items():
         if hasContext == True:
             print('{ 0x%08X, { %s, %s, %s, %s, SpecialCasingContext::%s } },'
@@ -390,7 +390,7 @@ def genSpecialCaseMappingTable(ucd):
     print("};")
 
     # Default
-    print("const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings_default = {")
+    print("inline const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings_default = {")
     for cp, lower, title, upper, language, context, hasContext in items():
         if hasContext == False:
             print('{ 0x%08X, { %s, %s, %s, %s, SpecialCasingContext::%s } },'
@@ -426,7 +426,7 @@ def genCaseFoldingTable(ucd):
             elif status == 'T':
                 dic[cp][3] = codes[0]
 
-    print("const std::unordered_map<char32_t, CaseFolding> _case_foldings = {")
+    print("inline const std::unordered_map<char32_t, CaseFolding> _case_foldings = {")
     for cp in dic:
         cf = dic[cp]
         f = to_unicode_literal(cf[2])
@@ -670,7 +670,7 @@ def genScriptExtensionTable(ucd):
 
     ids = {}
 
-    print("const std::vector<std::vector<Script>> _script_extension_properties_for_id = {")
+    print("inline const std::vector<std::vector<Script>> _script_extension_properties_for_id = {")
     for line in fin:
         m = r.match(line)
         if m:
@@ -804,7 +804,7 @@ def genNomalizationCompositionTable(ucd):
             else:
                 exclusions.add(first)
 
-    print("const std::unordered_map<std::u32string, char32_t> _normalization_composition = {")
+    print("inline const std::unordered_map<std::u32string, char32_t> _normalization_composition = {")
     for cp, codes in items():
         if not cp in exclusions:
             print('{ U"\\U%08X\\U%08X", 0x%08X },' % (codes[0], codes[1], cp))
