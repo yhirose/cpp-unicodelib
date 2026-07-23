@@ -8558,7 +8558,7 @@ inline uint32_t get_value(char32_t cp) {
   return _block_values[i];
 }
 }
-const std::unordered_map<char32_t, const char32_t*> _simple_case_mappings = {
+inline const std::unordered_map<char32_t, const char32_t*> _simple_case_mappings = {
 { 0x00000041, U"\U00000041\U00000061\U00000041" },
 { 0x00000042, U"\U00000042\U00000062\U00000042" },
 { 0x00000043, U"\U00000043\U00000063\U00000043" },
@@ -11549,7 +11549,7 @@ const std::unordered_map<char32_t, const char32_t*> _simple_case_mappings = {
 { 0x0001E942, U"\U0001E920\U0001E942\U0001E920" },
 { 0x0001E943, U"\U0001E921\U0001E943\U0001E921" },
 };
-const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings = {
+inline const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings = {
 { 0x000003A3, { U"\U000003C2", U"\U000003A3", U"\U000003A3", 0, SpecialCasingContext::Final_Sigma } },
 { 0x00000307, { U"\U00000307", 0, 0, "lt", SpecialCasingContext::After_Soft_Dotted } },
 { 0x00000049, { U"\U00000069\U00000307", U"\U00000049", U"\U00000049", "lt", SpecialCasingContext::More_Above } },
@@ -11567,7 +11567,7 @@ const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings = 
 { 0x00000069, { U"\U00000069", U"\U00000130", U"\U00000130", "tr", SpecialCasingContext::Unassigned } },
 { 0x00000069, { U"\U00000069", U"\U00000130", U"\U00000130", "az", SpecialCasingContext::Unassigned } },
 };
-const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings_default = {
+inline const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings_default = {
 { 0x000000DF, { U"\U000000DF", U"\U00000053\U00000073", U"\U00000053\U00000053", 0, SpecialCasingContext::Unassigned } },
 { 0x00000130, { U"\U00000069\U00000307", U"\U00000130", U"\U00000130", 0, SpecialCasingContext::Unassigned } },
 { 0x0000FB00, { U"\U0000FB00", U"\U00000046\U00000066", U"\U00000046\U00000046", 0, SpecialCasingContext::Unassigned } },
@@ -11672,7 +11672,7 @@ const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings_de
 { 0x00001FC7, { U"\U00001FC7", U"\U00000397\U00000342\U00000345", U"\U00000397\U00000342\U00000399", 0, SpecialCasingContext::Unassigned } },
 { 0x00001FF7, { U"\U00001FF7", U"\U000003A9\U00000342\U00000345", U"\U000003A9\U00000342\U00000399", 0, SpecialCasingContext::Unassigned } },
 };
-const std::unordered_map<char32_t, CaseFolding> _case_foldings = {
+inline const std::unordered_map<char32_t, CaseFolding> _case_foldings = {
 { 0x00000041, { 0x00000061,  0x00000000, 0, 0x00000000 } },
 { 0x00000042, { 0x00000062,  0x00000000, 0, 0x00000000 } },
 { 0x00000043, { 0x00000063,  0x00000000, 0, 0x00000000 } },
@@ -20211,7 +20211,7 @@ inline Script get_value(char32_t cp) {
   return _block_values[i];
 }
 }
-const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
+inline const std::vector<std::vector<Script>> _script_extension_properties_for_id = {
 {
     Script::Avestan, 
     Script::Carian, 
@@ -24498,7 +24498,7 @@ inline NormalizationProperties get_value(char32_t cp) {
   return _block_values[i];
 }
 }
-const std::unordered_map<std::u32string, char32_t> _normalization_composition = {
+inline const std::unordered_map<std::u32string, char32_t> _normalization_composition = {
 { U"\U00000041\U00000300", 0x000000C0 },
 { U"\U00000041\U00000301", 0x000000C1 },
 { U"\U00000041\U00000302", 0x000000C2 },
