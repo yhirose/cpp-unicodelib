@@ -804,10 +804,9 @@ def genNomalizationCompositionTable(ucd):
             else:
                 exclusions.add(first)
 
-    print("inline const std::unordered_map<std::u32string, char32_t> _normalization_composition = {")
-    for cp, codes in items():
-        if not cp in exclusions:
-            print('{ U"\\U%08X\\U%08X", 0x%08X },' % (codes[0], codes[1], cp))
+    print("inline const uint64_t _normalization_composition[] {")
+    for e in sorted((codes[0], codes[1], cp) for cp, codes in items() if not cp in exclusions):
+        print("(UINT64_C(0x%08x) << 42) | (UINT64_C(0x%08x) << 21) | 0x%08x," % e)
     print("};")
 
 #------------------------------------------------------------------------------
