@@ -23,6 +23,10 @@ def sorted_by_code_point(rows, unique=True):
             assert a[0] != b[0], 'duplicate code point 0x%08X' % a[0]
     return rows
 
+def assign_index(indices, cp, i):
+    indices += [0] * (cp + 1 - len(indices))
+    indices[cp] = i
+
 #------------------------------------------------------------------------------
 # generateTable
 #------------------------------------------------------------------------------
@@ -363,8 +367,7 @@ def genSimpleCaseMappingTable(ucd):
     print('{ 0x00000000, 0x00000000, 0x00000000 },')
     for i, (cp, upper, lower, title) in enumerate(sorted_by_code_point(items()), start=1):
         print('{ 0x%08X, 0x%08X, 0x%08X },' % (upper, lower, title))
-        indices += [0] * (cp + 1 - len(indices))
-        indices[cp] = i
+        assign_index(indices, cp, i)
     print("};")
 
     # findBestBlockSize() assumes 8-byte entries, so it picks too small a block
@@ -443,10 +446,10 @@ def genSpecialCaseMappingTable(ucd):
     for i, (cp, entries) in enumerate(groups, start=1):
         print('{ %d, %d },' % (offset, len(entries)))
         offset += len(entries)
-        indices += [0] * (cp + 1 - len(indices))
-        indices[cp] = i
+        assign_index(indices, cp, i)
     print("};")
 
+    # uint16_t index table; see the blockSize note above _simple_case_mappings.
     generateTable('_special_case_mappings', 'uint16_t', 0, sys.stdout, indices,
                   blockSize=256)
 
@@ -462,10 +465,10 @@ def genSpecialCaseMappingTable(ucd):
         print('{ %s, %s, %s, %s, SpecialCasingContext::%s },'
                 % (to_unicode_literal(lower), to_unicode_literal(title),
                     to_unicode_literal(upper), language, context))
-        indices += [0] * (cp + 1 - len(indices))
-        indices[cp] = i
+        assign_index(indices, cp, i)
     print("};")
 
+    # uint16_t index table; see the blockSize note above _simple_case_mappings.
     generateTable('_special_case_mappings_default', 'uint16_t', 0, sys.stdout,
                   indices, blockSize=256)
 
@@ -504,10 +507,10 @@ def genCaseFoldingTable(ucd):
         cf = dic[cp]
         f = to_unicode_literal(cf[2])
         print('{ 0x%08X, 0x%08X, %s, 0x%08X },' % (cf[0], cf[1], f, cf[3]))
-        indices += [0] * (cp + 1 - len(indices))
-        indices[cp] = i
+        assign_index(indices, cp, i)
     print("};")
 
+    # uint16_t index table; see the blockSize note above _simple_case_mappings.
     generateTable('_case_foldings', 'uint16_t', 0, sys.stdout, indices,
                   blockSize=256)
 

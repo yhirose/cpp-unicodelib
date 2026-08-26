@@ -35536,15 +35536,18 @@ inline char32_t simple_titlecase_mapping(char32_t cp) {
   return simple_case_mapping(cp, CaseMappingType::Title);
 }
 
-inline char32_t simple_case_folding(char32_t cp) {
+inline const CaseFolding *find_case_folding(char32_t cp) {
   auto i = _case_foldings::get_value(cp);
-  if (i) {
-    const auto &cf = _case_folding_values[i];
-    if (cf.S) {
-      return cf.S;
+  return i ? &_case_folding_values[i] : nullptr;
+}
+
+inline char32_t simple_case_folding(char32_t cp) {
+  if (auto cf = find_case_folding(cp)) {
+    if (cf->S) {
+      return cf->S;
     }
-    if (cf.C) {
-      return cf.C;
+    if (cf->C) {
+      return cf->C;
     }
   }
   return cp;
@@ -35744,7 +35747,8 @@ inline void full_case_mapping(const char32_t *s32, size_t l, size_t i,
 
   auto did = _special_case_mappings_default::get_value(cp);
   if (did) {
-    if (auto codes = _special_case_mapping_default_values[did].case_mapping_codes(type)) {
+    const auto &sc = _special_case_mapping_default_values[did];
+    if (auto codes = sc.case_mapping_codes(type)) {
       out += codes;
     }
   } else {
@@ -35835,21 +35839,19 @@ inline std::u32string to_titlecase(const char32_t *s32, size_t l,
 
 inline void case_folding(char32_t cp, const CaseOptions &options,
                          std::u32string &out) {
-  auto i = _case_foldings::get_value(cp);
-  if (i) {
-    const auto &cf = _case_folding_values[i];
+  if (auto cf = find_case_folding(cp)) {
     if (has_tailoring(options.tailoring, CaseTailoring::TurkicCaseFold) &&
-        cf.T) {
-      out += cf.T;
+        cf->T) {
+      out += cf->T;
       return;
-    } else if (cf.F) {
-      out += cf.F;
+    } else if (cf->F) {
+      out += cf->F;
       return;
-    } else if (cf.S) {
-      out += cf.S;
+    } else if (cf->S) {
+      out += cf->S;
       return;
-    } else if (cf.C) {
-      out += cf.C;
+    } else if (cf->C) {
+      out += cf->C;
       return;
     }
   }
