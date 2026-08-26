@@ -359,9 +359,9 @@ def genSimpleCaseMappingTable(ucd):
     # below are 1-based and 0 means "this code point has no simple case mapping".
     indices = []
 
-    print("inline const char32_t _simple_case_mapping_values[][3] = {")
+    print("inline constexpr char32_t _simple_case_mapping_values[][3] = {")
     print('{ 0x00000000, 0x00000000, 0x00000000 },')
-    for i, (cp, upper, lower, title) in enumerate(items(), start=1):
+    for i, (cp, upper, lower, title) in enumerate(sorted_by_code_point(items()), start=1):
         print('{ 0x%08X, 0x%08X, 0x%08X },' % (upper, lower, title))
         indices += [0] * (cp + 1 - len(indices))
         indices[cp] = i
@@ -412,24 +412,62 @@ def genSpecialCaseMappingTable(ucd):
 
                 yield cp, lower, title, upper, language, context, hasContext
 
-    # Regular
-    print("inline constexpr SpecialCaseMapping _special_case_mappings[] = {")
     rows = list(items())
-    for cp, lower, title, upper, language, context, hasContext in sorted_by_code_point(
-            [r for r in rows if r[6]], unique=False):
-        print('{ 0x%08X, { %s, %s, %s, %s, SpecialCasingContext::%s } },'
-                % (cp, to_unicode_literal(lower), to_unicode_literal(title),
-                    to_unicode_literal(upper), language, context))
+
+    # Context-dependent entries: several code points have more than one entry
+    # (full_case_mapping() walks them in SpecialCasing.txt order and applies
+    # the first whose language/context condition matches), so these are
+    # grouped as {offset, count} into a flat SpecialCasing array, the same
+    # shape as the script extension tables below, keyed by code point through
+    # a block table.
+    context_rows = sorted_by_code_point([r for r in rows if r[6]], unique=False)
+
+    groups = []
+    for cp, lower, title, upper, language, context, hasContext in context_rows:
+        if not groups or groups[-1][0] != cp:
+            groups.append((cp, []))
+        groups[-1][1].append((lower, title, upper, language, context))
+
+    print("inline constexpr SpecialCasing _special_case_mapping_context_values[] = {")
+    for cp, entries in groups:
+        for lower, title, upper, language, context in entries:
+            print('{ %s, %s, %s, %s, SpecialCasingContext::%s },'
+                    % (to_unicode_literal(lower), to_unicode_literal(title),
+                        to_unicode_literal(upper), language, context))
     print("};")
 
-    # Default
-    print("inline constexpr SpecialCaseMapping _special_case_mappings_default[] = {")
-    for cp, lower, title, upper, language, context, hasContext in sorted_by_code_point(
-            [r for r in rows if not r[6]]):
-        print('{ 0x%08X, { %s, %s, %s, %s, SpecialCasingContext::%s } },'
-                % (cp, to_unicode_literal(lower), to_unicode_literal(title),
-                    to_unicode_literal(upper), language, context))
+    print("inline constexpr SpecialCasingGroup _special_case_mapping_context_groups[] = {")
+    print('{ 0, 0 },')
+    offset = 0
+    indices = []
+    for i, (cp, entries) in enumerate(groups, start=1):
+        print('{ %d, %d },' % (offset, len(entries)))
+        offset += len(entries)
+        indices += [0] * (cp + 1 - len(indices))
+        indices[cp] = i
     print("};")
+
+    generateTable('_special_case_mappings', 'uint16_t', 0, sys.stdout, indices,
+                  blockSize=256)
+
+    # Default (context-free) entries: exactly one per code point, so this is
+    # a plain code-point-indexed block table like _simple_case_mappings.
+    default_rows = sorted_by_code_point([r for r in rows if not r[6]])
+
+    indices = []
+    print("inline constexpr SpecialCasing _special_case_mapping_default_values[] = {")
+    print('{ 0, 0, 0, 0, SpecialCasingContext::Unassigned },')
+    for i, (cp, lower, title, upper, language, context, hasContext) in enumerate(
+            default_rows, start=1):
+        print('{ %s, %s, %s, %s, SpecialCasingContext::%s },'
+                % (to_unicode_literal(lower), to_unicode_literal(title),
+                    to_unicode_literal(upper), language, context))
+        indices += [0] * (cp + 1 - len(indices))
+        indices[cp] = i
+    print("};")
+
+    generateTable('_special_case_mappings_default', 'uint16_t', 0, sys.stdout,
+                  indices, blockSize=256)
 
 #------------------------------------------------------------------------------
 # genCaseFoldingTable
@@ -459,12 +497,19 @@ def genCaseFoldingTable(ucd):
             elif status == 'T':
                 dic[cp][3] = codes[0]
 
-    print("inline constexpr CaseFoldingEntry _case_foldings[] = {")
-    for cp in sorted(dic):
+    indices = []
+    print("inline constexpr CaseFolding _case_folding_values[] = {")
+    print('{ 0x00000000, 0x00000000, 0, 0x00000000 },')
+    for i, cp in enumerate(sorted(dic), start=1):
         cf = dic[cp]
         f = to_unicode_literal(cf[2])
-        print('{ 0x%08X, { 0x%08X,  0x%08X, %s, 0x%08X } },' % (cp, cf[0], cf[1], f, cf[3]))
+        print('{ 0x%08X, 0x%08X, %s, 0x%08X },' % (cf[0], cf[1], f, cf[3]))
+        indices += [0] * (cp + 1 - len(indices))
+        indices[cp] = i
     print("};")
+
+    generateTable('_case_foldings', 'uint16_t', 0, sys.stdout, indices,
+                  blockSize=256)
 
 #------------------------------------------------------------------------------
 # genBlockPropertyTable
