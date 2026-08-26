@@ -50,9 +50,9 @@ def findBestBlockSize(values):
     return blockSize
 
 def isPremitiveType(type):
-    return type == 'int' or type == 'uint32_t' or type == 'uint64_t' or type == 'NormalizationProperties'
+    return type == 'int' or type == 'uint16_t' or type == 'uint32_t' or type == 'uint64_t' or type == 'NormalizationProperties'
 
-def generateTable(name, type, defval, out, values):
+def generateTable(name, type, defval, out, values, blockSize=None):
     def formatValue(val):
         if isPremitiveType(type):
             return "{},".format(val)
@@ -68,8 +68,14 @@ using T = {1};
 const auto D = {1}::{2};
 """.format(name, type, defval))
 
-    blockSize = findBestBlockSize(values)
+    if blockSize is None:
+        blockSize = findBestBlockSize(values)
     out.write("static const size_t _block_size = {};\n".format(blockSize))
+
+    # Pad to a whole number of blocks so that the bounds check in get_value()
+    # can simply be "cp >= len(values)". Tables that do not cover the whole
+    # code point space stop right after their last non-default entry.
+    values = values + [defval] * (-len(values) % blockSize)
 
     blockValues = []
     for i in range(0, len(values), blockSize):
@@ -110,8 +116,15 @@ const auto D = {1}::{2};
             out.write(formatValue(defval))
     out.write("\n};\n")
 
+    # Tables covering the whole code point space keep the plain scalar check;
+    # a truncated table rejects everything past its last block instead.
+    if len(values) > MaxCopePoint:
+        bound = "cp > 0x10FFFF"
+    else:
+        bound = "cp >= 0x{:X}".format(len(values))
+
     out.write("""inline {0} get_value(char32_t cp) {{
-  if (cp > 0x10FFFF) {{
+  if ({2}) {{
     return {1};
   }}
   auto i = cp / _block_size;
@@ -123,7 +136,7 @@ const auto D = {1}::{2};
   return _block_values[i];
 }}
 }}
-""".format(type, formatValue(defval).rstrip(',')))
+""".format(type, formatValue(defval).rstrip(','), bound))
 
 #------------------------------------------------------------------------------
 # genGeneralCategoryPropertyTable
@@ -342,10 +355,22 @@ def genSimpleCaseMappingTable(ucd):
                 codePointPrev = codePoint
                 i += 1
 
-    print("inline constexpr SimpleCaseMapping _simple_case_mappings[] = {")
-    for cp, upper, lower, title in sorted_by_code_point(items()):
-        print('{ 0x%08X, U"\\U%08X\\U%08X\\U%08X" },' % (cp, upper, lower, title))
+    # Row 0 is the "no mapping" sentinel, so indices stored in the block table
+    # below are 1-based and 0 means "this code point has no simple case mapping".
+    indices = []
+
+    print("inline const char32_t _simple_case_mapping_values[][3] = {")
+    print('{ 0x00000000, 0x00000000, 0x00000000 },')
+    for i, (cp, upper, lower, title) in enumerate(items(), start=1):
+        print('{ 0x%08X, 0x%08X, 0x%08X },' % (upper, lower, title))
+        indices += [0] * (cp + 1 - len(indices))
+        indices[cp] = i
     print("};")
+
+    # findBestBlockSize() assumes 8-byte entries, so it picks too small a block
+    # for this uint16_t index table. 256 is the measured optimum here.
+    generateTable('_simple_case_mappings', 'uint16_t', 0, sys.stdout, indices,
+                  blockSize=256)
 
 #------------------------------------------------------------------------------
 # genSpecialCaseMappingTable
