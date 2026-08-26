@@ -16,6 +16,13 @@ def to_unicode_literal(str):
         return 'U"%s"' % ''.join([('\\U%08X' % x) for x in str])
     return '0'
 
+def sorted_by_code_point(rows, unique=True):
+    rows = sorted(rows, key=lambda r: r[0])
+    if unique:
+        for a, b in zip(rows, rows[1:]):
+            assert a[0] != b[0], 'duplicate code point 0x%08X' % a[0]
+    return rows
+
 #------------------------------------------------------------------------------
 # generateTable
 #------------------------------------------------------------------------------
@@ -335,8 +342,8 @@ def genSimpleCaseMappingTable(ucd):
                 codePointPrev = codePoint
                 i += 1
 
-    print("inline const std::unordered_map<char32_t, const char32_t*> _simple_case_mappings = {")
-    for cp, upper, lower, title in items():
+    print("inline constexpr SimpleCaseMapping _simple_case_mappings[] = {")
+    for cp, upper, lower, title in sorted_by_code_point(items()):
         print('{ 0x%08X, U"\\U%08X\\U%08X\\U%08X" },' % (cp, upper, lower, title))
     print("};")
 
@@ -381,21 +388,22 @@ def genSpecialCaseMappingTable(ucd):
                 yield cp, lower, title, upper, language, context, hasContext
 
     # Regular
-    print("inline const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings = {")
-    for cp, lower, title, upper, language, context, hasContext in items():
-        if hasContext == True:
-            print('{ 0x%08X, { %s, %s, %s, %s, SpecialCasingContext::%s } },'
-                    % (cp, to_unicode_literal(lower), to_unicode_literal(title),
-                        to_unicode_literal(upper), language, context))
+    print("inline constexpr SpecialCaseMapping _special_case_mappings[] = {")
+    rows = list(items())
+    for cp, lower, title, upper, language, context, hasContext in sorted_by_code_point(
+            [r for r in rows if r[6]], unique=False):
+        print('{ 0x%08X, { %s, %s, %s, %s, SpecialCasingContext::%s } },'
+                % (cp, to_unicode_literal(lower), to_unicode_literal(title),
+                    to_unicode_literal(upper), language, context))
     print("};")
 
     # Default
-    print("inline const std::unordered_multimap<char32_t, SpecialCasing> _special_case_mappings_default = {")
-    for cp, lower, title, upper, language, context, hasContext in items():
-        if hasContext == False:
-            print('{ 0x%08X, { %s, %s, %s, %s, SpecialCasingContext::%s } },'
-                    % (cp, to_unicode_literal(lower), to_unicode_literal(title),
-                        to_unicode_literal(upper), language, context))
+    print("inline constexpr SpecialCaseMapping _special_case_mappings_default[] = {")
+    for cp, lower, title, upper, language, context, hasContext in sorted_by_code_point(
+            [r for r in rows if not r[6]]):
+        print('{ 0x%08X, { %s, %s, %s, %s, SpecialCasingContext::%s } },'
+                % (cp, to_unicode_literal(lower), to_unicode_literal(title),
+                    to_unicode_literal(upper), language, context))
     print("};")
 
 #------------------------------------------------------------------------------
@@ -426,8 +434,8 @@ def genCaseFoldingTable(ucd):
             elif status == 'T':
                 dic[cp][3] = codes[0]
 
-    print("inline const std::unordered_map<char32_t, CaseFolding> _case_foldings = {")
-    for cp in dic:
+    print("inline constexpr CaseFoldingEntry _case_foldings[] = {")
+    for cp in sorted(dic):
         cf = dic[cp]
         f = to_unicode_literal(cf[2])
         print('{ 0x%08X, { 0x%08X,  0x%08X, %s, 0x%08X } },' % (cp, cf[0], cf[1], f, cf[3]))
@@ -669,8 +677,8 @@ def genScriptExtensionTable(ucd):
     r = re.compile(r"([0-9A-F]+)(?:\.\.([0-9A-F]+))?\s*;\s*(.*?)\s*#.*")
 
     ids = {}
+    lists = []
 
-    print("inline const std::vector<std::vector<Script>> _script_extension_properties_for_id = {")
     for line in fin:
         m = r.match(line)
         if m:
@@ -688,13 +696,20 @@ def genScriptExtensionTable(ucd):
             else:
                 id = len(ids)
                 ids[scripts] = id
-                print('{')
-                for sc in [dic[x] for x in scripts.split(' ')]:
-                    print('    Script::%s, ' % sc)
-                print('},')
+                lists.append([dic[x] for x in scripts.split(' ')])
 
             for cp in range(firstCode, lastCode):
                 values[cp] = id
+
+    print("inline constexpr Script _script_extension_scripts[] = {")
+    for scs in lists:
+        print('    ' + ' '.join('Script::%s,' % sc for sc in scs))
+    print("};")
+    print("inline constexpr ScriptExtension _script_extension_properties_for_id[] = {")
+    offset = 0
+    for scs in lists:
+        print('{ %d, %d },' % (offset, len(scs)))
+        offset += len(scs)
     print("};")
 
     generateTable('_script_extension_ids', "int", 0, sys.stdout, values)
@@ -804,10 +819,11 @@ def genNomalizationCompositionTable(ucd):
             else:
                 exclusions.add(first)
 
-    print("inline const std::unordered_map<std::u32string, char32_t> _normalization_composition = {")
-    for cp, codes in items():
-        if not cp in exclusions:
-            print('{ U"\\U%08X\\U%08X", 0x%08X },' % (codes[0], codes[1], cp))
+    rows = sorted_by_code_point(
+        ((codes[0], codes[1]), cp) for cp, codes in items() if not cp in exclusions)
+    print("inline constexpr Composition _normalization_composition[] = {")
+    for (first, second), cp in rows:
+        print('{ 0x%08X, 0x%08X, 0x%08X },' % (first, second, cp))
     print("};")
 
 #------------------------------------------------------------------------------
