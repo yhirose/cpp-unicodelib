@@ -20,7 +20,8 @@ ValueTypes = {
     'uint16_t': (2, False),
     'uint32_t': (4, False),
     'uint64_t': (8, False),
-    'NormalizationProperties': (24, False),
+    'const char *': (8, False),
+    'const char32_t *': (8, False),
     'GeneralCategory': (4, True),
     'Block': (4, True),
     'Script': (4, True),
@@ -178,6 +179,32 @@ def generateTable(name, type, defval, out, values, blockSize=None):
 }}
 }}
 """.format(bound, read.format(slot)))
+
+#------------------------------------------------------------------------------
+# generateRecordTable
+#------------------------------------------------------------------------------
+
+def generateRecordTable(name, type, out, fields, blockSize=None):
+    """Emit a struct-valued table as one trie per field.
+
+    `fields` is [(fieldName, fieldType, defaultValue, values)] in declaration
+    order. Each field gets its own table inside the namespace, and get_value()
+    puts the struct back together.
+
+    A field is stored once and reached only through its own table, so a caller
+    that wants one field links one table. That is not a size micro-decision:
+    NormalizationProperties holds pointers into the decomposition data, so a
+    single table of whole structs makes every decomposition string in the
+    database reachable from combining_class(), which wants an integer. Storing
+    the struct whole would also keep two copies of any field a caller reads
+    directly, which is a thing that can drift; here there is one copy.
+    """
+    out.write('namespace {} {{\n'.format(name))
+    for fieldName, fieldType, defval, values in fields:
+        generateTable(fieldName, fieldType, defval, out, values, blockSize)
+    out.write('inline {0} get_value(char32_t cp) {{\n'.format(type))
+    out.write('  return {{{}}};\n}}\n}}\n'.format(
+        ', '.join('{}::get_value(cp)'.format(f[0]) for f in fields)))
 
 #------------------------------------------------------------------------------
 # genGeneralCategoryPropertyTable
@@ -875,13 +902,19 @@ def genNomalizationPropertyTable(ucd):
         for cp in range(codePointPrev + 1, MaxCopePoint + 1):
             yield cp, combiningClass, None, []
 
-    values = []
+    classes = []
+    compats = []
+    decompositions = []
     for cp, cls, compat, codes in items():
-        compat = '"%s"' % compat if compat else '0'
-        values.append("{{{},{},{}}}".format(cls, compat, to_unicode_literal(codes)))
+        classes.append(cls)
+        compats.append('"%s"' % compat if compat else '0')
+        decompositions.append(to_unicode_literal(codes))
 
-    generateTable('_normalization_properties', 'NormalizationProperties',
-                  "{0,0,0}", sys.stdout, values)
+    generateRecordTable('_normalization_properties', 'NormalizationProperties',
+                        sys.stdout,
+                        [('combining_class', 'uint8_t', 0, classes),
+                         ('compat_format', 'const char *', 0, compats),
+                         ('codes', 'const char32_t *', 0, decompositions)])
 
 #------------------------------------------------------------------------------
 # genNomalizationCompositionTable
