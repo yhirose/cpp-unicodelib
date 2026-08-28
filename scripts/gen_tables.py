@@ -7,6 +7,30 @@ import re
 
 MaxCopePoint = 0x0010FFFF
 
+# Block sizes the trie builder weighs against each other; the block size
+# decides how much the second stage deduplicates.
+BlockShifts = [5, 6, 7, 8, 9]
+
+# Every type a table can hold a value of: what one value costs, which decides
+# whether a pool of distinct values is worth an extra indirection, and whether
+# its values are enumerators (spelled `T::Name`) rather than literals.
+ValueTypes = {
+    'int': (4, False),
+    'uint8_t': (1, False),
+    'uint16_t': (2, False),
+    'uint32_t': (4, False),
+    'uint64_t': (8, False),
+    'NormalizationProperties': (24, False),
+    'GeneralCategory': (4, True),
+    'Block': (4, True),
+    'Script': (4, True),
+    'GraphemeBreak': (4, True),
+    'WordBreak': (4, True),
+    'SentenceBreak': (4, True),
+    'Emoji': (4, True),
+    'EastAsianWidth': (4, True),
+}
+
 #------------------------------------------------------------------------------
 # Utilities
 #------------------------------------------------------------------------------
@@ -31,116 +55,129 @@ def assign_index(indices, cp, i):
 # generateTable
 #------------------------------------------------------------------------------
 
-def findDataSize(values, blockSize):
-    result = []
-    for i in range(0, len(values), blockSize):
-        items = values[i:i+blockSize]
-        result.append(all([x == items[0] for x in items]))
+def typeSize(type):
+    return ValueTypes[type][0]
 
-    itemSize = 8
-    return (result.count(True) * itemSize + result.count(False) * blockSize * itemSize) / 1024
+def needsTypePrefix(type):
+    """Enum values are spelled `T::Name`; every other type's are literals."""
+    return ValueTypes[type][1]
 
-def findBestBlockSize(values):
-    originalSize = findDataSize(values, 1)
-    smallestSize = originalSize
-    blockSize = 1
+def indexWidth(n):
+    return 1 if n <= 0x100 else 2
 
-    for bs in [16, 32, 64, 128, 256, 512, 1024]:
-        sz = findDataSize(values, bs)
-        if sz < smallestSize:
-            smallestSize = sz
-            blockSize = bs
+def indexType(n):
+    return 'uint{}_t'.format(indexWidth(n) * 8)
 
-    return blockSize
+def buildTrie(indices, blockShift):
+    """(stage1, stage2) for one block size, over indices into the value pool.
 
-def isPremitiveType(type):
-    return type == 'int' or type == 'uint16_t' or type == 'uint32_t' or type == 'uint64_t' or type == 'NormalizationProperties'
+    stage1 maps a block of 2**blockShift code points to a block of stage2, and
+    stage2 holds one entry per code point in it. Blocks with equal contents
+    share one stage2 block, which is where the compression comes from: most of
+    the code space repeats.
+    """
+    blockSize = 1 << blockShift
+    stage1 = []
+    stage2 = []
+    seen = {}
+    for i in range(0, len(indices), blockSize):
+        key = tuple(indices[i:i + blockSize])
+        block = seen.get(key)
+        if block is None:
+            block = seen[key] = len(stage2) >> blockShift
+            stage2.extend(key)
+        stage1.append(block)
+    return stage1, stage2
 
 def generateTable(name, type, defval, out, values, blockSize=None):
+    """Emit `values`, one entry per code point from U+0000 on, as a
+    deduplicated two-stage trie.
+
+    A table may stop before the end of the code point space -- the case
+    mapping ones do, right after their last mapped code point. It is padded
+    out to whole blocks with the default (which dedups to a single block) and
+    bounds-checks against its own length rather than 0x10FFFF.
+
+    `blockSize` pins the block size instead of searching for the smallest;
+    see the note at the case mapping call sites for the one place where the
+    smallest table is not the fastest one.
+    """
     def formatValue(val):
-        if isPremitiveType(type):
-            return "{},".format(val)
-        else:
-            return "D," if val == defval else "T::{},".format(val)
+        if not needsTypePrefix(type):
+            return str(val)
+        return 'D' if val == defval else 'T::{}'.format(val)
 
-    if isPremitiveType(type):
-        out.write("""namespace {0} {{
-""".format(name))
+    assert len(values) <= MaxCopePoint + 1, \
+        '%s: %d values for %d code points' % (name, len(values),
+                                              MaxCopePoint + 1)
+    truncated = len(values) <= MaxCopePoint
+
+    # The pool does not depend on the block size, so it is built once and the
+    # search runs over indices into it.
+    pool = []
+    poolIndex = {}
+    for v in values:
+        if v not in poolIndex:
+            poolIndex[v] = len(pool)
+            pool.append(v)
+    if truncated and defval not in poolIndex:
+        poolIndex[defval] = len(pool)
+        pool.append(defval)
+    indices = [poolIndex[v] for v in values]
+
+    # Values no wider than an index into them make the pool a load that buys
+    # nothing, so stage2 holds them directly instead.
+    valueSize = typeSize(type)
+    pooled = valueSize > indexWidth(len(pool))
+    entrySize = indexWidth(len(pool)) if pooled else valueSize
+
+    best = None
+    for shift in ([blockSize.bit_length() - 1] if blockSize else BlockShifts):
+        pad = -len(indices) % (1 << shift)
+        padded = indices + [poolIndex[defval]] * pad if pad else indices
+        stage1, stage2 = buildTrie(padded, shift)
+        size = (len(stage1) * indexWidth(len(stage2) >> shift)
+                + len(stage2) * entrySize
+                + (len(pool) * valueSize if pooled else 0))
+        if best is None or size < best[0]:
+            best = (size, shift, stage1, stage2, len(padded))
+    _, shift, stage1, stage2, covered = best
+
+    out.write('namespace {} {{\n'.format(name))
+    out.write('using T = {};\nconstexpr T D = {};\n'.format(
+        type,
+        '{}::{}'.format(type, defval) if needsTypePrefix(type) else defval))
+
+    def writeArray(elemType, arrayName, items, fmt=str):
+        out.write('inline constexpr {} {}[] = {{\n'.format(
+            elemType, arrayName))
+        for i, v in enumerate(items):
+            if i % 16 == 0:
+                out.write('\n ' if i else ' ')
+            out.write(fmt(v) + ',')
+        out.write('\n};\n')
+
+    writeArray(indexType(len(stage2) >> shift), '_stage1', stage1)
+    if pooled:
+        writeArray(indexType(len(pool)), '_stage2', stage2)
+        writeArray('T', '_pool', pool, formatValue)
+        read = '_pool[_stage2[{}]]'
     else:
-        out.write("""namespace {0} {{
-using T = {1};
-const auto D = {1}::{2};
-""".format(name, type, defval))
+        writeArray('T', '_stage2', [pool[i] for i in stage2], formatValue)
+        read = '_stage2[{}]'
+    slot = '(_stage1[cp >> {0}] << {0}) + (cp & {1})'.format(
+        shift, (1 << shift) - 1)
+    bound = ('cp >= 0x{:X}'.format(covered) if truncated
+             else 'cp > 0x{:X}'.format(MaxCopePoint))
 
-    if blockSize is None:
-        blockSize = findBestBlockSize(values)
-    out.write("static const size_t _block_size = {};\n".format(blockSize))
-
-    # Pad to a whole number of blocks so that the bounds check in get_value()
-    # can simply be "cp >= len(values)". Tables that do not cover the whole
-    # code point space stop right after their last non-default entry.
-    values = values + [defval] * (-len(values) % blockSize)
-
-    blockValues = []
-    for i in range(0, len(values), blockSize):
-        items = values[i:i+blockSize]
-        if all([x == items[0] for x in items]):
-            blockValues.append(items[0])
-        else:
-            blockValues.append(None)
-            iblock = i // blockSize
-            out.write("static const {} _{}[] = {{ ".format(type, iblock))
-            for val in items:
-                out.write(formatValue(val))
-            out.write(" };\n")
-
-    out.write("static const {} *_blocks[] = {{\n".format(type))
-    for iblock, blockValue in enumerate(blockValues):
-        if iblock % 8 == 0:
-            if iblock == 0:
-                out.write(" ")
-            else:
-                out.write("\n ")
-        if blockValue != None:
-            out.write("0,")
-        else:
-            out.write("_{},".format(iblock))
-    out.write("\n};\n")
-
-    out.write("static const {} _block_values[] = {{\n".format(type))
-    for iblock, blockValue in enumerate(blockValues):
-        if iblock % 8 == 0:
-            if iblock == 0:
-                out.write(" ")
-            else:
-                out.write("\n ")
-        if blockValue != None:
-            out.write(formatValue(blockValue))
-        else:
-            out.write(formatValue(defval))
-    out.write("\n};\n")
-
-    # Tables covering the whole code point space keep the plain scalar check;
-    # a truncated table rejects everything past its last block instead.
-    if len(values) > MaxCopePoint:
-        bound = "cp > 0x10FFFF"
-    else:
-        bound = "cp >= 0x{:X}".format(len(values))
-
-    out.write("""inline {0} get_value(char32_t cp) {{
-  if ({2}) {{
-    return {1};
+    out.write("""inline T get_value(char32_t cp) {{
+  if ({0}) {{
+    return D;
   }}
-  auto i = cp / _block_size;
-  auto bl = _blocks[i];
-  if (bl) {{
-    auto off = cp % _block_size;
-    return bl[off];
-  }}
-  return _block_values[i];
+  return {1};
 }}
 }}
-""".format(type, formatValue(defval).rstrip(','), bound))
+""".format(bound, read.format(slot)))
 
 #------------------------------------------------------------------------------
 # genGeneralCategoryPropertyTable
@@ -370,8 +407,16 @@ def genSimpleCaseMappingTable(ucd):
         assign_index(indices, cp, i)
     print("};")
 
-    # findBestBlockSize() assumes 8-byte entries, so it picks too small a block
-    # for this uint16_t index table. 256 is the measured optimum here.
+    # Pinned rather than searched. The search minimises bytes and picks a
+    # 32- or 64-entry block for the four case mapping tables, which measures
+    # 10% slower on to_lowercase/to_uppercase: those read all four per
+    # character, so the four first stages compete for cache, and a first
+    # stage is dense and touched on every lookup while a second stage is
+    # sparse. Byte count sees none of that -- weighting the first stage by 2
+    # or by 4 still does not select 256 -- so it is pinned here. It costs
+    # 9,246 bytes across the four tables. (The property tables are the
+    # opposite: pinning 256 on them costs 39,040 bytes and changes no
+    # measurement.)
     generateTable('_simple_case_mappings', 'uint16_t', 0, sys.stdout, indices,
                   blockSize=256)
 
@@ -449,7 +494,7 @@ def genSpecialCaseMappingTable(ucd):
         assign_index(indices, cp, i)
     print("};")
 
-    # uint16_t index table; see the blockSize note above _simple_case_mappings.
+    # Pinned to 256; see the note above _simple_case_mappings.
     generateTable('_special_case_mappings', 'uint16_t', 0, sys.stdout, indices,
                   blockSize=256)
 
@@ -468,9 +513,9 @@ def genSpecialCaseMappingTable(ucd):
         assign_index(indices, cp, i)
     print("};")
 
-    # uint16_t index table; see the blockSize note above _simple_case_mappings.
-    generateTable('_special_case_mappings_default', 'uint16_t', 0, sys.stdout,
-                  indices, blockSize=256)
+    # Pinned to 256; see the note above _simple_case_mappings.
+    generateTable('_special_case_mappings_default', 'uint16_t', 0,
+                  sys.stdout, indices, blockSize=256)
 
 #------------------------------------------------------------------------------
 # genCaseFoldingTable
@@ -510,7 +555,7 @@ def genCaseFoldingTable(ucd):
         assign_index(indices, cp, i)
     print("};")
 
-    # uint16_t index table; see the blockSize note above _simple_case_mappings.
+    # Pinned to 256; see the note above _simple_case_mappings.
     generateTable('_case_foldings', 'uint16_t', 0, sys.stdout, indices,
                   blockSize=256)
 
@@ -832,17 +877,11 @@ def genNomalizationPropertyTable(ucd):
 
     values = []
     for cp, cls, compat, codes in items():
-        if compat:
-            compat = '"%s"' % compat
-        else:
-            compat = '0'
-        if codes:
-            codes = 'U"%s"' % ''.join(["\\U%08X" % x for x in codes])
-        else:
-            codes = '0'
-        values.append("{{{},{},{}}}".format(cls, compat, codes))
+        compat = '"%s"' % compat if compat else '0'
+        values.append("{{{},{},{}}}".format(cls, compat, to_unicode_literal(codes)))
 
-    generateTable('_normalization_properties', 'NormalizationProperties', "{0,0,0}", sys.stdout, values)
+    generateTable('_normalization_properties', 'NormalizationProperties',
+                  "{0,0,0}", sys.stdout, values)
 
 #------------------------------------------------------------------------------
 # genNomalizationCompositionTable
