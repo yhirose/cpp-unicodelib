@@ -3,7 +3,9 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <fstream>
+#include <map>
 #include <sstream>
+#include <vector>
 
 using namespace std;
 using namespace unicode;
@@ -48,6 +50,14 @@ TEST_CASE("Property lookup beyond U+10FFFF", "[scalar value]") {
   REQUIRE(is_alphabetic(0x110000) == false);
   REQUIRE(block(0x110000) == Block::Unassigned);
   REQUIRE(script(0x110000) == Script::Unassigned);
+  REQUIRE(combining_class(0x110000) == 0);
+  // The case mapping tables stop at their last mapped code point, well
+  // before U+10FFFF, so these are past the end of the table itself.
+  REQUIRE(simple_uppercase_mapping(0x110000) == 0x110000);
+  REQUIRE(simple_lowercase_mapping(0xFFFFFFFF) == 0xFFFFFFFF);
+  REQUIRE(simple_titlecase_mapping(0x110000) == 0x110000);
+  REQUIRE(simple_case_folding(0x110000) == 0x110000);
+  REQUIRE(to_uppercase(std::u32string(1, 0x110000)) == std::u32string(1, 0x110000));
 }
 
 //-----------------------------------------------------------------------------
@@ -958,6 +968,208 @@ TEST_CASE("width consistency with EastAsianWidth.txt", "[width]") {
     for (char32_t cp = first; cp <= last; cp++) {
       REQUIRE(east_asian_width(cp) == expected);
     }
+  }
+}
+
+//-----------------------------------------------------------------------------
+// Table consistency with the Unicode Character Database
+//-----------------------------------------------------------------------------
+
+// The generated tables are checked against the files they are generated from,
+// for every code point -- including the ones no line in those files mentions.
+// A table can be right everywhere the data has an entry and wrong in between:
+// in the gaps, in the padding after a table that stops before U+10FFFF, and
+// past its end.
+
+namespace {
+
+std::vector<std::string> split_fields(const std::string &line) {
+  std::vector<std::string> fields;
+  size_t beg = 0;
+  for (size_t i = 0; i <= line.size(); i++) {
+    if (i == line.size() || line[i] == ';') {
+      fields.push_back(line.substr(beg, i - beg));
+      beg = i + 1;
+    }
+  }
+  return fields;
+}
+
+std::string trimmed(const std::string &s) {
+  auto beg = s.find_first_not_of(" \t");
+  if (beg == std::string::npos) return "";
+  return s.substr(beg, s.find_last_not_of(" \t\r") - beg + 1);
+}
+
+std::u32string parse_code_points(const std::string &s) {
+  std::u32string codes;
+  size_t beg = 0;
+  while (beg < s.size()) {
+    auto end = s.find(' ', beg);
+    codes += static_cast<char32_t>(std::stoul(s.substr(beg, end - beg), nullptr, 16));
+    if (end == std::string::npos) break;
+    beg = end + 1;
+  }
+  return codes;
+}
+
+GeneralCategory to_general_category(const std::string &s) {
+  static const std::map<std::string, GeneralCategory> categories = {
+      {"Lu", GeneralCategory::Lu}, {"Ll", GeneralCategory::Ll},
+      {"Lt", GeneralCategory::Lt}, {"Lm", GeneralCategory::Lm},
+      {"Lo", GeneralCategory::Lo}, {"Mn", GeneralCategory::Mn},
+      {"Mc", GeneralCategory::Mc}, {"Me", GeneralCategory::Me},
+      {"Nd", GeneralCategory::Nd}, {"Nl", GeneralCategory::Nl},
+      {"No", GeneralCategory::No}, {"Pc", GeneralCategory::Pc},
+      {"Pd", GeneralCategory::Pd}, {"Ps", GeneralCategory::Ps},
+      {"Pe", GeneralCategory::Pe}, {"Pi", GeneralCategory::Pi},
+      {"Pf", GeneralCategory::Pf}, {"Po", GeneralCategory::Po},
+      {"Sm", GeneralCategory::Sm}, {"Sc", GeneralCategory::Sc},
+      {"Sk", GeneralCategory::Sk}, {"So", GeneralCategory::So},
+      {"Zs", GeneralCategory::Zs}, {"Zl", GeneralCategory::Zl},
+      {"Zp", GeneralCategory::Zp}, {"Cc", GeneralCategory::Cc},
+      {"Cf", GeneralCategory::Cf}, {"Cs", GeneralCategory::Cs},
+      {"Co", GeneralCategory::Co}, {"Cn", GeneralCategory::Cn},
+  };
+  auto it = categories.find(s);
+  REQUIRE(it != categories.end());
+  return it->second;
+}
+
+}  // namespace
+
+TEST_CASE("Table consistency with UnicodeData.txt", "[tables]") {
+  ifstream fs("../UCD/UnicodeData.txt");
+  REQUIRE(fs);
+
+  const size_t code_point_count = 0x110000;
+
+  // Defaults for the code points the file does not list: unassigned, no
+  // combining class, no decomposition, and every case mapping to itself.
+  std::vector<GeneralCategory> category(code_point_count, GeneralCategory::Cn);
+  std::vector<uint8_t> combining(code_point_count, 0);
+  std::vector<char32_t> upper(code_point_count), lower(code_point_count), title(code_point_count);
+  for (char32_t cp = 0; cp < code_point_count; cp++) {
+    upper[cp] = lower[cp] = title[cp] = cp;
+  }
+  std::map<char32_t, std::string> compat_format;
+  std::map<char32_t, std::u32string> decomposition;
+
+  std::vector<std::string> flds;
+  auto assign = [&](char32_t cp) {
+    category[cp] = to_general_category(flds[2]);
+    combining[cp] = static_cast<uint8_t>(std::stoi(flds[3]));
+
+    // An empty simple mapping is the code point itself, except that an empty
+    // titlecase mapping is the uppercase one (UAX #44, 5.7.3).
+    if (!flds[12].empty()) upper[cp] = std::stoul(flds[12], nullptr, 16);
+    if (!flds[13].empty()) lower[cp] = std::stoul(flds[13], nullptr, 16);
+    title[cp] = !flds[14].empty()
+                    ? static_cast<char32_t>(std::stoul(flds[14], nullptr, 16))
+                    : upper[cp];
+
+    if (!flds[5].empty()) {
+      auto mapping = flds[5];
+      std::string format;
+      if (mapping[0] == '<') {
+        auto end = mapping.find('>');
+        format = mapping.substr(1, end - 1);
+        mapping = trimmed(mapping.substr(end + 1));
+      }
+      compat_format[cp] = format;
+      decomposition[cp] = parse_code_points(mapping);
+    }
+  };
+
+  std::string line;
+  bool in_range = false;
+  char32_t range_first = 0;
+  while (std::getline(fs, line)) {
+    if (line.empty()) continue;
+    flds = split_fields(line);
+    REQUIRE(flds.size() >= 15);
+    char32_t cp = std::stoul(flds[0], nullptr, 16);
+
+    // A "<..., First>" line and the "<..., Last>" line after it stand for
+    // every code point between them.
+    if (flds[1].size() > 8 &&
+        flds[1].compare(flds[1].size() - 8, 8, ", First>") == 0) {
+      range_first = cp;
+      in_range = true;
+      continue;
+    }
+    if (in_range) {
+      for (char32_t c = range_first; c <= cp; c++) assign(c);
+      in_range = false;
+      continue;
+    }
+    assign(cp);
+  }
+  REQUIRE(in_range == false);
+
+  for (char32_t cp = 0; cp < code_point_count; cp++) {
+    REQUIRE(general_category(cp) == category[cp]);
+    REQUIRE(combining_class(cp) == combining[cp]);
+    REQUIRE(simple_uppercase_mapping(cp) == upper[cp]);
+    REQUIRE(simple_lowercase_mapping(cp) == lower[cp]);
+    REQUIRE(simple_titlecase_mapping(cp) == title[cp]);
+
+    // NormalizationProperties is stored one field per table, so the struct
+    // get_value() puts back together has to agree with the fields.
+    auto prop = _normalization_properties::get_value(cp);
+    REQUIRE(prop.combining_class == combining[cp]);
+
+    auto it = decomposition.find(cp);
+    if (it == decomposition.end()) {
+      REQUIRE(prop.codes == nullptr);
+      REQUIRE(prop.compat_format == nullptr);
+    } else {
+      REQUIRE(prop.codes != nullptr);
+      REQUIRE(std::u32string(prop.codes) == it->second);
+      const auto &format = compat_format[cp];
+      if (format.empty()) {
+        REQUIRE(prop.compat_format == nullptr);
+      } else {
+        REQUIRE(prop.compat_format != nullptr);
+        REQUIRE(std::string(prop.compat_format) == format);
+      }
+    }
+  }
+}
+
+TEST_CASE("Table consistency with CaseFolding.txt", "[tables]") {
+  ifstream fs("../UCD/CaseFolding.txt");
+  REQUIRE(fs);
+
+  const size_t code_point_count = 0x110000;
+  std::vector<char32_t> folding(code_point_count);
+  for (char32_t cp = 0; cp < code_point_count; cp++) folding[cp] = cp;
+  std::vector<bool> has_simple(code_point_count, false);
+
+  std::string line;
+  while (std::getline(fs, line)) {
+    auto hash = line.find('#');
+    if (hash != std::string::npos) line = line.substr(0, hash);
+    auto flds = split_fields(line);
+    if (flds.size() < 3) continue;
+
+    char32_t cp = std::stoul(trimmed(flds[0]), nullptr, 16);
+    auto status = trimmed(flds[1]);
+    auto mapping = parse_code_points(trimmed(flds[2]));
+    if (mapping.empty()) continue;
+
+    // simple_case_folding() prefers an S entry over the C entry for the same
+    // code point; F and T entries belong to the full and Turkic foldings.
+    if (status == "C" && !has_simple[cp]) {
+      folding[cp] = mapping[0];
+    } else if (status == "S") {
+      folding[cp] = mapping[0];
+      has_simple[cp] = true;
+    }
+  }
+
+  for (char32_t cp = 0; cp < code_point_count; cp++) {
+    REQUIRE(simple_case_folding(cp) == folding[cp]);
   }
 }
 

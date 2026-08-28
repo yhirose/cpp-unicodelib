@@ -878,8 +878,14 @@ def genNomalizationPropertyTable(ucd):
             combiningClass = int(flds[3])
             codes = flds[5]
 
+            # Code points the file does not list are unassigned: canonical
+            # combining class 0, no decomposition. Filling a gap with the
+            # combining class of the line that follows it gave 45 runs of
+            # unassigned code points a nonzero class, U+0590 (220, from the
+            # Hebrew accent after it) among them, which then reordered under
+            # the canonical ordering algorithm.
             for cp in range(codePointPrev + 1, codePoint):
-                yield cp, combiningClass, None, []
+                yield cp, 0, None, []
 
             if flds[1].endswith('First>'):
                 fldsLast = data[i + 1]
@@ -900,7 +906,7 @@ def genNomalizationPropertyTable(ucd):
                 i += 1
 
         for cp in range(codePointPrev + 1, MaxCopePoint + 1):
-            yield cp, combiningClass, None, []
+            yield cp, 0, None, []
 
     classes = []
     compats = []
