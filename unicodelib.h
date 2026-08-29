@@ -36528,11 +36528,12 @@ inline void decompose_code(const char32_t cp, std::u32string &out,
     hangul::decompose_hangul(cp, out);
   } else {
     // Each field of NormalizationProperties is its own table, so read the
-    // two this needs rather than assembling the struct.
+    // ones this needs rather than assembling the struct -- and only when it
+    // needs them: the compatibility forms take the branch either way.
     auto codes = _normalization_properties::codes::get_value(cp);
-    if (codes && (!_normalization_properties::compat_format::get_value(cp) ||
-                  norm == Normalization::NFKC ||
-                  norm == Normalization::NFKD)) {
+    if (codes &&
+        (norm == Normalization::NFKC || norm == Normalization::NFKD ||
+         !_normalization_properties::compat_format::get_value(cp))) {
       size_t i = 0;
       while (codes[i]) {
         decompose_code(codes[i], out, norm);
@@ -36555,11 +36556,10 @@ inline std::u32string decompose(const char32_t *s32, size_t l,
 
   // Reorder combining marks with 'Canonical Ordering Algorithm'.
   for (size_t i = 0; i < out.length(); i++) {
-    if (combining_class(out[i]) > 0) {
+    auto klass = combining_class(out[i]);
+    if (klass > 0) {
       for (size_t j = i; j > 0; j--) {
-        auto prev = out[j - 1];
-        auto curr = out[j];
-        if (combining_class(prev) <= combining_class(curr)) {
+        if (combining_class(out[j - 1]) <= klass) {
           break;
         }
         std::swap(out[j - 1], out[j]);
@@ -36599,8 +36599,7 @@ inline size_t compose_codes(const char32_t *s32, size_t l,
     size_t i = 1;
     for (; i < l; i++) {
       if (!cheched[i]) {
-        auto klass =
-            _normalization_properties::get_value(s32[i]).combining_class;
+        auto klass = combining_class(s32[i]);
         if (max_class < klass) {
           if (compose_pair(starter, s32[i], starter)) {
             handled = true;
@@ -36621,7 +36620,7 @@ inline size_t compose_codes(const char32_t *s32, size_t l,
   size_t i = 1;
   for (; i < l; i++) {
     if (!cheched[i]) {
-      if (_normalization_properties::get_value(s32[i]).combining_class == 0) {
+      if (combining_class(s32[i]) == 0) {
         break;
       }
       out += s32[i];
