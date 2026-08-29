@@ -28,6 +28,58 @@ void split(const char *b, const char *e, char d, Fn fn) {
   }
 }
 
+namespace {
+
+const size_t code_point_count = 0x110000;
+
+std::vector<std::string> split_fields(const std::string &line) {
+  std::vector<std::string> fields;
+  split(line.data(), line.data() + line.size(), ';',
+        [&](auto b, auto e) { fields.emplace_back(b, e); });
+  return fields;
+}
+
+std::string trimmed(const std::string &s) {
+  auto beg = s.find_first_not_of(" \t");
+  if (beg == std::string::npos) return "";
+  return s.substr(beg, s.find_last_not_of(" \t\r") - beg + 1);
+}
+
+std::u32string parse_code_points(const std::string &s) {
+  std::u32string codes;
+  split(s.data(), s.data() + s.size(), ' ', [&](auto b, auto e) {
+    if (b != e) {
+      codes += static_cast<char32_t>(std::stoul(std::string(b, e), nullptr, 16));
+    }
+  });
+  return codes;
+}
+
+GeneralCategory to_general_category(const std::string &s) {
+  static const std::map<std::string, GeneralCategory> categories = {
+      {"Lu", GeneralCategory::Lu}, {"Ll", GeneralCategory::Ll},
+      {"Lt", GeneralCategory::Lt}, {"Lm", GeneralCategory::Lm},
+      {"Lo", GeneralCategory::Lo}, {"Mn", GeneralCategory::Mn},
+      {"Mc", GeneralCategory::Mc}, {"Me", GeneralCategory::Me},
+      {"Nd", GeneralCategory::Nd}, {"Nl", GeneralCategory::Nl},
+      {"No", GeneralCategory::No}, {"Pc", GeneralCategory::Pc},
+      {"Pd", GeneralCategory::Pd}, {"Ps", GeneralCategory::Ps},
+      {"Pe", GeneralCategory::Pe}, {"Pi", GeneralCategory::Pi},
+      {"Pf", GeneralCategory::Pf}, {"Po", GeneralCategory::Po},
+      {"Sm", GeneralCategory::Sm}, {"Sc", GeneralCategory::Sc},
+      {"Sk", GeneralCategory::Sk}, {"So", GeneralCategory::So},
+      {"Zs", GeneralCategory::Zs}, {"Zl", GeneralCategory::Zl},
+      {"Zp", GeneralCategory::Zp}, {"Cc", GeneralCategory::Cc},
+      {"Cf", GeneralCategory::Cf}, {"Cs", GeneralCategory::Cs},
+      {"Co", GeneralCategory::Co}, {"Cn", GeneralCategory::Cn},
+  };
+  auto it = categories.find(s);
+  REQUIRE(it != categories.end());
+  return it->second;
+}
+
+}  // namespace
+
 //-----------------------------------------------------------------------------
 // Unicode Scalar Value
 //-----------------------------------------------------------------------------
@@ -953,9 +1005,7 @@ TEST_CASE("width consistency with EastAsianWidth.txt", "[width]") {
     if (semi == std::string::npos) continue;
 
     std::string range = line.substr(0, semi);
-    std::string value = line.substr(semi + 1);
-    value.erase(0, value.find_first_not_of(" \t"));
-    value.erase(value.find_last_not_of(" \t\r") + 1);
+    std::string value = trimmed(line.substr(semi + 1));
     if (value.empty()) continue;
 
     auto dotdot = range.find("..");
@@ -981,68 +1031,9 @@ TEST_CASE("width consistency with EastAsianWidth.txt", "[width]") {
 // in the gaps, in the padding after a table that stops before U+10FFFF, and
 // past its end.
 
-namespace {
-
-std::vector<std::string> split_fields(const std::string &line) {
-  std::vector<std::string> fields;
-  size_t beg = 0;
-  for (size_t i = 0; i <= line.size(); i++) {
-    if (i == line.size() || line[i] == ';') {
-      fields.push_back(line.substr(beg, i - beg));
-      beg = i + 1;
-    }
-  }
-  return fields;
-}
-
-std::string trimmed(const std::string &s) {
-  auto beg = s.find_first_not_of(" \t");
-  if (beg == std::string::npos) return "";
-  return s.substr(beg, s.find_last_not_of(" \t\r") - beg + 1);
-}
-
-std::u32string parse_code_points(const std::string &s) {
-  std::u32string codes;
-  size_t beg = 0;
-  while (beg < s.size()) {
-    auto end = s.find(' ', beg);
-    codes += static_cast<char32_t>(std::stoul(s.substr(beg, end - beg), nullptr, 16));
-    if (end == std::string::npos) break;
-    beg = end + 1;
-  }
-  return codes;
-}
-
-GeneralCategory to_general_category(const std::string &s) {
-  static const std::map<std::string, GeneralCategory> categories = {
-      {"Lu", GeneralCategory::Lu}, {"Ll", GeneralCategory::Ll},
-      {"Lt", GeneralCategory::Lt}, {"Lm", GeneralCategory::Lm},
-      {"Lo", GeneralCategory::Lo}, {"Mn", GeneralCategory::Mn},
-      {"Mc", GeneralCategory::Mc}, {"Me", GeneralCategory::Me},
-      {"Nd", GeneralCategory::Nd}, {"Nl", GeneralCategory::Nl},
-      {"No", GeneralCategory::No}, {"Pc", GeneralCategory::Pc},
-      {"Pd", GeneralCategory::Pd}, {"Ps", GeneralCategory::Ps},
-      {"Pe", GeneralCategory::Pe}, {"Pi", GeneralCategory::Pi},
-      {"Pf", GeneralCategory::Pf}, {"Po", GeneralCategory::Po},
-      {"Sm", GeneralCategory::Sm}, {"Sc", GeneralCategory::Sc},
-      {"Sk", GeneralCategory::Sk}, {"So", GeneralCategory::So},
-      {"Zs", GeneralCategory::Zs}, {"Zl", GeneralCategory::Zl},
-      {"Zp", GeneralCategory::Zp}, {"Cc", GeneralCategory::Cc},
-      {"Cf", GeneralCategory::Cf}, {"Cs", GeneralCategory::Cs},
-      {"Co", GeneralCategory::Co}, {"Cn", GeneralCategory::Cn},
-  };
-  auto it = categories.find(s);
-  REQUIRE(it != categories.end());
-  return it->second;
-}
-
-}  // namespace
-
 TEST_CASE("Table consistency with UnicodeData.txt", "[tables]") {
   ifstream fs("../UCD/UnicodeData.txt");
   REQUIRE(fs);
-
-  const size_t code_point_count = 0x110000;
 
   // Defaults for the code points the file does not list: unassigned, no
   // combining class, no decomposition, and every case mapping to itself.
@@ -1141,7 +1132,6 @@ TEST_CASE("Table consistency with CaseFolding.txt", "[tables]") {
   ifstream fs("../UCD/CaseFolding.txt");
   REQUIRE(fs);
 
-  const size_t code_point_count = 0x110000;
   std::vector<char32_t> folding(code_point_count);
   for (char32_t cp = 0; cp < code_point_count; cp++) folding[cp] = cp;
   std::vector<bool> has_simple(code_point_count, false);
