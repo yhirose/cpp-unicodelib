@@ -918,9 +918,12 @@ def genNomalizationCompositionTable(ucd):
 
     rows = sorted_by_code_point(
         ((codes[0], codes[1]), cp) for cp, codes in items() if not cp in exclusions)
-    print("inline constexpr Composition _normalization_composition[] = {")
+    # Three 21-bit code points to an entry; compose_pair() in unicodelib.h
+    # unpacks them.
+    print("inline constexpr uint64_t _normalization_composition[] = {")
     for (first, second), cp in rows:
-        print('{ 0x%08X, 0x%08X, 0x%08X },' % (first, second, cp))
+        print('(UINT64_C(0x%06X) << 42) | (UINT64_C(0x%06X) << 21) | 0x%06X,'
+              % (first, second, cp))
     print("};")
 
 #------------------------------------------------------------------------------
