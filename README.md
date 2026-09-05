@@ -211,8 +211,10 @@ size_t grapheme_length(const char32_t* s32, size_t l);
 size_t grapheme_count(const char32_t* s32, size_t l);
 
 bool is_word_boundary(const char32_t *s32, size_t l, size_t i);
+size_t word_length(const char32_t *s32, size_t l);
 
 bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i);
+size_t sentence_length(const char32_t *s32, size_t l);
 ```
 
 ### East Asian Width / Display Width

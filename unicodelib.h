@@ -339,8 +339,10 @@ size_t grapheme_length(const char32_t *s32, size_t l);
 size_t grapheme_count(const char32_t *s32, size_t l);
 
 bool is_word_boundary(const char32_t *s32, size_t l, size_t i);
+size_t word_length(const char32_t *s32, size_t l);
 
 bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i);
+size_t sentence_length(const char32_t *s32, size_t l);
 
 //-----------------------------------------------------------------------------
 // Block
@@ -1063,6 +1065,22 @@ inline size_t grapheme_length(const std::u32string_view s32) {
 
 inline size_t grapheme_length(const char32_t *s32) {
   return grapheme_length(s32, std::char_traits<char32_t>::length(s32));
+}
+
+inline size_t word_length(const std::u32string_view s32) {
+  return word_length(s32.data(), s32.length());
+}
+
+inline size_t word_length(const char32_t *s32) {
+  return word_length(s32, std::char_traits<char32_t>::length(s32));
+}
+
+inline size_t sentence_length(const std::u32string_view s32) {
+  return sentence_length(s32.data(), s32.length());
+}
+
+inline size_t sentence_length(const char32_t *s32) {
+  return sentence_length(s32, std::char_traits<char32_t>::length(s32));
 }
 
 // ----------------------------------------------------------------------------
@@ -36182,6 +36200,22 @@ inline bool is_word_boundary(const char32_t *s32, size_t l, size_t i) {
   return true;
 }
 
+// Length of the word segment at the start of the text: the same
+// first-boundary-forward scan as grapheme_length. Walk a text by handing the
+// remainder back in (s32 + i, l - i) rather than by asking is_word_boundary
+// about every position of the whole text -- WB15/16 look back over the
+// preceding Regional_Indicator run, so that shape is quadratic over a run of
+// flags while this one stays linear.
+inline size_t word_length(const char32_t *s32, size_t l) {
+  size_t i = 1;
+  for (; i < l; i++) {
+    if (is_word_boundary(s32, l, i)) {
+      return i;
+    }
+  }
+  return i;
+}
+
 //-----------------------------------------------------------------------------
 // Sentence Segmentation
 //-----------------------------------------------------------------------------
@@ -36384,6 +36418,16 @@ inline bool is_sentence_boundary(const char32_t *s32, size_t l, size_t i) {
 
   // SB998: Any × Any
   return false;
+}
+
+inline size_t sentence_length(const char32_t *s32, size_t l) {
+  size_t i = 1;
+  for (; i < l; i++) {
+    if (is_sentence_boundary(s32, l, i)) {
+      return i;
+    }
+  }
+  return i;
 }
 
 //-----------------------------------------------------------------------------
