@@ -2,6 +2,7 @@
 #include <unicodelib_encodings.h>
 
 #include <catch2/catch_test_macros.hpp>
+#include <algorithm>
 #include <chrono>
 #include <fstream>
 #include <map>
@@ -536,11 +537,9 @@ TEST_CASE("Sentence segmentation", "[segmentation]") {
       });
 }
 
-// WB15/16 look back over the preceding run of Regional_Indicators, so asking
-// is_word_boundary about every position of a long run of flags is quadratic.
-// word_length hands the remainder back in from each boundary and stays
-// linear: 400,000 scalars walk in a few milliseconds here, where the
-// quadratic shape takes minutes.
+// The linear shape segment_length's comment promises: 400,000 scalars of
+// flags walk in a few milliseconds, where asking is_word_boundary about every
+// position takes minutes.
 TEST_CASE("Word segmentation is linear over a run of flags",
           "[segmentation]") {
   const size_t flags = 200000;
@@ -551,15 +550,12 @@ TEST_CASE("Word segmentation is linear over a run of flags",
   }
 
   auto start = std::chrono::steady_clock::now();
-  size_t words = 0;
-  for (size_t i = 0; i < s32.size(); words++) {
-    auto len = word_length(s32.data() + i, s32.size() - i);
-    REQUIRE(len == 2);
-    i += len;
-  }
+  auto boundary = walk_boundaries(
+      s32, [](auto *s, auto l) { return word_length(s, l); });
   auto elapsed = std::chrono::steady_clock::now() - start;
 
-  CHECK(words == flags);
+  // One boundary per flag, plus the start of the text.
+  CHECK(std::count(boundary.begin(), boundary.end(), true) == flags + 1);
   CHECK(std::chrono::duration_cast<std::chrono::seconds>(elapsed).count() < 2);
 }
 
