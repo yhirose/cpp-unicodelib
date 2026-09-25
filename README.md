@@ -3,7 +3,7 @@ cpp-unicodelib
 
 [![](https://github.com/yhirose/cpp-unicodelib/workflows/CMake/badge.svg)](https://github.com/yhirose/cpp-unicodelib/actions)
 
-A C++17 single-file header-only Unicode library. (Unicode 17.0.0)
+A C++17 single-file header-only Unicode library. (Unicode 18.0.0)
 
 API
 ---
@@ -299,4 +299,4 @@ The versions are also available in code as `CPPUNICODELIB_VERSION` and `unicode:
 License
 -------
 
-MIT license (© 2025 Yuji Hirose)
+MIT license (© 2026 Yuji Hirose)
