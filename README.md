@@ -287,6 +287,15 @@ std::u16string to_utf16(const wchar_t *sw, size_t l);
 std::u32string to_utf32(const wchar_t *sw, size_t l);
 ```
 
+Versioning
+----------
+
+Release tags are `vMAJOR.MINOR.PATCH`. `MAJOR.MINOR` is the Unicode version the release supports, and `PATCH` counts the library releases on that Unicode version. For example, `v18.0.0` is the first release for Unicode 18.0, and `v18.0.1` is a library update on the same Unicode 18.0 data, not "Unicode 18.0.1".
+
+A new Unicode version can change results (such as grapheme cluster boundaries) and the values of the generated enums (such as `Block`). Pin a tag if you need stable output.
+
+The versions are also available in code as `CPPUNICODELIB_VERSION` and `unicode::Unicode_Version`.
+
 License
 -------
 
