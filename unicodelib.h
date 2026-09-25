@@ -9,8 +9,8 @@
 
 // MAJOR.MINOR is the Unicode version; PATCH counts the library releases made
 // on it. scripts/release.sh bumps these.
-#define CPPUNICODELIB_VERSION "17.0.0"
-#define CPPUNICODELIB_VERSION_NUM "0x110000"
+#define CPPUNICODELIB_VERSION "18.0.0"
+#define CPPUNICODELIB_VERSION_NUM "0x120000"
 
 #include <algorithm>
 #include <cstdint>
